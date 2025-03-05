@@ -1,0 +1,20 @@
+{
+  "type": "createdieselgenerators:wire_cutting",
+  "ingredients": [
+    {
+      "tag": "forge:plates/gold"
+    }
+  ],
+  "results": [
+    {
+      "item": "createaddition:gold_wire"
+    }
+  ],
+
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "createaddition"
+    }
+  ]
+}

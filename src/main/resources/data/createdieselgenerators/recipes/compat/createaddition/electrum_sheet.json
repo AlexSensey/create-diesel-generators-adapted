@@ -1,0 +1,20 @@
+{
+  "type": "createdieselgenerators:hammering",
+  "ingredients": [
+    {
+      "tag": "forge:ingots/electrum"
+    }
+  ],
+  "results": [
+    {
+      "item": "createaddition:electrum_sheet"
+    }
+  ],
+
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "createaddition"
+    }
+  ]
+}

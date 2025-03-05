@@ -1,0 +1,20 @@
+{
+  "type": "createdieselgenerators:wire_cutting",
+  "ingredients": [
+    {
+      "tag": "forge:ingots/copper"
+    }
+  ],
+  "results": [
+    {
+      "item": "createaddition:copper_rod"
+    }
+  ],
+
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "createaddition"
+    }
+  ]
+}

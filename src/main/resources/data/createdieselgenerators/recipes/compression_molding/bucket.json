@@ -1,0 +1,14 @@
+{
+  "type": "createdieselgenerators:compression_molding",
+  "ingredients": [
+    {
+      "tag": "forge:plates/iron"
+    }
+  ],
+  "mold": "createdieselgenerators:bowl",
+  "results": [
+    {
+      "item": "minecraft:bucket"
+    }
+  ]
+}

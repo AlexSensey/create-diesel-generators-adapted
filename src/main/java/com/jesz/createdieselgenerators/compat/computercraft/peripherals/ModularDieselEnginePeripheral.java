@@ -1,16 +1,16 @@
 package com.jesz.createdieselgenerators.compat.computercraft.peripherals;
 
-import com.jesz.createdieselgenerators.blocks.entity.LargeDieselGeneratorBlockEntity;
-import com.jesz.createdieselgenerators.other.FuelTypeManager;
+import com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlockEntity;
+import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
 import com.simibubi.create.compat.computercraft.implementation.peripherals.SyncedPeripheral;
 import dan200.computercraft.api.lua.LuaFunction;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 
 
-public class ModularDieselEnginePeripheral extends SyncedPeripheral<LargeDieselGeneratorBlockEntity> {
+public class ModularDieselEnginePeripheral extends SyncedPeripheral<ModularDieselEngineBlockEntity> {
 
-    public ModularDieselEnginePeripheral(LargeDieselGeneratorBlockEntity blockEntity) {
+    public ModularDieselEnginePeripheral(ModularDieselEngineBlockEntity blockEntity) {
         super(blockEntity);
     }
 
@@ -31,7 +31,7 @@ public class ModularDieselEnginePeripheral extends SyncedPeripheral<LargeDieselG
 
     @LuaFunction
     public final float getStressCapacity(){
-        LargeDieselGeneratorBlockEntity frontEngine = blockEntity.controller.get();
+        ModularDieselEngineBlockEntity frontEngine = blockEntity.controller;
 
         if(frontEngine == null)
             return blockEntity.calculateAddedStressCapacity();
@@ -43,7 +43,7 @@ public class ModularDieselEnginePeripheral extends SyncedPeripheral<LargeDieselG
     }
     @LuaFunction
     public final float getSpeed(){
-        LargeDieselGeneratorBlockEntity frontEngine = blockEntity.controller.get();
+        ModularDieselEngineBlockEntity frontEngine = blockEntity.controller;
         if(frontEngine == null)
             return Math.abs(blockEntity.getGeneratedSpeed());
         return Math.abs(frontEngine.getGeneratedSpeed());
@@ -51,7 +51,7 @@ public class ModularDieselEnginePeripheral extends SyncedPeripheral<LargeDieselG
 
     @LuaFunction
     public final float getFuelAmount(){
-        LargeDieselGeneratorBlockEntity frontEngine = blockEntity.controller.get();
+        ModularDieselEngineBlockEntity frontEngine = blockEntity.controller;
         if(frontEngine == null)
             return blockEntity.tank.getPrimaryHandler().getFluid().getAmount();
         return frontEngine.tank.getPrimaryHandler().getFluid().getAmount();

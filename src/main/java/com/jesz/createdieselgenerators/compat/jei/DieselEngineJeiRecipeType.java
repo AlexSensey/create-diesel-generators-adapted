@@ -1,6 +1,6 @@
 package com.jesz.createdieselgenerators.compat.jei;
 
-import com.jesz.createdieselgenerators.other.FuelTypeManager;
+import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
 import mezz.jei.api.recipe.RecipeType;
 import net.minecraft.world.level.material.Fluid;
 

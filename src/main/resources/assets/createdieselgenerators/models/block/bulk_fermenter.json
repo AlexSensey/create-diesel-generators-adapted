@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "createdieselgenerators:block/bulk_fermenter/top",
+    "side": "createdieselgenerators:block/bulk_fermenter/side"
+  }
+}

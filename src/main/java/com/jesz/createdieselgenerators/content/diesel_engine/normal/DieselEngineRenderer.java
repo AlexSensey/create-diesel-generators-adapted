@@ -1,0 +1,59 @@
+package com.jesz.createdieselgenerators.content.diesel_engine.normal;
+
+import com.jesz.createdieselgenerators.CDGPartialModels;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
+import com.simibubi.create.content.kinetics.base.ShaftRenderer;
+import net.createmod.catnip.render.CachedBuffers;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.Direction;
+
+import static com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock.FACING;
+
+public class DieselEngineRenderer extends ShaftRenderer<DieselEngineBlockEntity> {
+
+    public DieselEngineRenderer(BlockEntityRendererProvider.Context context) {
+        super(context);
+    }
+
+    @Override
+    protected void renderSafe(DieselEngineBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer,
+                              int light, int overlay) {
+        int angle = (int) (Math.abs(KineticBlockEntityRenderer.getAngleForBe(be, be.getBlockPos(), KineticBlockEntityRenderer.getRotationAxisOf(be))*180/Math.PI) * 3 % 360)/36;
+
+        be.upgrade.render(be, partialTicks, ms, buffer, light);
+
+        if(be.getBlockState().getValue(FACING).getAxis().isHorizontal()){
+            CachedBuffers.partial( angle == 10? CDGPartialModels.ENGINE_PISTONS_0 :
+                                    angle == 9 ? CDGPartialModels.ENGINE_PISTONS_1 :
+                                    angle == 8 ? CDGPartialModels.ENGINE_PISTONS_2 :
+                                    angle == 7 ? CDGPartialModels.ENGINE_PISTONS_3 :
+                                    angle == 6 ? CDGPartialModels.ENGINE_PISTONS_4 :
+                                    angle == 5 ? CDGPartialModels.ENGINE_PISTONS_4 :
+                                    angle == 4 ? CDGPartialModels.ENGINE_PISTONS_3 :
+                                    angle == 3 ? CDGPartialModels.ENGINE_PISTONS_2 :
+                                    angle == 2 ? CDGPartialModels.ENGINE_PISTONS_1 :
+                                            CDGPartialModels.ENGINE_PISTONS_0
+                    , be.getBlockState()).center()
+                    .rotateYDegrees(be.getBlockState().getValue(FACING).toYRot()).uncenter()
+                    .light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()));
+        }else {
+            CachedBuffers.partial(angle == 10? CDGPartialModels.ENGINE_PISTONS_VERTICAL_0 :
+                                     angle == 9 ? CDGPartialModels.ENGINE_PISTONS_VERTICAL_1 :
+                                     angle == 8 ? CDGPartialModels.ENGINE_PISTONS_VERTICAL_2 :
+                                     angle == 7 ? CDGPartialModels.ENGINE_PISTONS_VERTICAL_3 :
+                                     angle == 6 ? CDGPartialModels.ENGINE_PISTONS_VERTICAL_4 :
+                                     angle == 5 ? CDGPartialModels.ENGINE_PISTONS_VERTICAL_4 :
+                                     angle == 4 ? CDGPartialModels.ENGINE_PISTONS_VERTICAL_3 :
+                                     angle == 3 ? CDGPartialModels.ENGINE_PISTONS_VERTICAL_2 :
+                                     angle == 2 ? CDGPartialModels.ENGINE_PISTONS_VERTICAL_1 :
+                                             CDGPartialModels.ENGINE_PISTONS_VERTICAL_0
+                            , be.getBlockState()).center().rotateYDegrees(be.getBlockState().getValue(FACING) == Direction.DOWN ? 180 : 270).rotateZ(be.getBlockState().getValue(FACING) == Direction.DOWN ? 180 : 0).uncenter()
+                     .light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()));
+        }
+
+        super.renderSafe(be, partialTicks, ms, buffer, light, overlay);
+    }
+}

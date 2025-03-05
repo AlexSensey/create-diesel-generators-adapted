@@ -1,0 +1,20 @@
+{
+  "type": "createdieselgenerators:wire_cutting",
+  "ingredients": [
+    {
+      "tag": "forge:plates/aluminum"
+    }
+  ],
+  "results": [
+    {
+      "item": "immersiveengineering:wire_aluminum"
+    }
+  ],
+
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "immersiveengineering"
+    }
+  ]
+}

@@ -1,6 +1,5 @@
 package com.jesz.createdieselgenerators.commands;
 
-import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.world.OilChunksSavedData;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -20,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CDGCommands {
-    public CDGCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
+    public CDGCommands (CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("cdg").then(Commands.literal("oil")
                 .then(Commands.literal("get").executes((command) -> getOilChunk(command.getSource())))
                 .then(Commands.literal("locate").executes((command) -> locateOilChunk(command.getSource())))
@@ -34,7 +33,8 @@ public class CDGCommands {
         if(!source.hasPermission(2))
             return 0;
         ChunkPos chunkPos = new ChunkPos(new BlockPos((int) source.getPosition().x, (int) source.getPosition().y, (int) source.getPosition().z));
-        int amount = CreateDieselGenerators.getOilAmount(source.getLevel().getBiome(new BlockPos(chunkPos.x*16, 64,  chunkPos.z*16)), chunkPos.x, chunkPos.z, source.getLevel().getSeed());
+
+        int amount = OilChunksSavedData.getOilAmount(source.getLevel(), chunkPos);
 
         OilChunksSavedData sd = OilChunksSavedData.load(source.getLevel());
         if(sd.getChunkOilAmount(chunkPos) != -1)
@@ -77,14 +77,13 @@ public class CDGCommands {
         Map<ChunkPos, Integer> oilChunks = new HashMap<>();
         for (int x = -10; x < 10; x++) {
             for (int z = -10; z < 10; z++) {
-//                ChunkPos chunkPos = new ChunkPos((int) (source.getPosition().x + x * 16)/16, (int) (source.getPosition().z + z * 16)/16);
                 ChunkPos chunkPos = new ChunkPos(new BlockPos((int) source.getPosition().x, (int) source.getPosition().y, (int) source.getPosition().z));
                 chunkPos = new ChunkPos(chunkPos.x + x, chunkPos.z + z);
 
                 OilChunksSavedData sd = OilChunksSavedData.load(source.getLevel());
                 int amount = sd.getChunkOilAmount(chunkPos);
                 if(amount == -1)
-                    amount = CreateDieselGenerators.getOilAmount(source.getLevel().getBiome(new BlockPos(chunkPos.x*16, 64,  chunkPos.z*16)), chunkPos.x, chunkPos.z, source.getLevel().getSeed());
+                    amount = OilChunksSavedData.getOilAmount(source.getLevel(), chunkPos);
 
                 if(amount != 0){
                     oilChunks.put(chunkPos, amount);

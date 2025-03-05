@@ -1,0 +1,21 @@
+{
+  "type": "createdieselgenerators:wire_cutting",
+  "ingredients": [
+    {
+      "tag": "forge:ingots/gold"
+    }
+  ],
+  "results": [
+    {
+      "item": "createaddition:gold_rod",
+      "count": 2
+    }
+  ],
+
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "createaddition"
+    }
+  ]
+}

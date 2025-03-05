@@ -1,13 +1,14 @@
 package com.jesz.createdieselgenerators.compat.jei;
 
-import com.jesz.createdieselgenerators.PartialModels;
-import com.jesz.createdieselgenerators.blocks.BlockRegistry;
-import com.jesz.createdieselgenerators.blocks.DieselGeneratorBlock;
-import com.jesz.createdieselgenerators.blocks.HugeDieselEngineBlock;
-import com.jozufozu.flywheel.util.AnimationTickHolder;
+import com.jesz.createdieselgenerators.CDGBlocks;
+import com.jesz.createdieselgenerators.CDGPartialModels;
+import com.jesz.createdieselgenerators.content.diesel_engine.huge.HugeDieselEngineBlock;
+import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.simibubi.create.compat.jei.category.animations.AnimatedKinetics;
+import net.createmod.catnip.animation.AnimationTickHolder;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Direction;
 
@@ -19,69 +20,68 @@ public class AnimatedDieselEngineElement extends AnimatedKinetics {
     @Override
     public void draw(GuiGraphics graphics, int xOffset, int yOffset) {
         PoseStack matrixStack = graphics.pose();
-        byte enginesEnabled = (byte) ((DieselGeneratorBlock.EngineTypes.NORMAL.enabled() ? 1 : 0) + (DieselGeneratorBlock.EngineTypes.MODULAR.enabled() ? 1 : 0) + (DieselGeneratorBlock.EngineTypes.HUGE.enabled() ? 1 : 0));
+        byte enginesEnabled = (byte) ((DieselEngineBlock.EngineTypes.NORMAL.enabled() ? 1 : 0) + (DieselEngineBlock.EngineTypes.MODULAR.enabled() ? 1 : 0) + (DieselEngineBlock.EngineTypes.HUGE.enabled() ? 1 : 0));
         int currentEngineIndex = (AnimationTickHolder.getTicks() % (120)) / 20;
-        List<DieselGeneratorBlock.EngineTypes> enabledEngines = Arrays.stream(DieselGeneratorBlock.EngineTypes.values()).filter(DieselGeneratorBlock.EngineTypes::enabled).toList();
-        DieselGeneratorBlock.EngineTypes currentEngine = enabledEngines.get(currentEngineIndex % enginesEnabled);
-
+        List<DieselEngineBlock.EngineTypes> enabledEngines = Arrays.stream(DieselEngineBlock.EngineTypes.values()).filter(DieselEngineBlock.EngineTypes::enabled).toList();
+        DieselEngineBlock.EngineTypes currentEngine = enabledEngines.get(currentEngineIndex % enginesEnabled);
         matrixStack.pushPose();
-        matrixStack.translate(xOffset, yOffset, 100);
+        matrixStack.translate(xOffset, yOffset, 1000);
 
         matrixStack.mulPose(Axis.XP.rotationDegrees(-15.5f));
         matrixStack.mulPose(Axis.YP.rotationDegrees(22.5f + 90));
         int scale = 25;
-        if(currentEngine == DieselGeneratorBlock.EngineTypes.HUGE)
+        if(currentEngine == DieselEngineBlock.EngineTypes.HUGE)
             scale = 17;
-        blockElement(shaft(Direction.Axis.X)).atLocal(0, currentEngine == DieselGeneratorBlock.EngineTypes.HUGE ? -1.25 : 0, 0)
+        blockElement(shaft(Direction.Axis.X)).atLocal(0, currentEngine == DieselEngineBlock.EngineTypes.HUGE ? -1.25 : 0, 0)
                 .rotateBlock(-getCurrentAngle() * 6, 0, 0)
                 .scale(scale)
                 .render(graphics);
         int angle = (int) (getCurrentAngle() * 18 % 360)/36;
-        if(currentEngine == DieselGeneratorBlock.EngineTypes.HUGE) {
-            blockElement(PartialModels.ENGINE_PISTON_CONNECTOR).atLocal(0, -1.25, 0)
+        if(currentEngine == DieselEngineBlock.EngineTypes.HUGE) {
+            blockElement(CDGPartialModels.ENGINE_PISTON_CONNECTOR).atLocal(0, -1.25, 0)
                     .rotateBlock(-getCurrentAngle() * 6, 0, 0)
                     .scale(scale)
                     .render(graphics);
-            blockElement(PartialModels.ENGINE_PISTON_LINKAGE).atLocal(0, Math.cos(getCurrentAngle()/30*Math.PI)/5 - 1, 0)
+            blockElement(CDGPartialModels.ENGINE_PISTON_LINKAGE).atLocal(0, Math.cos(getCurrentAngle()/30*Math.PI)/5 - 1, 0)
                     .scale(scale)
                     .render(graphics);
-            blockElement(PartialModels.JEI_ENGINE_PISTON).atLocal(0, Math.cos(getCurrentAngle()/30*Math.PI)/5, 0)
+            blockElement(CDGPartialModels.JEI_ENGINE_PISTON).atLocal(0, Math.cos(getCurrentAngle()/30*Math.PI)/5, 0)
                     .scale(scale)
                     .render(graphics);
         }
-        if(currentEngine == DieselGeneratorBlock.EngineTypes.NORMAL){
-            blockElement(angle == 10? PartialModels.ENGINE_PISTONS_0 :
-                    angle == 9 ? PartialModels.ENGINE_PISTONS_1 :
-                    angle == 8 ? PartialModels.ENGINE_PISTONS_2 :
-                    angle == 7 ? PartialModels.ENGINE_PISTONS_3 :
-                    angle == 6 ? PartialModels.ENGINE_PISTONS_4 :
-                    angle == 5 ? PartialModels.ENGINE_PISTONS_4 :
-                    angle == 4 ? PartialModels.ENGINE_PISTONS_3 :
-                    angle == 3 ? PartialModels.ENGINE_PISTONS_2 :
-                    angle == 2 ? PartialModels.ENGINE_PISTONS_1 :
-                            PartialModels.ENGINE_PISTONS_0)
+        if(currentEngine == DieselEngineBlock.EngineTypes.NORMAL){
+            blockElement(angle == 10? CDGPartialModels.ENGINE_PISTONS_0 :
+                    angle == 9 ? CDGPartialModels.ENGINE_PISTONS_1 :
+                    angle == 8 ? CDGPartialModels.ENGINE_PISTONS_2 :
+                    angle == 7 ? CDGPartialModels.ENGINE_PISTONS_3 :
+                    angle == 6 ? CDGPartialModels.ENGINE_PISTONS_4 :
+                    angle == 5 ? CDGPartialModels.ENGINE_PISTONS_4 :
+                    angle == 4 ? CDGPartialModels.ENGINE_PISTONS_3 :
+                    angle == 3 ? CDGPartialModels.ENGINE_PISTONS_2 :
+                    angle == 2 ? CDGPartialModels.ENGINE_PISTONS_1 :
+                            CDGPartialModels.ENGINE_PISTONS_0)
                 .rotateBlock(0, 90, 0)
                 .scale(scale)
                 .render(graphics);
-        }else if(currentEngine == DieselGeneratorBlock.EngineTypes.MODULAR){
-            blockElement(angle == 10? PartialModels.MODULAR_ENGINE_PISTONS_0 :
-                    angle == 9 ? PartialModels.MODULAR_ENGINE_PISTONS_1 :
-                    angle == 8 ? PartialModels.MODULAR_ENGINE_PISTONS_2 :
-                    angle == 7 ? PartialModels.MODULAR_ENGINE_PISTONS_3 :
-                    angle == 6 ? PartialModels.MODULAR_ENGINE_PISTONS_4 :
-                    angle == 5 ? PartialModels.MODULAR_ENGINE_PISTONS_4 :
-                    angle == 4 ? PartialModels.MODULAR_ENGINE_PISTONS_3 :
-                    angle == 3 ? PartialModels.MODULAR_ENGINE_PISTONS_2 :
-                    angle == 2 ? PartialModels.MODULAR_ENGINE_PISTONS_1 :
-                            PartialModels.MODULAR_ENGINE_PISTONS_0)
+        }else if(currentEngine == DieselEngineBlock.EngineTypes.MODULAR){
+            blockElement(angle == 10? CDGPartialModels.MODULAR_ENGINE_PISTONS_0 :
+                    angle == 9 ? CDGPartialModels.MODULAR_ENGINE_PISTONS_1 :
+                    angle == 8 ? CDGPartialModels.MODULAR_ENGINE_PISTONS_2 :
+                    angle == 7 ? CDGPartialModels.MODULAR_ENGINE_PISTONS_3 :
+                    angle == 6 ? CDGPartialModels.MODULAR_ENGINE_PISTONS_4 :
+                    angle == 5 ? CDGPartialModels.MODULAR_ENGINE_PISTONS_4 :
+                    angle == 4 ? CDGPartialModels.MODULAR_ENGINE_PISTONS_3 :
+                    angle == 3 ? CDGPartialModels.MODULAR_ENGINE_PISTONS_2 :
+                    angle == 2 ? CDGPartialModels.MODULAR_ENGINE_PISTONS_1 :
+                            CDGPartialModels.MODULAR_ENGINE_PISTONS_0)
                 .rotateBlock(0, 90, 0)
                 .scale(scale)
                 .render(graphics);
         }
 
-        blockElement(currentEngine == DieselGeneratorBlock.EngineTypes.MODULAR ? BlockRegistry.MODULAR_DIESEL_ENGINE.getDefaultState() :
-                currentEngine == DieselGeneratorBlock.EngineTypes.HUGE ? BlockRegistry.HUGE_DIESEL_ENGINE.getDefaultState().setValue(HugeDieselEngineBlock.FACING, Direction.UP) :
-                        BlockRegistry.DIESEL_ENGINE.getDefaultState())
+        blockElement(currentEngine == DieselEngineBlock.EngineTypes.MODULAR ? CDGBlocks.MODULAR_DIESEL_ENGINE.getDefaultState() :
+                currentEngine == DieselEngineBlock.EngineTypes.HUGE ? CDGBlocks.HUGE_DIESEL_ENGINE.getDefaultState().setValue(HugeDieselEngineBlock.FACING, Direction.UP) :
+                        CDGBlocks.DIESEL_ENGINE.getDefaultState())
                 .rotateBlock(0, 90, 0)
                 .scale(scale)
                 .render(graphics);

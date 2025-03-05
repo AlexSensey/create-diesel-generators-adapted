@@ -16,6 +16,12 @@
     "createdieselgenerators:asphalt_stairs",
     "createdieselgenerators:asphalt_slab",
     "createdieselgenerators:pumpjack_hole",
-    "createdieselgenerators:powered_engine_shaft"
+    "createdieselgenerators:andesite_girder",
+    "createdieselgenerators:andesite_girder_encased_shaft",
+    "createdieselgenerators:powered_engine_shaft",
+    "createdieselgenerators:sheet_metal_panel",
+    "createdieselgenerators:burner",
+    "createdieselgenerators:bulk_fermenter",
+    "createdieselgenerators:chemical_turret"
   ]
 }

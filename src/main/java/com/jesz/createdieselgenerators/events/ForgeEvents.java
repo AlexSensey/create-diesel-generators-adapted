@@ -1,0 +1,301 @@
+package com.jesz.createdieselgenerators.events;
+
+import com.jesz.createdieselgenerators.CDGConfig;
+import com.jesz.createdieselgenerators.CDGItems;
+import com.jesz.createdieselgenerators.CreateDieselGenerators;
+import com.jesz.createdieselgenerators.commands.CDGCommands;
+import com.jesz.createdieselgenerators.content.ICDGKinetics;
+import com.jesz.createdieselgenerators.content.andesite_girder.AndesiteGirderWrenchBehaviour;
+import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock;
+import com.jesz.createdieselgenerators.content.entity_filter.ReverseLootTable;
+import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
+import com.jesz.createdieselgenerators.mixins.LootPoolAccessor;
+import com.jesz.createdieselgenerators.mixins.LootTableAccessor;
+import com.jesz.createdieselgenerators.packets.CDGPackets;
+import com.jesz.createdieselgenerators.packets.FuelTypesUpdatePacket;
+import com.simibubi.create.content.equipment.goggles.GogglesItem;
+import com.simibubi.create.content.kinetics.base.IRotate;
+import com.simibubi.create.foundation.item.TooltipHelper;
+import com.simibubi.create.foundation.utility.CreateLang;
+import com.simibubi.create.infrastructure.config.AllConfigs;
+import com.simibubi.create.infrastructure.config.CKinetics;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import net.createmod.catnip.animation.AnimationTickHolder;
+import net.createmod.catnip.lang.FontHelper;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.LootTableLoadEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.level.ExplosionEvent;
+import net.minecraftforge.event.village.VillagerTradesEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.server.command.ConfigCommand;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+@Mod.EventBusSubscriber(modid = CreateDieselGenerators.ID)
+public class ForgeEvents {
+    @SubscribeEvent
+    public static void onCommandRegister(RegisterCommandsEvent event){
+        new CDGCommands(event.getDispatcher());
+
+        ConfigCommand.register(event.getDispatcher());
+    }
+    @SubscribeEvent
+    public static void loadLootTable(LootTableLoadEvent event){
+        LootTable table = event.getTable();
+        ResourceLocation tableId = table.getLootTableId();
+        if(!tableId.getPath().startsWith("entities/"))
+                return;
+        List<ItemStack> results = new LinkedList<>();
+        ((LootTableAccessor)table).getPools().forEach(pool -> {
+            List.of(((LootPoolAccessor) pool).getEntries()).forEach(e -> {
+                if(e instanceof LootItem lootItem){
+                    lootItem.createItemStack(stack -> {
+                        String path = tableId.getPath();
+                        path = path.replaceAll("entities/", "");
+                        EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(tableId.getNamespace(), path));
+                        ReverseLootTable.ALL.computeIfAbsent(stack.getItem(), s -> new ArrayList<>()).add(type);
+
+                    },null);
+                }
+            });
+        });
+    }
+    @SubscribeEvent
+    public static void playerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        Player player = event.getEntity();
+        if(player instanceof ServerPlayer sp){
+            CDGPackets.getChannel().send(PacketDistributor.PLAYER.with(() -> sp), new FuelTypesUpdatePacket(FuelTypeManager.fuelTypes));
+        }
+    }
+    @SubscribeEvent
+    public static void addReloadListeners(AddReloadListenerEvent event){
+        event.addListener(ReverseLootTable.INSTANCE);
+        event.addListener(FuelTypeManager.ReloadListener.INSTANCE);
+    }
+    @SubscribeEvent
+    public static void onTick(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.START)
+            return;
+        AndesiteGirderWrenchBehaviour.tick();
+//        EntityFilteringRenderer.tick();
+    }
+    @SubscribeEvent
+    public static void onEntityTick(EntityTickEvent event){
+        if(event.entity instanceof ItemEntity itemEntity)
+            if(itemEntity.getItem().is(CDGItems.LIGHTER.get()) && CDGConfig.COMBUSTIBLES_BLOW_UP.get() && itemEntity.getItem().getTag() != null)
+                if(itemEntity.getItem().getTag().getInt("Type") == 2) {
+                    Vec3 entityPos = itemEntity.getPosition(1);
+                    FluidState fState = itemEntity.level().getFluidState(new BlockPos((int) entityPos.x, (int) entityPos.y, (int) entityPos.z));
+                    if(fState.is(Fluids.WATER) || fState.is(Fluids.FLOWING_WATER)) {
+                        itemEntity.getItem().getTag().putInt("Type", 1);
+                        itemEntity.level().playLocalSound(itemEntity.getPosition(1).x, itemEntity.getPosition(1).y, itemEntity.getPosition(1).z, SoundEvents.CANDLE_EXTINGUISH, SoundSource.BLOCKS, 1f, 1f, false);
+                        return;
+                    }
+                    if(FuelTypeManager.getGeneratedSpeed(fState.getType()) != 0)
+                        itemEntity.level().explode(null, null, null, itemEntity.getPosition(1).x, itemEntity.getPosition(1).y, itemEntity.getPosition(1).z, 3, true, Level.ExplosionInteraction.BLOCK);
+                }
+    }
+    @SubscribeEvent
+    public static void onExplosion(ExplosionEvent event){
+        Level level = event.getLevel();
+        if(CDGConfig.COMBUSTIBLES_BLOW_UP.get() && !level.isClientSide)
+            for (int x = -2; x < 2; x++) {
+                for (int y = -2; y < 2; y++) {
+                    for (int z = -2; z < 2; z++) {
+                        BlockPos pos = new BlockPos((int) (x+event.getExplosion().getPosition().x), (int) (y+event.getExplosion().getPosition().y), (int) (z+event.getExplosion().getPosition().z));
+
+                        if (!level.isInWorldBounds(pos)) continue;
+                        if(Math.abs(Math.sqrt(x*x+y*y+z*z)) < 2) {
+                            FluidState fluidState = level.getFluidState(pos);
+
+                            if (FuelTypeManager.getGeneratedSpeed(fluidState.getType()) != 0) {
+                                level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+                                try {
+                                    level.explode(null, null, null, pos.getX(), pos.getY(), pos.getZ(), 3, true, Level.ExplosionInteraction.BLOCK);
+                                }catch (StackOverflowError ignored){}
+                            }
+                            BlockEntity be = level.getBlockEntity(pos);
+                            if(be == null)
+                                continue;
+                            IFluidHandler tank = be.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
+                            if(tank == null)
+                                continue;
+                            if(FuelTypeManager.getGeneratedSpeed(tank.getFluidInTank(0).getFluid()) == 0)
+                                continue;
+                            tank.drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.EXECUTE);
+                            level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+                            try {
+                                level.explode(null, null, null, pos.getX(), pos.getY(), pos.getZ(), 1 + ((float) tank.getFluidInTank(0).getAmount() / 10000), true, Level.ExplosionInteraction.BLOCK);
+                            }catch (StackOverflowError ignored){}
+                        }
+                    }
+                }
+            }
+    }
+    @SubscribeEvent
+    public static void addTrade(VillagerTradesEvent event) {
+        Int2ObjectMap<List<VillagerTrades.ItemListing>> trades = event.getTrades();
+        if(!(event.getType() == VillagerProfession.TOOLSMITH))
+            return;
+        trades.get(2).add((t, r) -> new MerchantOffer(
+                new ItemStack(Items.EMERALD, 5),
+                new ItemStack(CDGItems.LIGHTER.get()),
+                10,8,0.02f));
+    }
+    @SubscribeEvent
+    @OnlyIn(Dist.CLIENT)
+    public static void addToItemTooltip(ItemTooltipEvent event) {
+        if (!AllConfigs.client().tooltips.get())
+            return;
+        if (event.getEntity() == null)
+            return;
+        List<Component> tooltip = event.getToolTip();
+        Item item = event.getItemStack().getItem();
+        if((item instanceof BucketItem || item instanceof MilkBucketItem) && CDGConfig.FUEL_TOOLTIPS.get()){
+            Fluid fluid = ForgeMod.MILK.get();
+            if(item instanceof BucketItem bi)
+                fluid = bi.getFluid();
+
+            if(FuelTypeManager.getGeneratedSpeed(fluid) != 0){
+                if(Screen.hasAltDown()) {
+                    tooltip.add(1, Component.translatable("createdieselgenerators.tooltip.holdForFuelStats", Component.translatable("createdieselgenerators.tooltip.keyAlt").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.DARK_GRAY));
+                    tooltip.add(2, Component.empty());
+
+                    byte enginesEnabled = (byte) ((DieselEngineBlock.EngineTypes.NORMAL.enabled() ? 1 : 0) + (DieselEngineBlock.EngineTypes.MODULAR.enabled() ? 1 : 0) + (DieselEngineBlock.EngineTypes.HUGE.enabled() ? 1 : 0));
+                    int currentEngineIndex = (AnimationTickHolder.getTicks() % (120)) / 20;
+                    List<DieselEngineBlock.EngineTypes> enabledEngines = Arrays.stream(DieselEngineBlock.EngineTypes.values()).filter(DieselEngineBlock.EngineTypes::enabled).toList();
+                    DieselEngineBlock.EngineTypes currentEngine = enabledEngines.get(currentEngineIndex % enginesEnabled);
+                    float currentSpeed = FuelTypeManager.getGeneratedSpeed(currentEngine, fluid);
+                    float currentCapacity = FuelTypeManager.getGeneratedStress(currentEngine, fluid);
+                    float currentBurn = FuelTypeManager.getBurnRate(currentEngine, fluid);
+
+                    if(enginesEnabled != 1)
+                        tooltip.add(3, Component.translatable("block.createdieselgenerators."+
+                                (currentEngine == DieselEngineBlock.EngineTypes.MODULAR ? "large_" : currentEngine == DieselEngineBlock.EngineTypes.HUGE ? "huge_" : "")+"diesel_engine").withStyle(ChatFormatting.GRAY));
+                    tooltip.add(enginesEnabled != 1 ? 4 : 3, Component.translatable("createdieselgenerators.tooltip.fuelSpeed", CreateLang.number(currentSpeed).component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
+                    tooltip.add(enginesEnabled != 1 ? 5 : 4, Component.translatable("createdieselgenerators.tooltip.fuelStress", CreateLang.number(currentCapacity).component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
+                    tooltip.add(enginesEnabled != 1 ? 6 : 5, Component.translatable("createdieselgenerators.tooltip.fuelBurnRate", CreateLang.number(currentBurn).component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
+                    tooltip.add(enginesEnabled != 1 ? 7 : 6, Component.empty());
+                    tooltip.add(enginesEnabled != 1 ? 8 : 7, Component.translatable("createdieselgenerators.tooltip.burnerStrength", CreateLang.number(FuelTypeManager.getBurnerStrength(fluid) * 100).text(" %").component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
+                    tooltip.add(enginesEnabled != 1 ? 9 : 8, Component.empty());
+                }else {
+                    tooltip.add(1, Component.translatable("createdieselgenerators.tooltip.holdForFuelStats", Component.translatable("createdieselgenerators.tooltip.keyAlt").withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY));
+                }
+            }
+        }
+        if(ForgeRegistries.ITEMS.getKey(item).getNamespace() != "createdieselgenerators")
+            return;
+        String path = "createdieselgenerators." + ForgeRegistries.ITEMS.getKey(item).getPath();
+        List<Component> tooltipList = new ArrayList<>();
+        if(I18n.exists(path + ".tooltip.summary")) {
+            if (Screen.hasShiftDown()) {
+                tooltipList.add(CreateLang.translateDirect("tooltip.holdForDescription", Component.translatable("create.tooltip.keyShift").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.DARK_GRAY));
+                tooltipList.add(Component.empty());
+                tooltipList.addAll(TooltipHelper.cutStringTextComponent(Component.translatable(path + ".tooltip.summary").getString(), FontHelper.Palette.STANDARD_CREATE));
+
+                if(!Component.translatable(path + ".tooltip.condition1").getString().equals(path + ".tooltip.condition1")) {
+                    tooltipList.add(Component.empty());
+                    tooltipList.add(Component.translatable(path + ".tooltip.condition1").withStyle(ChatFormatting.GRAY));
+                    tooltipList.addAll(TooltipHelper.cutStringTextComponent(Component.translatable(path + ".tooltip.behaviour1").getString(), FontHelper.Palette.STANDARD_CREATE.primary(), FontHelper.Palette.STANDARD_CREATE.highlight(), 1));
+                    if(!Component.translatable(path + ".tooltip.condition2").getString().equals(path + ".tooltip.condition2")) {
+                        tooltipList.add(Component.translatable(path + ".tooltip.condition2").withStyle(ChatFormatting.GRAY));
+                        tooltipList.addAll(TooltipHelper.cutStringTextComponent(Component.translatable(path + ".tooltip.behaviour2").getString(), FontHelper.Palette.STANDARD_CREATE.primary(), FontHelper.Palette.STANDARD_CREATE.highlight(), 1));
+                    }
+                }
+            } else {
+                tooltipList.add(CreateLang.translateDirect("tooltip.holdForDescription", Component.translatable("create.tooltip.keyShift").withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY));
+            }
+        }
+        tooltip.addAll(1,tooltipList);
+        CKinetics config = AllConfigs.server().kinetics;
+
+        if(item instanceof BlockItem bi)
+            if(bi.getBlock() instanceof ICDGKinetics k){
+                boolean hasGoggles = GogglesItem.isWearingGoggles(event.getEntity());
+
+
+
+                if(k.getDefaultStressCapacity() != 0){
+                    float stressCapacity = k.getDefaultStressCapacity();
+                    float speed = k.getDefaultSpeed();
+
+                    tooltip.add(Component.empty());
+
+                    tooltip.add(Component.translatable("create.tooltip.capacityProvided").withStyle(ChatFormatting.GRAY));
+                    MutableComponent component;
+                    if (k.getDefaultStressCapacity() >= config.highCapacity.get())
+                        component = Component.literal(TooltipHelper.makeProgressBar(3, 3)).append(hasGoggles ? Component.empty() : Component.translatable("create.tooltip.capacityProvided.high")).withStyle(IRotate.StressImpact.LOW.getAbsoluteColor());
+                    else if (k.getDefaultStressCapacity() >= config.mediumCapacity.get())
+                        component = Component.literal(TooltipHelper.makeProgressBar(3, 2)).append(hasGoggles ? Component.empty() : Component.translatable("create.tooltip.capacityProvided.medium")).withStyle(IRotate.StressImpact.MEDIUM.getAbsoluteColor());
+                    else
+                        component = Component.literal(TooltipHelper.makeProgressBar(3, 1)).append(hasGoggles ? Component.empty() : Component.translatable("create.tooltip.capacityProvided.low")).withStyle(IRotate.StressImpact.HIGH.getAbsoluteColor());
+
+                    if (hasGoggles) {
+                        tooltip.add(component.append(CreateLang.number(stressCapacity / speed)
+                                .text("x ")
+                                .add(CreateLang.translate("generic.unit.rpm"))
+                                .component()));
+
+                        if (speed != 0) {
+                            tooltip.add(Component.literal(" -> ")
+                                    .append(CreateLang.translate("tooltip.up_to", CreateLang.number(k.getDefaultStressCapacity())).add(CreateLang.translate("generic.unit.stress")).component()).withStyle(ChatFormatting.DARK_GRAY));
+                        }
+                    }else
+                        tooltip.add(component);
+                }else if(k.getDefaultStressStressImpact() != 0){
+                    tooltip.add(Component.empty());
+
+                    tooltip.add(Component.translatable("create.tooltip.stressImpact").withStyle(ChatFormatting.GRAY));
+                    if(k.getDefaultStressStressImpact() >= config.highStressImpact.get())
+                        tooltip.add(Component.literal(TooltipHelper.makeProgressBar(3, 3)).append(hasGoggles ? CreateLang.number(k.getDefaultStressStressImpact()).add(CreateLang.text("x ").add(CreateLang.translate("generic.unit.rpm"))).component() : Component.translatable("create.tooltip.stressImpact.high")).withStyle(IRotate.StressImpact.HIGH.getAbsoluteColor()));
+                    else if(k.getDefaultStressStressImpact() >= config.mediumStressImpact.get())
+                        tooltip.add(Component.literal(TooltipHelper.makeProgressBar(3, 2)).append(hasGoggles ? CreateLang.number(k.getDefaultStressStressImpact()).add(CreateLang.text("x ").add(CreateLang.translate("generic.unit.rpm"))).component() : Component.translatable("create.tooltip.stressImpact.medium")).withStyle(IRotate.StressImpact.MEDIUM.getAbsoluteColor()));
+                    else
+                        tooltip.add(Component.literal(TooltipHelper.makeProgressBar(3, 1)).append(hasGoggles ? CreateLang.number(k.getDefaultStressStressImpact()).add(CreateLang.text("x ").add(CreateLang.translate("generic.unit.rpm"))).component() : Component.translatable("create.tooltip.stressImpact.low")).withStyle(IRotate.StressImpact.LOW.getAbsoluteColor()));
+                }
+            }
+
+    }
+}

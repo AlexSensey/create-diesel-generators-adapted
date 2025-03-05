@@ -1,0 +1,16 @@
+{
+  "type": "createdieselgenerators:bulk_fermenting",
+  "ingredients": [
+    {
+      "tag": "forge:cobblestone"
+    }
+  ],
+  "heatRequirement": "superheated",
+  "processingTime": 900,
+  "results": [
+    {
+      "fluid": "minecraft:lava",
+      "amount": 50
+    }
+  ]
+}

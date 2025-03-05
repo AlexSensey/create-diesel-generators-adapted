@@ -1,0 +1,26 @@
+{
+  "type": "createdieselgenerators:bulk_fermenting",
+  "ingredients": [
+    {
+      "fluid": "minecraft:water",
+      "amount": 250
+    },
+    {
+      "tag": "forge:dusts/redstone"
+    }
+  ],
+  "processingTime": 400,
+  "results": [
+    {
+      "fluid": "immersiveengineering:redstone_acid",
+      "amount": 250
+    }
+  ],
+
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "immersiveengineering"
+    }
+  ]
+}

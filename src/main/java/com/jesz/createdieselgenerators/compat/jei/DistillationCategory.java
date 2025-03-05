@@ -1,6 +1,6 @@
 package com.jesz.createdieselgenerators.compat.jei;
 
-import com.jesz.createdieselgenerators.recipes.DistillationRecipe;
+import com.jesz.createdieselgenerators.content.distillation.DistillationRecipe;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
@@ -10,7 +10,7 @@ import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.recipe.HeatCondition;
 import com.simibubi.create.foundation.fluid.FluidIngredient;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
-import com.simibubi.create.foundation.utility.Lang;
+import com.simibubi.create.foundation.utility.CreateLang;
 import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -42,7 +42,7 @@ public class DistillationCategory extends CreateRecipeCategory<DistillationRecip
                 .addSlot(RecipeIngredientRole.INPUT, 17, 145)
                 .setBackground(getRenderedSlot(), -1, -1)
                 .addIngredients(ForgeTypes.FLUID_STACK, withImprovedVisibility(fluidIngredient.getMatchingFluidStacks()))
-                .addTooltipCallback(addFluidTooltip(fluidIngredient.getRequiredAmount()));
+                .addRichTooltipCallback(addFluidTooltip(fluidIngredient.getRequiredAmount()));
 
 
         int i = 1;
@@ -54,7 +54,7 @@ public class DistillationCategory extends CreateRecipeCategory<DistillationRecip
                     .addSlot(RecipeIngredientRole.OUTPUT, 130, yPosition)
                     .setBackground(getRenderedSlot(), -1, -1)
                     .addIngredient(ForgeTypes.FLUID_STACK, withImprovedVisibility(fluidResult))
-                    .addTooltipCallback(addFluidTooltip(fluidResult.getAmount()));
+                    .addRichTooltipCallback(addFluidTooltip(fluidResult.getAmount()));
             i++;
         }
 
@@ -73,8 +73,6 @@ public class DistillationCategory extends CreateRecipeCategory<DistillationRecip
     int height = 0;
     @Override
     public void draw(DistillationRecipe recipe, IRecipeSlotsView iRecipeSlotsView, GuiGraphics graphics, double mouseX, double mouseY) {
-
-
         HeatCondition requiredHeat = recipe.getRequiredHeat();
         boolean noHeat = requiredHeat == HeatCondition.NONE;
         AllGuiTextures.JEI_ARROW.render(graphics, 40, 150);
@@ -88,7 +86,7 @@ public class DistillationCategory extends CreateRecipeCategory<DistillationRecip
         AllGuiTextures heatBar = noHeat ? AllGuiTextures.JEI_NO_HEAT_BAR : AllGuiTextures.JEI_HEAT_BAR;
 
         heatBar.render(graphics, 4, 170);
-        graphics.drawString(Minecraft.getInstance().font, Lang.translateDirect(requiredHeat.getTranslationKey()), 9,
+        graphics.drawString(Minecraft.getInstance().font, CreateLang.translateDirect(requiredHeat.getTranslationKey()), 9,
                 176, requiredHeat.getColor(), false);
     }
 }

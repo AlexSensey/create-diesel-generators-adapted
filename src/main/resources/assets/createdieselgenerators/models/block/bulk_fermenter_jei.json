@@ -1,0 +1,24 @@
+{
+	"credit": "Made with Blockbench",
+	"parent": "minecraft:block/cube_column",
+	"texture_size": [64, 64],
+	"textures": {
+		"0": "createdieselgenerators:block/bulk_fermenter/top_connected",
+		"1": "createdieselgenerators:block/bulk_fermenter/side_connected",
+		"particle": "createdieselgenerators:block/bulk_fermenter/top_connected"
+	},
+	"elements": [
+		{
+			"from": [0, -16, 0],
+			"to": [16, 32, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 4, 12], "texture": "#1"},
+				"east": {"uv": [0, 0, 4, 12], "texture": "#1"},
+				"south": {"uv": [4, 0, 0, 12], "texture": "#1"},
+				"west": {"uv": [0, 0, 4, 12], "texture": "#1"},
+				"up": {"uv": [0, 12, 4, 16], "texture": "#0"},
+				"down": {"uv": [0, 12, 4, 16], "texture": "#0"}
+			}
+		}
+	]
+}

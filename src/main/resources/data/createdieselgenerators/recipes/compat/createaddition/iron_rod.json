@@ -1,0 +1,20 @@
+{
+  "type": "createdieselgenerators:wire_cutting",
+  "ingredients": [
+    {
+      "tag": "forge:ingots/iron"
+    }
+  ],
+  "results": [
+    {
+      "item": "createaddition:iron_rod"
+    }
+  ],
+
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "createaddition"
+    }
+  ]
+}

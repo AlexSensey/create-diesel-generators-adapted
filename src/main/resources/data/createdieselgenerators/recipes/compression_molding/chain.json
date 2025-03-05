@@ -1,0 +1,29 @@
+{
+  "type": "createdieselgenerators:compression_molding",
+  "ingredients": [
+    {
+      "tag": "forge:nuggets/iron"
+    },
+    {
+      "tag": "forge:nuggets/iron"
+    },
+    {
+      "tag": "forge:nuggets/iron"
+    },
+    {
+      "tag": "forge:nuggets/iron"
+    },
+    {
+      "tag": "forge:nuggets/iron"
+    },
+    {
+      "tag": "forge:nuggets/iron"
+    }
+  ],
+  "mold": "createdieselgenerators:chain",
+  "results": [
+    {
+      "item": "minecraft:chain"
+    }
+  ]
+}

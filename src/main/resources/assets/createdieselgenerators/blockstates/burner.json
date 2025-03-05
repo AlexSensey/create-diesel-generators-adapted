@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "createdieselgenerators:block/burner/block",
+      "y": 90
+    },
+    "axis=z": {
+      "model": "createdieselgenerators:block/burner/block"
+    }
+  }
+}

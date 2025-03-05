@@ -14,7 +14,6 @@ public class CCProxy {
     }
 
     private static void registerWithDependency() {
-        /* Comment if computercraft.implementation is not in the source set */
         computerFactory = ComputerBehaviour::new;
     }
 

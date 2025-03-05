@@ -1,0 +1,20 @@
+{
+	"credit": "Made with Blockbench",
+	"textures": {
+		"0": "createdieselgenerators:block/andesite_girder",
+		"particle": "create:block/industrial_iron_block"
+	},
+	"elements": [
+		{
+			"from": [-2, -4, 0],
+			"to": [2, 4, 8],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 8]},
+			"faces": {
+				"north": {"uv": [10, 0, 12, 4], "texture": "#0"},
+				"east": {"uv": [8, 0, 12, 4], "texture": "#0"},
+				"south": {"uv": [10, 0, 12, 4], "texture": "#0"},
+				"west": {"uv": [8, 0, 12, 4], "texture": "#0"}
+			}
+		}
+	]
+}

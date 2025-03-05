@@ -1,7 +1,7 @@
 package com.jesz.createdieselgenerators.compat.computercraft.peripherals;
 
-import com.jesz.createdieselgenerators.blocks.entity.HugeDieselEngineBlockEntity;
-import com.jesz.createdieselgenerators.other.FuelTypeManager;
+import com.jesz.createdieselgenerators.content.diesel_engine.huge.HugeDieselEngineBlockEntity;
+import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
 import com.simibubi.create.compat.computercraft.implementation.peripherals.SyncedPeripheral;
 import dan200.computercraft.api.lua.LuaFunction;
 

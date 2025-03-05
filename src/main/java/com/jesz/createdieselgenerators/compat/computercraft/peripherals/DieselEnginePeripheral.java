@@ -1,14 +1,14 @@
 package com.jesz.createdieselgenerators.compat.computercraft.peripherals;
 
-import com.jesz.createdieselgenerators.blocks.entity.DieselGeneratorBlockEntity;
-import com.jesz.createdieselgenerators.other.FuelTypeManager;
+import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlockEntity;
+import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
 import com.simibubi.create.compat.computercraft.implementation.peripherals.SyncedPeripheral;
 import dan200.computercraft.api.lua.LuaFunction;
 
 
-public class DieselEnginePeripheral extends SyncedPeripheral<DieselGeneratorBlockEntity> {
+public class DieselEnginePeripheral extends SyncedPeripheral<DieselEngineBlockEntity> {
 
-    public DieselEnginePeripheral(DieselGeneratorBlockEntity blockEntity) {
+    public DieselEnginePeripheral(DieselEngineBlockEntity blockEntity) {
         super(blockEntity);
     }
 

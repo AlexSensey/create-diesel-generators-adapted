@@ -1,0 +1,58 @@
+{
+	"credit": "Made with Blockbench",
+	"texture_size": [32, 32],
+	"textures": {
+		"0": "createdieselgenerators:item/chemical_sprayer",
+		"particle": "createdieselgenerators:item/chemical_sprayer"
+	},
+	"elements": [
+		{
+			"from": [3, -3, 9],
+			"to": [6, 5, 14],
+			"rotation": {"angle": -22.5, "axis": "z", "origin": [5, 3, 13]},
+			"faces": {
+				"north": {"uv": [2, 10, 3.5, 6], "rotation": 180, "texture": "#0"},
+				"east": {"uv": [0, 6, 2.5, 10], "texture": "#0"},
+				"south": {"uv": [2, 6, 3.5, 10], "texture": "#0"},
+				"west": {"uv": [0, 6, 2.5, 10], "texture": "#0"},
+				"up": {"uv": [0, 5, 2.5, 6.5], "rotation": 270, "texture": "#0"},
+				"down": {"uv": [0, 5, 2.5, 6.5], "rotation": 270, "texture": "#0"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, 45, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"firstperson_lefthand": {
+			"rotation": [0, 225, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"ground": {
+			"translation": [0, 3, 0],
+			"scale": [0.25, 0.25, 0.25]
+		},
+		"gui": {
+			"rotation": [30, 225, 0],
+			"translation": [0, -2.25, 0],
+			"scale": [0.45, 0.45, 0.45]
+		},
+		"head": {
+			"translation": [0, 13.75, 0]
+		},
+		"fixed": {
+			"scale": [0.5, 0.5, 0.5]
+		}
+	}
+}

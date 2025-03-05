@@ -6,7 +6,7 @@ plugins {
 
 }
 
-version = '1.20.1-1.2i'
+version = '1.20.1-1.3'
 group = 'com.jesz.createdieselgenerators' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'createdieselgenerators'
 
@@ -54,7 +54,7 @@ minecraft {
             property 'forge.enabledGameTestNamespaces', 'createdieselgenerators'
 
             arg '-mixin.config=createdieselgenerators.mixins.json'
-
+            arg '-mixin.config=create.mixins.json'
             mods {
                 createdieselgenerators {
                     source sourceSets.main
@@ -72,7 +72,7 @@ minecraft {
             property 'forge.enabledGameTestNamespaces', 'createdieselgenerators'
 
             arg '-mixin.config=createdieselgenerators.mixins.json'
-
+            arg '-mixin.config=create.mixins.json'
             mods {
                 createdieselgenerators {
                     source sourceSets.main
@@ -93,7 +93,7 @@ minecraft {
             property 'forge.enabledGameTestNamespaces', 'createdieselgenerators'
 
             arg '-mixin.config=createdieselgenerators.mixins.json'
-
+            arg '-mixin.config=create.mixins.json'
             mods {
                 createdieselgenerators {
                     source sourceSets.main
@@ -105,7 +105,7 @@ minecraft {
             workingDirectory project.file('run')
 
             arg '-mixin.config=createdieselgenerators.mixins.json'
-
+            arg '-mixin.config=create.mixins.json'
             property 'forge.logging.markers', 'REGISTRIES'
 
             property 'forge.logging.console.level', 'debug'
@@ -136,10 +136,10 @@ repositories {
 //    maven {
 //        url = "https://maven.blamejared.com/"
 //    }
-    maven {
-        name = 'tterrag maven'
-        url = 'https://maven.tterrag.com/'
-    }
+    maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
+    maven { url = "https://maven.tterrag.com" } // Registrate
+    maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // ForgeConfigAPIPort
+
     maven {
         url = "https://cursemaven.com"
     }
@@ -152,6 +152,29 @@ repositories {
     }
     maven {
         url = "https://maven.theillusivec4.top/"
+    }
+
+    maven {
+        // location of the maven that hosts JEI files since January 2023
+        // location of the maven for Vazkii's mods
+        name = "Jared's maven"
+        url = "https://maven.blamejared.com/"
+    }
+
+    maven {
+        // Shedaniel's maven (Architectury API)
+        url = "https://maven.architectury.dev"
+        content {
+            includeGroup "dev.architectury"
+        }
+    }
+
+    maven {
+        // saps.dev Maven (KubeJS and Rhino)
+        url = "https://maven.saps.dev/minecraft"
+        content {
+            includeGroup "dev.latvian.mods"
+        }
     }
 
 }
@@ -167,15 +190,24 @@ dependencies {
     // runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}") // Adds the full JEI mod as a runtime dependency
     // implementation fg.deobf("com.tterrag.registrate:Registrate:MC${mc_version}-${registrate_version}") // Adds registrate as a dependency
 
-    implementation fg.deobf("com.simibubi.create:create-1.20.1:0.5.1.e-24:slim")
-    implementation fg.deobf("com.jozufozu.flywheel:flywheel-forge-1.20.1:0.6.9-5")
+    implementation(fg.deobf("com.simibubi.create:create-1.20.1:6.0.1-22:slim") { transitive = false })
+    compileOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-api-1.20.1:1.0.0-215"))
+    runtimeOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-1.20.1:1.0.0-215"))
+    implementation (fg.deobf("net.createmod.ponder:Ponder-Forge-1.20.1:1.0.36"))
     implementation fg.deobf("com.tterrag.registrate:Registrate:MC1.20-1.3.3")
-    implementation fg.deobf("curse.maven:jei-238222:4644453")
+
+    implementation fg.deobf("mezz.jei:jei-1.20.1-forge:15.19.0.85")
+
     compileOnly("cc.tweaked:cc-tweaked-1.20.1-core-api:1.105.0")
     compileOnly fg.deobf("cc.tweaked:cc-tweaked-1.20.1-forge-api:1.105.0")
     runtimeOnly fg.deobf("cc.tweaked:cc-tweaked-1.20.1-forge:1.105.0")
-    runtimeOnly fg.deobf("curse.maven:every-compat-628539:4980517")
+//    runtimeOnly fg.deobf("curse.maven:every-compat-628539:4980517")
     implementation fg.deobf("curse.maven:selene-499980:4980621")
+
+    implementation fg.deobf("dev.latvian.mods:kubejs-forge:2001.6.5-build.17")
+
+    implementation fg.deobf("dev.latvian.mods:rhino-forge:1902.2.3-build.284")
+    implementation fg.deobf("dev.architectury:architectury-forge:6.6.92")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     testAnnotationProcessor 'org.spongepowered:mixin:0.8.5:processor'

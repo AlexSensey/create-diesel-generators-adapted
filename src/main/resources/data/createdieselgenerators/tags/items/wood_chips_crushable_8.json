@@ -1,0 +1,30 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:oak_planks",
+    "minecraft:birch_planks",
+    "minecraft:acacia_planks",
+    "minecraft:spruce_slab",
+    "minecraft:jungle_planks",
+    "minecraft:dark_oak_planks",
+
+    { "id": "quark:blossom_planks", "required": false },
+    { "id": "quark:azalea_planks", "required": false },
+    { "id": "quark:ancient_planks", "required": false },
+    { "id": "biomesoplenty:fir_planks", "required":  false },
+    { "id": "biomesoplenty:pine_planks", "required":  false },
+    { "id": "biomesoplenty:maple_planks", "required":  false },
+    { "id": "biomesoplenty:redwood_planks", "required":  false },
+    { "id": "biomesoplenty:mahogany_planks", "required":  false },
+    { "id": "biomesoplenty:jacaranda_planks", "required":  false },
+    { "id": "biomesoplenty:palm_planks", "required":  false },
+    { "id": "biomesoplenty:willow_planks", "required":  false },
+    { "id": "biomesoplenty:dead_planks", "required":  false },
+    { "id": "biomesoplenty:magic_planks", "required":  false },
+    { "id": "biomesoplenty:umbran_planks", "required":  false },
+    { "id": "biomesoplenty:hellbark_planks", "required":  false },
+    { "id": "biomesoplenty:empyreal_planks", "required":  false }
+
+
+  ]
+}
