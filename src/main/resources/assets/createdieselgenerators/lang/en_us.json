@@ -237,9 +237,7 @@
   "createdieselgenerators.ponder.automatic_turret.text_2": "Simply add an entity filter, into the filter slot of the turret ...",
   "createdieselgenerators.ponder.automatic_turret.text_3": "... the turret operator will shoot any mobs, that match the filter.",
 
-  "createdieselgenerators.display_source.pumpjack_hole_source": "Oil Amount",
-  "createdieselgenerators.display_source.diesel_engine_source": "Engine Status",
-  "createdieselgenerators.display_source.large_diesel_engine_source": "Engine Status",
+  "createdieselgenerators.display_source.oil_amount": "Oil Amount",
   "createdieselgenerators.display_source.engine_status": "Engine Status",
   "createdieselgenerators.display_source.speed": "SPEED : ",
   "createdieselgenerators.display_source.stress": "STRESS : ",

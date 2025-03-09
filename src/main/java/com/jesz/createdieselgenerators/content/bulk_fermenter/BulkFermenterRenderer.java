@@ -51,7 +51,7 @@ public class BulkFermenterRenderer extends SafeBlockEntityRenderer<BulkFermenter
                     .uncenter()
                     .translate(be.width / 2f - 6 / 16f, 0, 0)
                     .translate(0, dialPivotY, dialPivotZ)
-                    .rotateXDegrees(-145 * progress + 90)
+                    .rotateXDegrees(-180 * progress + 90)
                     .translate(0, -dialPivotY, -dialPivotZ)
                     .light(light)
                     .renderInto(ms, vb);

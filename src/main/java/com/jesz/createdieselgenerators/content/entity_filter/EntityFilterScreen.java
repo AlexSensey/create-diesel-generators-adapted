@@ -4,7 +4,6 @@ import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.packets.CDGPackets;
 import com.jesz.createdieselgenerators.packets.EntityFilterScreenPacket;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.AllPackets;
 import com.simibubi.create.content.logistics.filter.AbstractFilterScreen;
 import com.simibubi.create.content.logistics.filter.AttributeFilterMenu;
 import com.simibubi.create.content.logistics.filter.FilterScreenPacket;
@@ -55,27 +54,27 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
             menu.whitelist = AttributeFilterMenu.WhitelistMode.WHITELIST_CONJ;
             sendOptionUpdate(FilterScreenPacket.Option.WHITELIST2);
         });
-        whitelistCon.setToolTip(CreateDieselGenerators.Lang("gui.entity_filter.allow_list_conjunctive"));
+        whitelistCon.setToolTip(CreateDieselGenerators.lang("gui.entity_filter.allow_list_conjunctive"));
         whitelistDis.withCallback(() -> {
             menu.whitelist = AttributeFilterMenu.WhitelistMode.WHITELIST_DISJ;
             sendOptionUpdate(FilterScreenPacket.Option.WHITELIST);
         });
-        whitelistDis.setToolTip(CreateDieselGenerators.Lang("gui.entity_filter.allow_list_disjunctive"));
+        whitelistDis.setToolTip(CreateDieselGenerators.lang("gui.entity_filter.allow_list_disjunctive"));
 
         blacklist.withCallback(() -> {
             menu.whitelist = AttributeFilterMenu.WhitelistMode.BLACKLIST;
             sendOptionUpdate(FilterScreenPacket.Option.BLACKLIST);
         });
-        blacklist.setToolTip(CreateDieselGenerators.Lang("gui.entity_filter.deny_list"));
+        blacklist.setToolTip(CreateDieselGenerators.lang("gui.entity_filter.deny_list"));
 
         addRenderableWidgets(whitelistCon, whitelistDis, blacklist);
 
         addRenderableWidget(add = new IconButton(leftPos + 182, topPos + 26, AllIcons.I_ADD));
         addRenderableWidget(addInverted = new IconButton(leftPos + 200, topPos + 26, AllIcons.I_ADD_INVERTED_ATTRIBUTE));
         add.withCallback(() -> handleAddedAttribute(false));
-        add.setToolTip(CreateDieselGenerators.Lang("gui.entity_filter.add_attribute"));
+        add.setToolTip(CreateDieselGenerators.lang("gui.entity_filter.add_attribute"));
         addInverted.withCallback(() -> handleAddedAttribute(true));
-        addInverted.setToolTip(CreateDieselGenerators.Lang("gui.entity_filter.add_inverted_attribute"));
+        addInverted.setToolTip(CreateDieselGenerators.lang("gui.entity_filter.add_inverted_attribute"));
 
         handleIndicators();
 
@@ -91,8 +90,8 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
 
         selectedAttributes.clear();
         selectedAttributes.add((menu.selectedAttributes.isEmpty() ?
-                CreateDieselGenerators.Lang("gui.entity_filter.no_selected_attributes") :
-                CreateDieselGenerators.Lang("gui.entity_filter.selected_attributes")).plainCopy()
+                CreateDieselGenerators.lang("gui.entity_filter.no_selected_attributes") :
+                CreateDieselGenerators.lang("gui.entity_filter.selected_attributes")).plainCopy()
                 .withStyle(ChatFormatting.YELLOW));
         menu.selectedAttributes.forEach(at -> selectedAttributes.add(Component.literal("- ")
                 .append(at.getFirst()
@@ -122,7 +121,7 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
         if (stack.isEmpty()) {
             attributeSelector.active = false;
             attributeSelector.visible = false;
-            attributeSelectorLabel.text = CreateDieselGenerators.Lang("gui.entity_filter.add_reference_item").plainCopy()
+            attributeSelectorLabel.text = CreateDieselGenerators.lang("gui.entity_filter.add_reference_item").plainCopy()
                     .withStyle(ChatFormatting.ITALIC);
             add.active = false;
             addInverted.active = false;
@@ -180,7 +179,7 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
         menu.appendSelectedAttribute(itemAttribute, inverted);
         if (menu.selectedAttributes.size() == 1)
             selectedAttributes.set(0,
-                    CreateDieselGenerators.Lang("gui.entity_filter.selected_attributes").plainCopy()
+                    CreateDieselGenerators.lang("gui.entity_filter.selected_attributes").plainCopy()
                     .withStyle(ChatFormatting.YELLOW));
         selectedAttributes.add(Component.literal("- ").append(itemAttribute.format(inverted))
                 .withStyle(ChatFormatting.GRAY));
@@ -220,7 +219,7 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
     @Override
     protected void contentsCleared() {
         selectedAttributes.clear();
-        selectedAttributes.add(CreateDieselGenerators.Lang("gui.entity_filter.no_selected_attributes").plainCopy()
+        selectedAttributes.add(CreateDieselGenerators.lang("gui.entity_filter.no_selected_attributes").plainCopy()
                 .withStyle(ChatFormatting.YELLOW));
         if (!lastItemScanned.isEmpty()) {
             add.active = true;
@@ -244,9 +243,9 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
 
     @Override
     protected List<MutableComponent> getTooltipDescriptions() {
-        return Arrays.asList(CreateDieselGenerators.Lang("gui.entity_filter.deny_list.description").plainCopy(),
-                CreateDieselGenerators.Lang("gui.entity_filter.allow_list_conjunctive.description").plainCopy(),
-                CreateDieselGenerators.Lang("gui.entity_filter.allow_list_disjunctive.description").plainCopy());
+        return Arrays.asList(CreateDieselGenerators.lang("gui.entity_filter.deny_list.description").plainCopy(),
+                CreateDieselGenerators.lang("gui.entity_filter.allow_list_conjunctive.description").plainCopy(),
+                CreateDieselGenerators.lang("gui.entity_filter.allow_list_disjunctive.description").plainCopy());
     }
 
     @Override

@@ -1,7 +1,9 @@
 package com.jesz.createdieselgenerators.content.distillation;
 
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
+import com.jesz.createdieselgenerators.CDGItems;
 import com.simibubi.create.AllBlocks;
+import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.api.schematic.requirement.SpecialBlockItemRequirement;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
@@ -9,8 +11,11 @@ import com.simibubi.create.content.fluids.tank.FluidTankBlock;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
 import com.simibubi.create.content.schematics.requirement.ItemRequirement;
 import com.simibubi.create.foundation.block.IBE;
+import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ItemParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -26,6 +31,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -59,8 +65,17 @@ public class DistillationTankBlock extends Block implements IBE<DistillationTank
                 for (int z = 0; z < width; z++) {
                     context.getLevel().setBlock(pos.offset(x, 0, z), AllBlocks.FLUID_TANK.getDefaultState(), 3);
                     context.getLevel().updateNeighborsAt(pos.offset(x, 0, z), AllBlocks.FLUID_TANK.get());
+                    if (context.getLevel().isClientSide) {
+                        for (int i = 0; i < 30; i++) {
+                            Vec3 offset = VecHelper.offsetRandomly(VecHelper.getCenterOf(pos.offset(x, 0, z)), context.getLevel().getRandom(), .3f);
+                            Vec3 motion = VecHelper.offsetRandomly(Vec3.ZERO, context.getLevel().getRandom(), .1f);
+                            context.getLevel().addParticle(new ItemParticleOption(ParticleTypes.ITEM, DISTILLATION_CONTROLLER.asStack()), offset.x(), offset.y(),
+                                    offset.z(), motion.x(), motion.y(), motion.z());
+                        }
+                    }
                 }
             }
+            AllSoundEvents.WRENCH_REMOVE.playAt(context.getLevel(), pos.getX() + (double) width / 2, pos.getY() + 0.5, pos.getZ() + (double) width / 2, 2f, 1f, false);
             if(!stackInTank.isEmpty() && context.getLevel().getBlockEntity(pos) instanceof FluidTankBlockEntity be){
                 IFluidHandler tank = be.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(new FluidTank(1));
                 tank.fill(stackInTank, IFluidHandler.FluidAction.EXECUTE);

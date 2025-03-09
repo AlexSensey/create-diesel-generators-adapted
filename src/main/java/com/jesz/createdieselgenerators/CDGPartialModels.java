@@ -23,8 +23,8 @@ public class CDGPartialModels {
     public static final PartialModel ENGINE_SILENCER_VERTICAL = model("block/diesel_engine/vertical_silencer");
     public static final PartialModel ENGINE_TURBOCHARGER = model("block/diesel_engine/turbocharger");
     public static final PartialModel ENGINE_TURBOCHARGER_VERTICAL = model("block/diesel_engine/vertical_turbocharger");
-
     public static final PartialModel MODULAR_ENGINE_SILENCER = model("block/modular_diesel_engine/silencer");
+    public static final PartialModel MODULAR_TURBOCHARGER = model("block/modular_diesel_engine/turbocharger");
     public static final PartialModel HUGE_ENGINE_SILENCER = model("block/huge_diesel_engine/silencer");
 
     public static final PartialModel ENGINE_PISTON = model("block/huge_diesel_engine/piston");
@@ -39,7 +39,6 @@ public class CDGPartialModels {
     public static final PartialModel SMALL_GAUGE_DIAL = model("block/basin_lid/gauge_dial");
     public static final PartialModel DISTILLATION_GAUGE = model("block/distillation_tower/gauge");
     public static final PartialModel BULK_FERMENTER_GAUGE = model("block/bulk_fermenter_gauge");
-    public static final PartialModel DISTILLATION_GAUGE_DIAL = model("block/distillation_tower/gauge_dial");
     public static final PartialModel JEI_DISTILLER_TOP = model("block/jei_distiller/top");
     public static final PartialModel JEI_DISTILLER_MIDDLE = model("block/jei_distiller/middle");
     public static final PartialModel JEI_DISTILLER_BOTTOM = model("block/jei_distiller/bottom");

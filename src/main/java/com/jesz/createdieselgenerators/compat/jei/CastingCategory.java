@@ -33,11 +33,7 @@ public class CastingCategory extends CreateRecipeCategory<CastingRecipe> {
                 .addItemStack(stack);
 
         for (FluidIngredient fluidIngredient : recipe.getFluidIngredients()) {
-            builder
-                    .addSlot(RecipeIngredientRole.INPUT, 36, 51)
-                    .setBackground(getRenderedSlot(), -1, -1)
-                    .addIngredients(ForgeTypes.FLUID_STACK, withImprovedVisibility(fluidIngredient.getMatchingFluidStacks()))
-                    .addRichTooltipCallback(addFluidTooltip(fluidIngredient.getRequiredAmount()));
+            addFluidSlot(builder, 36, 51, fluidIngredient);
 
         }
 

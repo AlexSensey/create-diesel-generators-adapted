@@ -155,7 +155,7 @@ public interface EngineUpgrades {
         @Override
         public void render(BlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light) {
            renderPartial(be, ms, buffer, CDGPartialModels.ENGINE_TURBOCHARGER, CDGPartialModels.ENGINE_TURBOCHARGER_VERTICAL,
-                   CDGPartialModels.ENGINE_TURBOCHARGER, CDGPartialModels.ENGINE_TURBOCHARGER, light);
+                   CDGPartialModels.MODULAR_TURBOCHARGER, CDGPartialModels.ENGINE_TURBOCHARGER, light);
         }
 
         @Override
@@ -171,7 +171,7 @@ public interface EngineUpgrades {
 
         @Override
         public boolean canAddOn(IEngine engine) {
-            return engine instanceof DieselEngineBlockEntity;
+            return engine instanceof DieselEngineBlockEntity || engine instanceof ModularDieselEngineBlockEntity;
         }
     }
 }

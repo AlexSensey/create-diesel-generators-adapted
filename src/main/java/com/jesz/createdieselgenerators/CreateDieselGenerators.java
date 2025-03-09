@@ -53,6 +53,7 @@ public class CreateDieselGenerators
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> onClient(modEventBus, forgeEventBus));
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, CDGConfig.SERVER_SPEC, ID + "-server.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, CDGConfig.COMMON_SPEC, ID + "-common.toml");
         CDGPackets.registerPackets();
         MinecraftForge.EVENT_BUS.register(this);
         REGISTRATE.registerEventListeners(modEventBus);
@@ -76,7 +77,7 @@ public class CreateDieselGenerators
         return new ResourceLocation(ID, path);
     }
 
-    public static Component Lang(String path, Object... args) {
+    public static Component lang(String path, Object... args) {
         return Component.translatable(ID+"."+path, args);
     }
 }

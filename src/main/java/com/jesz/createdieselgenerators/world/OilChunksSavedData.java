@@ -108,7 +108,7 @@ public class OilChunksSavedData extends SavedData {
         return (int) (Mth.clamp(amount % 15000, 0, 12000)* CDGConfig.OIL_MULTIPLIER.get());
     }
     public static List<Holder<Biome>> getBiomesInChunk(ServerLevel level, ChunkPos chunkPos){
-        List<Holder<Biome>> list = new LinkedList<>();
+        List<Holder<Biome>> list = new ArrayList<>();
         for (int x = 0; x < 16; x++) {
             for (int y = level.getMinBuildHeight(); y < level.getMaxBuildHeight(); y++) {
                 for (int z = 0; z < 16; z++) {

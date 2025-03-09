@@ -70,7 +70,7 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
             hit.getEntity().hurt(damageSources().inFire(), 2);
         } else if(cooling)
             hit.getEntity().clearFire();
-        if(stack.getFluid().isSame(AllFluids.POTION.get())){
+        else if(stack.getFluid().isSame(AllFluids.POTION.get())){
             if(hit.getEntity() instanceof LivingEntity le && le.isAffectedByPotions()){
                 for (MobEffectInstance effectInstance : PotionUtils.getMobEffects(PotionFluidHandler.fillBottle(new ItemStack(Items.GLASS_BOTTLE), stack))){
                     MobEffect effect = effectInstance.getEffect();
@@ -81,13 +81,13 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
                     }
                 }
             }
-        }
-        if(FluidHelper.isTag(stack, Tags.Fluids.MILK)){
+        } else if(FluidHelper.isTag(stack, Tags.Fluids.MILK)){
             if(hit.getEntity() instanceof LivingEntity le && le.isAffectedByPotions()) {
                 ItemStack curativeItem = new ItemStack(Items.MILK_BUCKET);
                 le.curePotionEffects(curativeItem);
             }
-        }
+        } else
+            hit.getEntity().hurt(damageSources().generic(), 0.5f);
 
         super.onHitEntity(hit);
         remove(RemovalReason.DISCARDED);

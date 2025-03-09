@@ -1,18 +1,30 @@
 package com.jesz.createdieselgenerators.content.distillation;
 
 import com.jesz.createdieselgenerators.CDGBlocks;
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllSoundEvents;
+import com.simibubi.create.AllSpecialTextures;
+import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
+import net.createmod.catnip.math.VecHelper;
+import net.createmod.catnip.outliner.Outliner;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ItemParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DistillationControllerItem extends Item {
     public DistillationControllerItem(Properties properties) {
@@ -21,40 +33,47 @@ public class DistillationControllerItem extends Item {
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        if(context.getLevel().getBlockEntity(context.getClickedPos()) instanceof FluidTankBlockEntity ftbe){
-            ItemStack item = context.getPlayer().getItemInHand(InteractionHand.MAIN_HAND);
-            BlockPos cPos = ftbe.getController();
+        if(context.getLevel().getBlockEntity(context.getClickedPos()) instanceof FluidTankBlockEntity ftbe && AllBlocks.FLUID_TANK.has(ftbe.getBlockState())){
+            ItemStack itemInHand = context.getPlayer().getItemInHand(InteractionHand.MAIN_HAND);
+            BlockPos controllerPos = ftbe.getController();
             int width = ftbe.getControllerBE().getWidth();
             int height = ftbe.getControllerBE().getHeight();
             FluidStack fluidInTank = ftbe.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(new FluidTank(0)).getFluidInTank(0).copy();
-            for (int x = 0; x < width; x++) {
+            List<BlockPos> positions = new ArrayList<>();
+
+            for (int y = 0; y < height; y++) {
                 for (int z = 0; z < width; z++) {
-                    for (int y = 0; y < height; y++) {
-                        if(item.getCount() == 0 && !context.getPlayer().isCreative())
+                    for (int x = 0; x < width; x++) {
+                        if (positions.size() >= itemInHand.getCount() && !context.getPlayer().isCreative())
                             break;
-                        context.getLevel().setBlock(cPos.offset(x, y, z), CDGBlocks.DISTILLATION_TANK.getDefaultState(), 1);
-                        context.getLevel().updateNeighborsAt(cPos.offset(x, y, z), CDGBlocks.DISTILLATION_TANK.getDefaultState().getBlock());
-                        if(!context.getPlayer().isCreative())
-                            item.shrink(1);
+                        BlockPos currentPos = controllerPos.offset(x, y, z);
+                        if (ConnectivityHandler.isConnected(context.getLevel(), controllerPos, currentPos))
+                            positions.add(currentPos);
                     }
                 }
             }
-            AllSoundEvents.WRENCH_ROTATE.playAt(context.getLevel(), cPos.getX()+ (double) width /2, cPos.getY()+ (double) height /2, cPos.getZ()+ (double) width /2, 1f, 1f, false);
-            for (int x = 0; x < width; x++) {
-                for (int z = 0; z < width; z++) {
-                    for (int y = 0; y < height; y++) {
-                        if(context.getLevel().getBlockEntity(cPos.offset(x, y, z)) instanceof DistillationTankBlockEntity dtbe){
-                            dtbe.updateVerticalMulti();
-                            dtbe.updateConnectivity();
-                            if(x == 0 && y == 0 && z == 0){
-                                IFluidHandler tank = dtbe.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
-                                if(tank != null)
-                                    tank.fill(fluidInTank, IFluidHandler.FluidAction.EXECUTE);
-                                dtbe.updateTemperature();
-                            }
-                        }
+            for (BlockPos pos : positions) {
+                context.getLevel().setBlock(pos, CDGBlocks.DISTILLATION_TANK.getDefaultState(), 3);
+                if (context.getLevel().isClientSide) {
+                    for (int i = 0; i < 30; i++) {
+                        Vec3 offset = VecHelper.offsetRandomly(VecHelper.getCenterOf(pos), context.getLevel().getRandom(), .3f);
+                        Vec3 motion = VecHelper.offsetRandomly(Vec3.ZERO, context.getLevel().getRandom(), .1f);
+                        context.getLevel().addParticle(new ItemParticleOption(ParticleTypes.ITEM, itemInHand), offset.x(), offset.y(),
+                                offset.z(), motion.x(), motion.y(), motion.z());
                     }
                 }
+            }
+            AllSoundEvents.WRENCH_ROTATE.playAt(context.getLevel(), controllerPos.getX() + (double) width / 2, controllerPos.getY() + (double) height / 2, controllerPos.getZ() + (double) width / 2, 2f, 1f, false);
+            if (!context.getPlayer().isCreative())
+                itemInHand.shrink(positions.size());
+
+            if (context.getLevel().getBlockEntity(controllerPos) instanceof DistillationTankBlockEntity be) {
+                be.updateConnectivity();
+                be.updateVerticalMulti();
+                be.updateTemperature();
+                IFluidHandler tank = be.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
+                if (tank != null)
+                    tank.fill(fluidInTank, IFluidHandler.FluidAction.EXECUTE);
             }
 
             return InteractionResult.SUCCESS;

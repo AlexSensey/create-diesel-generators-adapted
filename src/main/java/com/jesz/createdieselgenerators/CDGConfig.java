@@ -5,14 +5,14 @@ import net.minecraftforge.common.ForgeConfigSpec;
 public class CDGConfig {
     public static final ForgeConfigSpec.Builder SERVER_BUILDER = new ForgeConfigSpec.Builder();
     public static final ForgeConfigSpec.Builder CLIENT_BUILDER = new ForgeConfigSpec.Builder();
+    public static final ForgeConfigSpec.Builder COMMON_BUILDER = new ForgeConfigSpec.Builder();
 
     public static final ForgeConfigSpec SERVER_SPEC;
     public static final ForgeConfigSpec CLIENT_SPEC;
+    public static final ForgeConfigSpec COMMON_SPEC;
 
     public static final ForgeConfigSpec.ConfigValue<Double> TURBOCHARGED_ENGINE_MULTIPLIER;
     public static final ForgeConfigSpec.ConfigValue<Double> TURBOCHARGED_ENGINE_BURN_RATE_MULTIPLIER;
-
-    public static final ForgeConfigSpec.ConfigValue<Integer> DISTILLATION_LEVEL_HEIGHT;
 
     public static final ForgeConfigSpec.ConfigValue<Boolean> ENGINES_EMIT_SOUND_ON_TRAINS;
 
@@ -93,10 +93,6 @@ public class CDGConfig {
                     .defineInRange("Normal oil chunks percentage", 10d, 0d, 100d);
             HIGH_OIL_PERCENTAGE = SERVER_BUILDER.comment("High oil chunks percentage")
                     .defineInRange("High oil chunks percentage", 10d, 0d, 100d);
-            SERVER_BUILDER.push("Distillation");
-                DISTILLATION_LEVEL_HEIGHT = SERVER_BUILDER.comment("Height of Distillation Tower level")
-                        .defineInRange("Height of Distillation Tower level", 1, 1, 3);
-            SERVER_BUILDER.pop();
 
         SERVER_BUILDER.pop();
 
@@ -111,16 +107,20 @@ public class CDGConfig {
         CANISTER_SPOUT_FILLING = SERVER_BUILDER.comment("Canister can be filled by spouts")
                 .define("Canister can be filled by spouts",true);
 
-        TOOL_CAPACITY = SERVER_BUILDER.comment("Capacity of Tools requiring Fluids in mB")
-                .define("Capacity of Tools requiring Fluids",200);
-        TOOL_CAPACITY_ENCHANTMENT = SERVER_BUILDER.comment("Tool Capacity Enchantment Capacity Addition in mB")
-                .define("Capacity Addition of Tools with Capacity Enchantment",100);
-
         COMBUSTIBLES_BLOW_UP = SERVER_BUILDER.comment("Combustibles do boom boom when on fire")
                 .define("Combustibles blow up",true);
 
         SERVER_BUILDER.pop();
         SERVER_SPEC = SERVER_BUILDER.build();
+
+        COMMON_BUILDER.push("Common Config");
+            TOOL_CAPACITY = COMMON_BUILDER.comment("Capacity of Tools requiring Fluids in mB")
+                    .define("Capacity of Tools requiring Fluids",200);
+            TOOL_CAPACITY_ENCHANTMENT = COMMON_BUILDER.comment("Tool Capacity Enchantment Capacity Addition in mB")
+                    .define("Capacity Addition of Tools with Capacity Enchantment",100);
+        COMMON_BUILDER.pop();
+        COMMON_SPEC = COMMON_BUILDER.build();
+
     }
 
 

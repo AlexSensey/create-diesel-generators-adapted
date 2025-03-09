@@ -135,7 +135,7 @@ public interface EntityAttribute {
 
         @Override
         public Component format(boolean inverted) {
-            return CreateDieselGenerators.Lang("entity_attributes."+getId().getPath()+(inverted ? ".inverted" : ""));
+            return CreateDieselGenerators.lang("entity_attributes."+getId().getPath()+(inverted ? ".inverted" : ""));
         }
     }
     class IsMob implements EntityAttribute {
@@ -180,7 +180,7 @@ public interface EntityAttribute {
 
         @Override
         public Component format(boolean inverted) {
-            return CreateDieselGenerators.Lang("entity_attributes.is_mob"+(inverted ? ".inverted" : ""), type.getDescription());
+            return CreateDieselGenerators.lang("entity_attributes.is_mob"+(inverted ? ".inverted" : ""), type.getDescription());
         }
     }
 }

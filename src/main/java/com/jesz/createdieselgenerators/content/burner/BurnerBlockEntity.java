@@ -73,6 +73,8 @@ public class BurnerBlockEntity extends KineticBlockEntity {
             }
             if ((int)(tick % (10 / valveState)) == 0) {
                 tank.drain(1, IFluidHandler.FluidAction.EXECUTE);
+                sendData();
+                setChanged();
             }
         }
         if(level.isClientSide)

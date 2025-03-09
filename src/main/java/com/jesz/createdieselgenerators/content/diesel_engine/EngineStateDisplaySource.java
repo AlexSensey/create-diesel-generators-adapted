@@ -1,7 +1,9 @@
 package com.jesz.createdieselgenerators.content.diesel_engine;
 
+import com.jesz.createdieselgenerators.content.diesel_engine.huge.HugeDieselEngineBlockEntity;
 import com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlockEntity;
 import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlockEntity;
+import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
 import com.simibubi.create.api.behaviour.display.DisplaySource;
 import com.simibubi.create.content.redstone.displayLink.DisplayLinkContext;
 import com.simibubi.create.content.redstone.displayLink.target.DisplayTargetStats;
@@ -17,8 +19,8 @@ public class EngineStateDisplaySource extends DisplaySource {
             if(sourceBE.enabled())
                 return List.of(
                         Component.translatable("createdieselgenerators.display_source.engine_status").append(" : "),
-                        Component.translatable("createdieselgenerators.display_source.speed").append(Math.abs(sourceBE.getGeneratedSpeed()) + Component.translatable("create.generic.unit.rpm").toString()),
-                        Component.translatable("createdieselgenerators.display_source.stress").append(Math.abs(sourceBE.calculateAddedStressCapacity() * sourceBE.getGeneratedSpeed()) + Component.translatable("create.generic.unit.stress").toString())
+                        Component.translatable("createdieselgenerators.display_source.speed").append(Math.abs(sourceBE.getGeneratedSpeed()) + Component.translatable("create.generic.unit.rpm").getString()),
+                        Component.translatable("createdieselgenerators.display_source.stress").append(Math.abs(sourceBE.calculateAddedStressCapacity() * sourceBE.getGeneratedSpeed()) + Component.translatable("create.generic.unit.stress").getString())
                 );
 
             return List.of(
@@ -34,8 +36,22 @@ public class EngineStateDisplaySource extends DisplaySource {
                 if(frontEngine.validFS())
                     return List.of(
                             Component.translatable("createdieselgenerators.display_source.engine_status").append(" : "),
-                            Component.translatable("createdieselgenerators.display_source.speed").append(Math.abs(frontEngine.getGeneratedSpeed()) + Component.translatable("create.generic.unit.rpm").toString()),
-                            Component.translatable("createdieselgenerators.display_source.stress").append(Math.abs(frontEngine.calculateAddedStressCapacity() * frontEngine.getGeneratedSpeed()) + Component.translatable("create.generic.unit.stress").toString())
+                            Component.translatable("createdieselgenerators.display_source.speed").append(Math.abs(frontEngine.getGeneratedSpeed()) + Component.translatable("create.generic.unit.rpm").getString()),
+                            Component.translatable("createdieselgenerators.display_source.stress").append(Math.abs(frontEngine.calculateAddedStressCapacity() * frontEngine.getGeneratedSpeed()) + Component.translatable("create.generic.unit.stress").getString())
+                );
+
+            return List.of(
+                    Component.translatable("createdieselgenerators.display_source.engine_status").append(" : "),
+                    Component.translatable("createdieselgenerators.display_source.idle")
+            );
+
+        }
+        else if(context.getSourceBlockEntity() instanceof HugeDieselEngineBlockEntity sourceBE) {
+            if(sourceBE.enabled())
+                return List.of(
+                        Component.translatable("createdieselgenerators.display_source.engine_status").append(" : "),
+                        Component.translatable("createdieselgenerators.display_source.speed").append(Math.abs(FuelTypeManager.getGeneratedSpeed(sourceBE, sourceBE.tank.getPrimaryHandler().getFluid().getFluid())) + Component.translatable("create.generic.unit.rpm").getString()),
+                        Component.translatable("createdieselgenerators.display_source.stress").append(Math.abs(FuelTypeManager.getGeneratedStress(sourceBE, sourceBE.tank.getPrimaryHandler().getFluid().getFluid())) + Component.translatable("create.generic.unit.stress").getString())
                 );
 
             return List.of(

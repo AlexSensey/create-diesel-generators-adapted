@@ -6,13 +6,17 @@ import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRendere
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
 import dev.engine_room.flywheel.lib.transform.TransformStack;
 import net.createmod.catnip.animation.AnimationTickHolder;
+import net.createmod.catnip.math.VecHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.core.particles.ItemParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 
 public class HammerItemRenderer extends CustomRenderedItemModelRenderer {
     @Override
@@ -25,6 +29,7 @@ public class HammerItemRenderer extends CustomRenderedItemModelRenderer {
         else {
             float time = ((AnimationTickHolder.getTicks() + AnimationTickHolder.getPartialTicks()) % 10) / 10;
             time -= 0.5f;
+
             ItemStack processingItem = ItemStack.of(tag.getCompound("ProcessingItem"));
             if (!transformType.firstPerson()) {
                 boolean thirdPerson = transformType.name().startsWith("THIRD_PERSON");

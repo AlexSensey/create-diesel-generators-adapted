@@ -59,11 +59,7 @@ public class DieselEngineCategory implements IRecipeCategory<DieselEngineJeiReci
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, DieselEngineJeiRecipeType recipe, IFocusGroup iFocusGroup) {
-        builder
-                .addSlot(RecipeIngredientRole.INPUT, 10, 10)
-                .setBackground(getRenderedSlot(), -1, -1)
-                .addIngredient(ForgeTypes.FLUID_STACK, withImprovedVisibility(new FluidStack(recipe.fluid, 1000)))
-                .addRichTooltipCallback(addFluidTooltip(recipe.burnRate));
+        addFluidSlot(builder, 10, 10, new FluidStack(recipe.fluid, 1000));
     }
 
     @Override

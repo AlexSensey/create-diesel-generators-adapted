@@ -75,6 +75,7 @@ public class ModEvents {
                 c -> c);
     }
     @SubscribeEvent
+    @OnlyIn(Dist.CLIENT)
     public static void addEntityRendererLayers(EntityRenderersEvent.AddLayers event) {
         EntityRenderDispatcher dispatcher = Minecraft.getInstance()
                 .getEntityRenderDispatcher();
@@ -90,8 +91,6 @@ public class ModEvents {
     }
     @SubscribeEvent
     public static void setup(FMLCommonSetupEvent event) {
-        if(ModList.get().isLoaded("kubejs"))
-            CDGKubeJSPlugin.registerMolds();
         event.enqueueWork(() -> {
             BlockSpoutingBehaviour.BY_BLOCK_ENTITY.register(CDGBlockEntityTypes.CANISTER.get(), new SpoutCanisterFilling());
             BlockSpoutingBehaviour.BY_BLOCK_ENTITY.register(AllBlockEntityTypes.BASIN.get(), new BasinSpoutCasting());

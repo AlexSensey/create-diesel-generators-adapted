@@ -60,8 +60,7 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
-//    public static final BooleanProperty SILENCED = BooleanProperty.create("silenced");
-//    public static final BooleanProperty TURBOCHARGED = BooleanProperty.create("turbocharged");
+
     public enum EngineTypes{
         NORMAL(CDGConfig.NORMAL_ENGINES), MODULAR(CDGConfig.MODULAR_ENGINES), HUGE(CDGConfig.HUGE_ENGINES);
 
@@ -78,8 +77,6 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
         registerDefaultState(
                 super.defaultBlockState()
                         .setValue(WATERLOGGED, false)
-//                        .setValue(SILENCED, false)
-//                        .setValue(TURBOCHARGED, false)
                         .setValue(POWERED, false));
 
     }

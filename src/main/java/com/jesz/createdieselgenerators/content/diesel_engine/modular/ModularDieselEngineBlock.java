@@ -13,6 +13,7 @@ import com.simibubi.create.content.schematics.requirement.ItemRequirement;
 import com.simibubi.create.foundation.block.IBE;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.placement.PoleHelper;
+import net.createmod.catnip.outliner.Outliner;
 import net.createmod.catnip.placement.IPlacementHelper;
 import net.createmod.catnip.placement.PlacementHelpers;
 import net.minecraft.core.BlockPos;
@@ -35,6 +36,7 @@ import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -96,7 +98,6 @@ public class ModularDieselEngineBlock extends HorizontalKineticBlock implements 
                 if (level.hasNeighborSignal(controller.getBlockPos().relative(controller.getBlockState().getValue(FACING).getAxis(), -i)))
                     powered = true;
 
-
         level.setBlock(controller.getBlockPos(), controller.getBlockState().setValue(POWERED, powered), 2);
 
         super.neighborChanged(state, level, pos, block, otherPos, moving);
@@ -123,7 +124,7 @@ public class ModularDieselEngineBlock extends HorizontalKineticBlock implements 
                 withBlockEntityDo(level, pos, be -> {
                     if (!upgrade.canAddOn(be))
                         return;
-                    if(be.upgrade != EngineUpgrades.NONE)
+                    if(be.upgrade != EngineUpgrades.NONE || (be.controller != null && be.controller.upgrade != EngineUpgrades.NONE))
                         return;
 
                     if(!player.isCreative())

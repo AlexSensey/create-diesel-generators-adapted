@@ -38,12 +38,12 @@ public class OilScannerItem extends Item {
             stack.getOrCreateTag().putInt("Time", 20);
             stack.getOrCreateTag().putInt("Type", 0);
             if(level.isClientSide)
-                player.displayClientMessage(CreateDieselGenerators.Lang("actionbar.oil_scanner.searching"), true);
+                player.displayClientMessage(CreateDieselGenerators.lang("actionbar.oil_scanner.searching"), true);
 
         }else {
             level.playLocalSound(player.getX(), player.getY(), player.getZ(), AllSoundEvents.DENY.getMainEvent(), SoundSource.PLAYERS, 1.2f, 1, true);
             if(level.isClientSide)
-                player.displayClientMessage(CreateDieselGenerators.Lang("actionbar.oil_scanner.too_high_up"), true);
+                player.displayClientMessage(CreateDieselGenerators.lang("actionbar.oil_scanner.too_high_up"), true);
         }
         return InteractionResultHolder.success(stack);
     }

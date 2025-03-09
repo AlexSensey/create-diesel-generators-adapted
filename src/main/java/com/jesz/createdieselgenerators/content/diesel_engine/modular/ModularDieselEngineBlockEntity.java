@@ -187,7 +187,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
     public void tick() {
         super.tick();
         currentStressPitch = Mth.lerp(0.2f, currentStressPitch, targetStressPitch);
-        level.getProfiler().push("reActivatingSource");
+
 
         if (getGeneratedSpeed() != lastSpeed || lastCapacity != calculateAddedStressCapacity()) {
             reActivateSource = true;
@@ -195,7 +195,6 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
             lastCapacity = calculateAddedStressCapacity();
             lastSpeed = getGeneratedSpeed();
         }
-        level.getProfiler().popPush("controller_magic");
 
         ModularDieselEngineBlockEntity controller = this.controller;
         if(controller == null)
@@ -207,12 +206,10 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
                 upgrade = EngineUpgrades.NONE;
             }
         }
-        level.getProfiler().popPush("sound");
         if (controller.validFS() && controller.enabled() && (controller == this || (worldPosition.hashCode() == 11))) {
             tickFuelUsage(length);
             controller.upgrade.playSounds(tick, this);
         }
-        level.getProfiler().pop();
         tick++;
     }
     @Override

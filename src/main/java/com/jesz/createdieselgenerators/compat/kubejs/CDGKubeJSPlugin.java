@@ -6,12 +6,14 @@ import com.google.gson.JsonPrimitive;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.content.tools.lighter.LighterModel;
 import dev.latvian.mods.kubejs.KubeJSPlugin;
+import dev.latvian.mods.kubejs.client.LangEventJS;
 import dev.latvian.mods.kubejs.event.EventGroup;
 import dev.latvian.mods.kubejs.event.EventHandler;
 import dev.latvian.mods.kubejs.generator.AssetJsonGenerator;
 import dev.latvian.mods.kubejs.script.ScriptType;
 import dev.latvian.mods.kubejs.util.ClassFilter;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 
@@ -43,6 +45,12 @@ public class CDGKubeJSPlugin extends KubeJSPlugin {
         MoldEventJS event = new MoldEventJS();
         MOLDS.post(event);
     }
+
+    @Override
+    public void initStartup() {
+        registerMolds();
+    }
+
     public static int calculateOilChunks(List<Holder<Biome>> biomes, ChunkPos chunkPos, long seed) {
         if(!OIL_CHUNKS.hasListeners())
             return -1;
@@ -70,11 +78,30 @@ public class CDGKubeJSPlugin extends KubeJSPlugin {
     @Override
     public void generateAssetJsons(AssetJsonGenerator generator) {
         CDGKubeJSPlugin.registerLighterSkins();
+        MoldEventJS.addedMolds.forEach((rl, name) -> {
+            generator.json(new ResourceLocation(rl.getNamespace(), "models/item/mold/"+rl.getPath()), generateTextureModel(new ResourceLocation(rl.getNamespace(), "item/mold/"+rl.getPath())));
+        });
         LighterSkinsEventJS.addedIds.forEach((name, id) -> {
             generator.json(CreateDieselGenerators.rl("models/item/lighter/"+id), generateLighterSkinModel(id, LighterModel.LighterState.CLOSED));
             generator.json(CreateDieselGenerators.rl("models/item/lighter/"+id+"_open"), generateLighterSkinModel(id, LighterModel.LighterState.OPEN));
             generator.json(CreateDieselGenerators.rl("models/item/lighter/"+id+"_ignited"), generateLighterSkinModel(id, LighterModel.LighterState.IGNITED));
         });
+    }
+
+    @Override
+    public void generateLang(LangEventJS event) {
+        MoldEventJS.addedMolds.forEach((rl, name) -> {
+            event.add("mold." + rl.getNamespace() + "." + rl.getPath(), name);
+        });
+    }
+
+    JsonElement generateTextureModel(ResourceLocation rl) {
+        JsonObject object = new JsonObject();
+        object.add("parent", new JsonPrimitive("minecraft:item/generated"));
+        JsonObject texturesObject = new JsonObject();
+        texturesObject.add("layer0", new JsonPrimitive(rl.toString()));
+        object.add("textures", texturesObject);
+        return object;
     }
 
     JsonElement generateLighterSkinModel(String id, LighterModel.LighterState state){

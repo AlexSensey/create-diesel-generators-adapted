@@ -38,11 +38,7 @@ public class DistillationCategory extends CreateRecipeCategory<DistillationRecip
         if(recipe.getFluidIngredients().isEmpty())
             return;
         FluidIngredient fluidIngredient = recipe.getFluidIngredients().get(0);
-        builder
-                .addSlot(RecipeIngredientRole.INPUT, 17, 145)
-                .setBackground(getRenderedSlot(), -1, -1)
-                .addIngredients(ForgeTypes.FLUID_STACK, withImprovedVisibility(fluidIngredient.getMatchingFluidStacks()))
-                .addRichTooltipCallback(addFluidTooltip(fluidIngredient.getRequiredAmount()));
+        addFluidSlot(builder, 17, 145, fluidIngredient);
 
 
         int i = 1;
@@ -50,11 +46,7 @@ public class DistillationCategory extends CreateRecipeCategory<DistillationRecip
         int size = recipe.getRollableResults().size() + recipe.getFluidResults().size();
         for (FluidStack fluidResult : recipe.getFluidResults()) {
             int yPosition = -23 * i + 150;
-            builder
-                    .addSlot(RecipeIngredientRole.OUTPUT, 130, yPosition)
-                    .setBackground(getRenderedSlot(), -1, -1)
-                    .addIngredient(ForgeTypes.FLUID_STACK, withImprovedVisibility(fluidResult))
-                    .addRichTooltipCallback(addFluidTooltip(fluidResult.getAmount()));
+            addFluidSlot(builder, 130, yPosition, fluidResult);
             i++;
         }
 

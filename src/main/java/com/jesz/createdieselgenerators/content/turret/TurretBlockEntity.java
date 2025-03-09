@@ -202,7 +202,7 @@ public class TurretBlockEntity extends KineticBlockEntity {
             be.removePlayer();
         if(Math.sqrt(player.distanceToSqr(Vec3.atCenterOf(worldPosition))) > 3){
             if(player instanceof ServerPlayer sp)
-                sp.connection.send(new ClientboundSetActionBarTextPacket(CreateDieselGenerators.Lang("actionbar.turret.too_far_away")));
+                sp.connection.send(new ClientboundSetActionBarTextPacket(CreateDieselGenerators.lang("actionbar.turret.too_far_away")));
             return;
         }
         if(player instanceof ServerPlayer sp)
@@ -215,7 +215,7 @@ public class TurretBlockEntity extends KineticBlockEntity {
         if(level.isClientSide)
             AllSoundEvents.CONTROLLER_CLICK.play(level, controllingPlayer, worldPosition);
         if(controllingPlayer instanceof ServerPlayer sp)
-            sp.connection.send(new ClientboundSetActionBarTextPacket(CreateDieselGenerators.Lang("actionbar.turret.stopped_controlling", Component.translatable(getBlockState().getBlock().getDescriptionId()))));
+            sp.connection.send(new ClientboundSetActionBarTextPacket(CreateDieselGenerators.lang("actionbar.turret.stopped_controlling", Component.translatable(getBlockState().getBlock().getDescriptionId()))));
         ((IEntity)controllingPlayer).setTurretPos(null);
         removePlayer = true;
     }

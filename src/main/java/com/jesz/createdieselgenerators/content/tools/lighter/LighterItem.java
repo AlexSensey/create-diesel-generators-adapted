@@ -149,10 +149,15 @@ public class LighterItem extends Item implements CapacityEnchantment.ICapacityEn
             if(blockstate.hasProperty(BlockStateProperties.LIT))
                 level.setBlock(blockpos, blockstate.setValue(BlockStateProperties.LIT, true), 11);
             level.gameEvent(player, GameEvent.BLOCK_CHANGE, blockpos);
-            if (player != null) {
-                context.getItemInHand().hurtAndBreak(1, player, (p_41303_) -> {
-                    p_41303_.broadcastBreakEvent(context.getHand());
-                });
+            CompoundTag tankCompound = itemstack.getTag().getCompound("Fluid");
+            FluidStack fStack = FluidStack.loadFluidStackFromNBT(tankCompound);
+            if(fStack.getAmount() == 0){
+                itemstack.getTag().putInt("Type", 1);
+                return InteractionResult.FAIL;
+            }
+            if(FuelTypeManager.getGeneratedSpeed(fStack.getFluid()) != 0 && itemstack.getTag().getInt("Type") == 2){
+                fStack.setAmount(fStack.getAmount()-1);
+                fStack.writeToNBT(itemstack.getTag().getCompound("Fluid"));
             }
 
             return InteractionResult.sidedSuccess(level.isClientSide());

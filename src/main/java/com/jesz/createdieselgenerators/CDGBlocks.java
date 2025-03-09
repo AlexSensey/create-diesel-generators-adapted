@@ -43,6 +43,7 @@ import net.minecraft.world.level.material.MapColor;
 import java.util.List;
 
 import static com.jesz.createdieselgenerators.CreateDieselGenerators.REGISTRATE;
+import static com.simibubi.create.api.behaviour.display.DisplaySource.displaySource;
 import static com.simibubi.create.api.contraption.storage.fluid.MountedFluidStorageType.mountedFluidStorage;
 import static com.simibubi.create.foundation.data.CreateRegistrate.connectedTextures;
 import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
@@ -56,7 +57,7 @@ public class CDGBlocks {
             .properties(p -> p.strength(3f))
             .onRegister((b) -> BoilerHeater.REGISTRY.register(b, ((level, pos, state) -> {
                 if(level.getBlockEntity(pos) instanceof BurnerBlockEntity be)
-                    return be.heat;
+                    return state.getValue(BurnerBlock.LIT) ? be.heat >= 1.8 ? 1 : 0 : -1;
                 return -1;
             })))
             .simpleItem()
@@ -72,9 +73,9 @@ public class CDGBlocks {
     public static final BlockEntry<DieselEngineBlock> DIESEL_ENGINE = REGISTRATE.block("diesel_engine", DieselEngineBlock::new)
             .properties(p -> p.mapColor(MapColor.COLOR_YELLOW))
             .properties(p -> p.sound(SoundType.NETHERITE_BLOCK))
-            .onRegister(assignDataBehaviour(new EngineStateDisplaySource()))
             .properties(p -> p.noOcclusion())
             .properties(p -> p.strength(3f))
+            .transform(displaySource(CDGDisplaySources.ENGINE_STATE))
             .onRegister(movementBehaviour(new DieselEngineMovementBehaviour()))
             .simpleItem()
             .register();
@@ -83,9 +84,9 @@ public class CDGBlocks {
     public static final BlockEntry<ModularDieselEngineBlock> MODULAR_DIESEL_ENGINE = REGISTRATE.block("large_diesel_engine", ModularDieselEngineBlock::new)
             .properties(p -> p.mapColor(MapColor.COLOR_YELLOW))
             .properties(p -> p.sound(SoundType.NETHERITE_BLOCK))
-            .onRegister(assignDataBehaviour(new EngineStateDisplaySource()))
             .properties(p -> p.noOcclusion())
             .properties(p -> p.strength(3f))
+            .transform(displaySource(CDGDisplaySources.ENGINE_STATE))
             .onRegister(connectedTextures(ModularDieselEngineCTBehavior::new))
             .onRegister(movementBehaviour(new DieselEngineMovementBehaviour()))
             .simpleItem()
@@ -93,9 +94,9 @@ public class CDGBlocks {
     public static final BlockEntry<HugeDieselEngineBlock> HUGE_DIESEL_ENGINE = REGISTRATE.block("huge_diesel_engine", HugeDieselEngineBlock::new)
             .properties(p -> p.mapColor(MapColor.COLOR_YELLOW))
             .properties(p -> p.sound(SoundType.NETHERITE_BLOCK))
-            .onRegister(assignDataBehaviour(new EngineStateDisplaySource()))
             .properties(p -> p.noOcclusion())
             .properties(p -> p.strength(3f))
+            .transform(displaySource(CDGDisplaySources.ENGINE_STATE))
             .simpleItem()
             .register();
     public static final BlockEntry<PoweredEngineShaftBlock> POWERED_ENGINE_SHAFT = REGISTRATE.block("powered_engine_shaft", PoweredEngineShaftBlock::new)
@@ -136,9 +137,9 @@ public class CDGBlocks {
     public static final BlockEntry<PumpjackHoleBlock> PUMPJACK_HOLE = REGISTRATE.block("pumpjack_hole", PumpjackHoleBlock::new)
             .properties(p -> p.mapColor(MapColor.COLOR_ORANGE))
             .properties(p -> p.sound(SoundType.NETHERITE_BLOCK))
-            .onRegister(assignDataBehaviour(new OilAmountDisplaySource()))
             .properties(p -> p.noOcclusion())
             .properties(p -> p.strength(3f))
+            .transform(displaySource(CDGDisplaySources.OIL_AMOUNT))
             .simpleItem()
             .register();
     public static final BlockEntry<PumpjackCrankBlock> PUMPJACK_CRANK = REGISTRATE.block("pumpjack_crank", PumpjackCrankBlock::new)
@@ -258,9 +259,6 @@ public class CDGBlocks {
                     .simpleItem()
                     .register();
     public static void register() {
-    }
-    private static NonNullConsumer<? super Block> assignDataBehaviour(DisplaySource displaySource) {
-        return b -> DisplaySource.BY_BLOCK.register(b, List.of(displaySource));
     }
 
     private static NonNullConsumer<? super Block> movementBehaviour(MovementBehaviour movementBehaviour) {
