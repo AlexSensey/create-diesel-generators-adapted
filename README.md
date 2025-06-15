@@ -1,4 +1,4 @@
-<h1 align="center"><img src="https://cdn.discordapp.com/attachments/1121792424910532660/1132855099371307058/CREATE_DIESEL_GENERATORS.png" width=400px></h1>
+<h1 align="center"><img src="https://i.imgur.com/9MDZ4ZB.png" width=400px></h1>
 <p align="center">
   <a href="https://modrinth.com/mod/create-diesel-generators"><img src="https://img.shields.io/modrinth/dt/create-diesel-generators?logo=modrinth&label=&suffix=%20&style=flat&color=242629&labelColor=5ca424&logoColor=1c1c1c"></a>
   <a href="https://www.curseforge.com/minecraft/mc-mods/create-diesel-generators"><img src="https://cf.way2muchnoise.eu/869316.svg"></a>
