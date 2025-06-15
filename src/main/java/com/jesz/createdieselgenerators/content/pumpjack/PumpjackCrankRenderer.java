@@ -91,8 +91,6 @@ public class PumpjackCrankRenderer extends ShaftRenderer<PumpjackCrankBlockEntit
         }else {
             rod.translate(0, 1.25, 0.5).translate(0, sin, cos).rotateYDegrees(90).rotateZDegrees((float) (Math.atan2(dstZ, dstY)*180/Math.PI));
         }
-        rod.light(light);
-        crank.light(light);
         rod.light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()));
         crank.light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()));
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay);

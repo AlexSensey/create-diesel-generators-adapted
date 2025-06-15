@@ -3,8 +3,11 @@ package com.jesz.createdieselgenerators.content.tools;
 import com.jesz.createdieselgenerators.CDGConfig;
 import com.jesz.createdieselgenerators.CDGItems;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
+import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagItem;
 import com.jesz.createdieselgenerators.world.OilChunksSavedData;
 import com.simibubi.create.AllSoundEvents;
+import com.tterrag.registrate.providers.DataGenContext;
+import com.tterrag.registrate.providers.RegistrateItemModelProvider;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.BlockPos;
@@ -23,6 +26,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.model.generators.ItemModelBuilder;
+import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.fml.DistExecutor;
 
 public class OilScannerItem extends Item {
@@ -96,5 +101,36 @@ public class OilScannerItem extends Item {
                 return tag == null ? 0 : tag.getInt("Type");
             });
         });
+    }
+
+    public static ItemModelBuilder addOverrideModels(DataGenContext<Item, OilScannerItem> c,
+                                                     RegistrateItemModelProvider p) {
+        ItemModelBuilder builder = p.generated(c::getEntry, p.modLoc("item/oil_scanner_rotating"));
+
+        builder.override()
+                .predicate(CreateDieselGenerators.rl("oil_scanner_state"), 0.0f)
+                .model(p.getBuilder(c.getName())
+                        .parent(new ModelFile.UncheckedModelFile("item/generated"))
+                        .texture("layer0", CreateDieselGenerators.rl("item/oil_scanner_rotating")))
+                .end();
+        builder.override()
+                .predicate(CreateDieselGenerators.rl("oil_scanner_state"), 1.0f)
+                .model(p.getBuilder(c.getName() + "_none")
+                        .parent(new ModelFile.UncheckedModelFile("item/generated"))
+                        .texture("layer0", CreateDieselGenerators.rl("item/oil_scanner_none")))
+                .end();
+        builder.override()
+                .predicate(CreateDieselGenerators.rl("oil_scanner_state"), 2.0f)
+                .model(p.getBuilder(c.getName() + "_medium")
+                        .parent(new ModelFile.UncheckedModelFile("item/generated"))
+                        .texture("layer0", CreateDieselGenerators.rl("item/oil_scanner_medium")))
+                .end();
+        builder.override()
+                .predicate(CreateDieselGenerators.rl("oil_scanner_state"), 3.0f)
+                .model(p.getBuilder(c.getName() + "_high")
+                        .parent(new ModelFile.UncheckedModelFile("item/generated"))
+                        .texture("layer0", CreateDieselGenerators.rl("item/oil_scanner_high")))
+                .end();
+        return builder;
     }
 }

@@ -2,7 +2,7 @@
 	"loader": "forge:obj",
 	"flip_v": true,
 	"model": "createdieselgenerators:models/block/pumpjack_crank/large_rod.obj",
-	"ambientocclusion": true,
+	"ambientocclusion": false,
 	"textures": {
 		"crank": "createdieselgenerators:block/pumpjack_crank",
 		"particle": "#crank"

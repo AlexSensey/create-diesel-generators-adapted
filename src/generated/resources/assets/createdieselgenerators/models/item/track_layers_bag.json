@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/generated",
+  "overrides": [
+    {
+      "model": "createdieselgenerators:item/track_layers_bag_filled",
+      "predicate": {
+        "createdieselgenerators:tracks": 0.01
+      }
+    }
+  ],
+  "textures": {
+    "layer0": "createdieselgenerators:item/track_layers_bag"
+  }
+}

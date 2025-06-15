@@ -88,15 +88,15 @@ public interface EngineUpgrades {
 
             if (facing.getAxis() == Direction.Axis.Y) {
                 CachedBuffers.partial(hugeModel, be.getBlockState())
-                        .center().rotateZ(90)
-                        .rotateYDegrees(facing.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 270 : 180)
+                        .center().rotateZDegrees(90)
+                        .rotateYDegrees(facing.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 270 : 90)
                         .uncenter()
                         .light(light)
                         .renderInto(ms, buffer.getBuffer(RenderType.cutout()));
             } else {
                 CachedBuffers.partial(hugeModel, be.getBlockState())
                         .center()
-                        .rotateYDegrees(facing.toYRot())
+                        .rotateYDegrees(facing.getAxis() == Direction.Axis.X ? (facing.toYRot()) : (facing.toYRot()) + 180)
                         .uncenter()
                         .light(light)
                         .renderInto(ms, buffer.getBuffer(RenderType.cutout()));

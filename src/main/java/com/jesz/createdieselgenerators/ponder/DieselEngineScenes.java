@@ -108,14 +108,6 @@ public class DieselEngineScenes {
         scene.idle(30);
         scene.world().showSection(shafts2, Direction.DOWN);
         scene.idle(15);
-        scene.overlay().showControls(util.vector().topOf(2, 1, 4) , Pointing.DOWN, 15).withItem(new ItemStack(AllItems.WRENCH.get()));
-        scene.idle(20);
-        scene.world().modifyBlock(util.grid().at(2, 1, 4), s -> s.setValue(BlockStateProperties.UP, false), false);
-        scene.idle(15);
-        scene.overlay().showControls(util.vector().topOf(2, 1, 4) , Pointing.DOWN, 15).withItem(new ItemStack(AllItems.WRENCH.get()));
-        scene.idle(20);
-        scene.world().modifyBlock(util.grid().at(2, 1, 4), s -> s.setValue(BlockStateProperties.UP, true), false);
-        scene.idle(15);
         scene.world().showSection(tank, Direction.DOWN);
         scene.idle(15);
         scene.world().showSection(pipes, Direction.DOWN);

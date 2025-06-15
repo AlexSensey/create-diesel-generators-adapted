@@ -37,7 +37,7 @@ public class CDGPartialModels {
     public static final PartialModel PUMPJACK_CRANK_LARGE = model("block/pumpjack_crank/large_counterweight");
     public static final PartialModel PUMPJACK_CRANK_ROD_LARGE = model("block/pumpjack_crank/large_rod");
     public static final PartialModel SMALL_GAUGE_DIAL = model("block/basin_lid/gauge_dial");
-    public static final PartialModel DISTILLATION_GAUGE = model("block/distillation_tower/gauge");
+    public static final PartialModel DISTILLATION_GAUGE = model("block/distillation_tank/gauge");
     public static final PartialModel BULK_FERMENTER_GAUGE = model("block/bulk_fermenter_gauge");
     public static final PartialModel JEI_DISTILLER_TOP = model("block/jei_distiller/top");
     public static final PartialModel JEI_DISTILLER_MIDDLE = model("block/jei_distiller/middle");

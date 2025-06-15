@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "createdieselgenerators:item/purple_cement_bucket"
+  }
+}

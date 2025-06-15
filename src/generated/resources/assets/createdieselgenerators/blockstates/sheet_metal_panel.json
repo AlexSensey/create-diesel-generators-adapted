@@ -1,0 +1,100 @@
+{
+  "variants": {
+    "facing=down,roll=false,waterlogged=false": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "x": 270
+    },
+    "facing=down,roll=false,waterlogged=true": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "x": 270
+    },
+    "facing=down,roll=true,waterlogged=false": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "x": 270,
+      "y": 90
+    },
+    "facing=down,roll=true,waterlogged=true": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "x": 270,
+      "y": 90
+    },
+    "facing=east,roll=false,waterlogged=false": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "y": 270
+    },
+    "facing=east,roll=false,waterlogged=true": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "y": 270
+    },
+    "facing=east,roll=true,waterlogged=false": {
+      "model": "createdieselgenerators:block/sheet_metal_panel_horizontal",
+      "y": 270
+    },
+    "facing=east,roll=true,waterlogged=true": {
+      "model": "createdieselgenerators:block/sheet_metal_panel_horizontal",
+      "y": 270
+    },
+    "facing=north,roll=false,waterlogged=false": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "y": 180
+    },
+    "facing=north,roll=false,waterlogged=true": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "y": 180
+    },
+    "facing=north,roll=true,waterlogged=false": {
+      "model": "createdieselgenerators:block/sheet_metal_panel_horizontal",
+      "y": 180
+    },
+    "facing=north,roll=true,waterlogged=true": {
+      "model": "createdieselgenerators:block/sheet_metal_panel_horizontal",
+      "y": 180
+    },
+    "facing=south,roll=false,waterlogged=false": {
+      "model": "createdieselgenerators:block/sheet_metal_panel"
+    },
+    "facing=south,roll=false,waterlogged=true": {
+      "model": "createdieselgenerators:block/sheet_metal_panel"
+    },
+    "facing=south,roll=true,waterlogged=false": {
+      "model": "createdieselgenerators:block/sheet_metal_panel_horizontal"
+    },
+    "facing=south,roll=true,waterlogged=true": {
+      "model": "createdieselgenerators:block/sheet_metal_panel_horizontal"
+    },
+    "facing=up,roll=false,waterlogged=false": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "x": 90
+    },
+    "facing=up,roll=false,waterlogged=true": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "x": 90
+    },
+    "facing=up,roll=true,waterlogged=false": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "x": 90,
+      "y": 90
+    },
+    "facing=up,roll=true,waterlogged=true": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "x": 90,
+      "y": 90
+    },
+    "facing=west,roll=false,waterlogged=false": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "y": 90
+    },
+    "facing=west,roll=false,waterlogged=true": {
+      "model": "createdieselgenerators:block/sheet_metal_panel",
+      "y": 90
+    },
+    "facing=west,roll=true,waterlogged=false": {
+      "model": "createdieselgenerators:block/sheet_metal_panel_horizontal",
+      "y": 90
+    },
+    "facing=west,roll=true,waterlogged=true": {
+      "model": "createdieselgenerators:block/sheet_metal_panel_horizontal",
+      "y": 90
+    }
+  }
+}

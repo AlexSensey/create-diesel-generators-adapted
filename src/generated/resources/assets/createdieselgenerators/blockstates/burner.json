@@ -1,0 +1,74 @@
+{
+  "variants": {
+    "axis=x,blaze=fading,lit=false": {
+      "model": "createdieselgenerators:block/burner/block",
+      "y": 90
+    },
+    "axis=x,blaze=fading,lit=true": {
+      "model": "createdieselgenerators:block/burner/block",
+      "y": 90
+    },
+    "axis=x,blaze=kindled,lit=false": {
+      "model": "createdieselgenerators:block/burner/block",
+      "y": 90
+    },
+    "axis=x,blaze=kindled,lit=true": {
+      "model": "createdieselgenerators:block/burner/block",
+      "y": 90
+    },
+    "axis=x,blaze=none,lit=false": {
+      "model": "createdieselgenerators:block/burner/block",
+      "y": 90
+    },
+    "axis=x,blaze=none,lit=true": {
+      "model": "createdieselgenerators:block/burner/block",
+      "y": 90
+    },
+    "axis=x,blaze=seething,lit=false": {
+      "model": "createdieselgenerators:block/burner/block",
+      "y": 90
+    },
+    "axis=x,blaze=seething,lit=true": {
+      "model": "createdieselgenerators:block/burner/block",
+      "y": 90
+    },
+    "axis=x,blaze=smouldering,lit=false": {
+      "model": "createdieselgenerators:block/burner/block",
+      "y": 90
+    },
+    "axis=x,blaze=smouldering,lit=true": {
+      "model": "createdieselgenerators:block/burner/block",
+      "y": 90
+    },
+    "axis=z,blaze=fading,lit=false": {
+      "model": "createdieselgenerators:block/burner/block"
+    },
+    "axis=z,blaze=fading,lit=true": {
+      "model": "createdieselgenerators:block/burner/block"
+    },
+    "axis=z,blaze=kindled,lit=false": {
+      "model": "createdieselgenerators:block/burner/block"
+    },
+    "axis=z,blaze=kindled,lit=true": {
+      "model": "createdieselgenerators:block/burner/block"
+    },
+    "axis=z,blaze=none,lit=false": {
+      "model": "createdieselgenerators:block/burner/block"
+    },
+    "axis=z,blaze=none,lit=true": {
+      "model": "createdieselgenerators:block/burner/block"
+    },
+    "axis=z,blaze=seething,lit=false": {
+      "model": "createdieselgenerators:block/burner/block"
+    },
+    "axis=z,blaze=seething,lit=true": {
+      "model": "createdieselgenerators:block/burner/block"
+    },
+    "axis=z,blaze=smouldering,lit=false": {
+      "model": "createdieselgenerators:block/burner/block"
+    },
+    "axis=z,blaze=smouldering,lit=true": {
+      "model": "createdieselgenerators:block/burner/block"
+    }
+  }
+}

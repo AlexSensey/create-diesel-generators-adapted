@@ -1,6 +1,0 @@
-{
-    "parent": "createdieselgenerators:item/track_layers_bag",
-    "textures": {
-        "layer0": "createdieselgenerators:item/track_layers_bag_filled"
-    }
-}

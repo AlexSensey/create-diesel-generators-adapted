@@ -3,7 +3,6 @@ package com.jesz.createdieselgenerators;
 import com.jesz.createdieselgenerators.content.molds.MoldType;
 import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagItem;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
@@ -68,7 +67,7 @@ public class CDGCreativeTab {
                             moldStack.getOrCreateTag().putString("Mold", mt.getId().toString());
                             output.accept(moldStack);
                         });
-                        CDGFluids.CEMENT.forEach((d, f) -> output.accept(f.getBucket().get()));
+                        CDGFluids.CONCRETE.forEach((d, f) -> output.accept(f.getBucket().get()));
                     })
                     .build());
 

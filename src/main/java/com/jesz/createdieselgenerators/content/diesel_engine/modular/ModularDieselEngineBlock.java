@@ -213,9 +213,13 @@ public class ModularDieselEngineBlock extends HorizontalKineticBlock implements 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         withBlockEntityDo(level, pos, ModularDieselEngineBlockEntity::removed);
+        if (!state.is(newState.getBlock()))
+            withBlockEntityDo(level, pos, be -> {
+                if (be.upgrade != EngineUpgrades.NONE)
+                    popResource(level, pos, be.upgrade.getItem());
+            });
         super.onRemove(state, level, pos, newState, isMoving);
     }
-
     @Override
     public Class<ModularDieselEngineBlockEntity> getBlockEntityClass() {
         return ModularDieselEngineBlockEntity.class;
@@ -251,6 +255,7 @@ public class ModularDieselEngineBlock extends HorizontalKineticBlock implements 
         list.add(CDGBlocks.MODULAR_DIESEL_ENGINE.asStack());
         return new ItemRequirement(ItemRequirement.ItemUseType.CONSUME, list);
     }
+
     @Override
     public float getDefaultStressCapacity() {
         return 2048;

@@ -4,8 +4,13 @@ import com.jesz.createdieselgenerators.CDGItems;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.mixins.UseOnContextInvoker;
 import com.simibubi.create.AllBlocks;
+import com.simibubi.create.Create;
+import com.simibubi.create.content.equipment.clipboard.ClipboardBlockItem;
+import com.simibubi.create.content.equipment.clipboard.ClipboardOverrides;
 import com.simibubi.create.content.trains.track.TrackBlock;
 import com.simibubi.create.content.trains.track.TrackBlockItem;
+import com.tterrag.registrate.providers.DataGenContext;
+import com.tterrag.registrate.providers.RegistrateItemModelProvider;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.BlockPos;
@@ -29,6 +34,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.model.generators.ItemModelBuilder;
+import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.fml.DistExecutor;
 
 import java.util.List;
@@ -208,6 +215,19 @@ public class TrackLayersBagItem extends Item {
             ItemProperties.register(CDGItems.TRACK_LAYERS_BAG.get(), CreateDieselGenerators.rl("tracks"),
                     (stack, level, entity, seed) -> getTracks(stack).getCount());
         });
+    }
+
+    public static ItemModelBuilder addOverrideModels(DataGenContext<Item, TrackLayersBagItem> c,
+                                                     RegistrateItemModelProvider p) {
+        ItemModelBuilder builder = p.generated(() -> c.get());
+
+        builder.override()
+                .predicate(CreateDieselGenerators.rl("tracks"), 0.01f)
+                .model(p.getBuilder(c.getName() + "_filled")
+                        .parent(new ModelFile.UncheckedModelFile("item/generated"))
+                        .texture("layer0", CreateDieselGenerators.rl("item/track_layers_bag_filled")))
+                .end();
+        return builder;
     }
 
     public static ItemStack full(){

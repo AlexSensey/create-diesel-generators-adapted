@@ -1,0 +1,62 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "minecraft:block/lime_concrete"
+      }
+    },
+    {
+      "apply": {
+        "model": "createdieselgenerators:block/concrete/concrete_encased_pipe_part"
+      },
+      "when": {
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "createdieselgenerators:block/concrete/concrete_encased_pipe_part",
+        "x": 90
+      },
+      "when": {
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "createdieselgenerators:block/concrete/concrete_encased_pipe_part",
+        "x": 270
+      },
+      "when": {
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "createdieselgenerators:block/concrete/concrete_encased_pipe_part",
+        "y": 90
+      },
+      "when": {
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "createdieselgenerators:block/concrete/concrete_encased_pipe_part",
+        "y": 270
+      },
+      "when": {
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "createdieselgenerators:block/concrete/concrete_encased_pipe_part",
+        "y": 180
+      },
+      "when": {
+        "south": "true"
+      }
+    }
+  ]
+}

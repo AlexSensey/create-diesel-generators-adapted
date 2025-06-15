@@ -13,14 +13,14 @@ public interface IEngine {
     default boolean enabled(){
         if(fs().isEmpty())
             return false;
-        if(FuelTypeManager.fuelTypes.containsKey(fs().getFluid()))
+        if(FuelTypeManager.isFuel(fs().getFluid()))
             return !CDGConfig.ENGINES_DISABLED_WITH_REDSTONE.get() || !self().getBlockState().getValue(DieselEngineBlock.POWERED);
         return false;
     }
     default boolean validFS(){
         if(fs().isEmpty())
             return false;
-        return FuelTypeManager.fuelTypes.containsKey(fs().getRawFluid());
+        return FuelTypeManager.isFuel(fs().getRawFluid());
     }
     default FluidStack fs(){
         return getTank().getPrimaryHandler().getFluid();

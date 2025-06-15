@@ -1,0 +1,17 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "createdieselgenerators:block/powered_engine_shaft",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "createdieselgenerators:block/powered_engine_shaft"
+    },
+    "axis=z": {
+      "model": "createdieselgenerators:block/powered_engine_shaft",
+      "x": 90,
+      "y": 180
+    }
+  }
+}

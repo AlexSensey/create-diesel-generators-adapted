@@ -26,7 +26,7 @@ public class CDGConfig {
     public static final ForgeConfigSpec.ConfigValue<Integer> MAX_OIL_SCANNER_LEVEL;
     public static final ForgeConfigSpec.ConfigValue<Integer> MAX_OIL_BARREL_WIDTH;
 
-    public static final ForgeConfigSpec.ConfigValue<Boolean> OIL_DEPOSITS_INFINITE;
+    public static final ForgeConfigSpec.ConfigValue<Integer> OIL_DEPOSITS_INFINITE;
 
     public static final ForgeConfigSpec.ConfigValue<Double> OIL_MULTIPLIER;
     public static final ForgeConfigSpec.ConfigValue<Double> HIGH_OIL_MULTIPLIER;
@@ -44,6 +44,8 @@ public class CDGConfig {
     public static final ForgeConfigSpec.ConfigValue<Boolean> HUGE_ENGINES;
     public static final ForgeConfigSpec.ConfigValue<Boolean> ENGINES_FILLED_WITH_ITEMS;
     public static final ForgeConfigSpec.ConfigValue<Boolean> ENGINES_DISABLED_WITH_REDSTONE;
+
+    public static final ForgeConfigSpec.ConfigValue<Double> ASPHALT_DEGRADATION_SPEED_MULTIPLIER;
 
     static {
 
@@ -81,8 +83,8 @@ public class CDGConfig {
         SERVER_BUILDER.pop();
 
         SERVER_BUILDER.push("Oil Config");
-            OIL_DEPOSITS_INFINITE = SERVER_BUILDER.comment("Whenever crude oil deposits are infinite")
-                    .define("Infinite oil deposits", false);
+            OIL_DEPOSITS_INFINITE = SERVER_BUILDER.comment("Oil deposits bigger than this value are infinite")
+                    .define("Infinite oil deposits from", 10000);
             OIL_MULTIPLIER = SERVER_BUILDER.comment("Normal oil chunks oil amount multiplier")
                     .define("Normal oil chunks oil amount multiplier", 1d);
             HIGH_OIL_MULTIPLIER = SERVER_BUILDER.comment("High oil chunks oil amount multiplier")
@@ -96,6 +98,8 @@ public class CDGConfig {
 
         SERVER_BUILDER.pop();
 
+        ASPHALT_DEGRADATION_SPEED_MULTIPLIER = SERVER_BUILDER.comment("Asphalt Degradation Speed Multiplier")
+                .defineInRange("Asphalt Degradation Speed Multiplier", 10d, 0d, Double.MAX_VALUE);
 
         MAX_OIL_BARREL_WIDTH = SERVER_BUILDER.comment("Maximum width of Oil Barrels")
                 .define("Max Oil Barrel Width", 3);

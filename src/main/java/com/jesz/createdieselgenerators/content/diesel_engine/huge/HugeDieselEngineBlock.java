@@ -66,12 +66,6 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
         super(properties);
         registerDefaultState(defaultBlockState()
                 .setValue(WATERLOGGED, false)
-                .setValue(BlockStateProperties.NORTH, false)
-                .setValue(BlockStateProperties.EAST, false)
-                .setValue(BlockStateProperties.SOUTH, false)
-                .setValue(BlockStateProperties.WEST, false)
-                .setValue(BlockStateProperties.UP, false)
-                .setValue(BlockStateProperties.DOWN, false)
                 .setValue(POWERED, false));
     }
     @Override
@@ -169,24 +163,8 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
         });
         if (success.get())
             return InteractionResult.SUCCESS;
-        boolean c = state.getValue(BooleanProperty.create(context.getClickedFace().toString()));
-        if(context.getClickedFace().getAxis() == state.getValue(FACING).getAxis())
-            return IWrenchable.super.onWrenched(state, context);
-        if(context.getLevel().getBlockEntity(context.getClickedPos()) instanceof  HugeDieselEngineBlockEntity be){
-            PoweredEngineShaftBlockEntity shaft = be.getShaft();
-            if(shaft != null)
-                shaft.removeGenerator(context.getClickedPos());
-        }
-        context.getLevel().setBlock(context.getClickedPos(), state.setValue(BooleanProperty.create(context.getClickedFace().toString()), !c), 3);
-        return InteractionResult.SUCCESS;
+        return IWrenchable.super.onWrenched(state, context);
     }
-
-
-    @Override
-    public VoxelShape getShape(BlockState state, BlockGetter getter, BlockPos pos, CollisionContext context) {
-        return Block.box(1, 1, 1, 15, 15, 15);
-    }
-
     @Override
     public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos otherPos, boolean moving) {
         if(state.getValue(BooleanProperty.create(state.getValue(FACING).toString())) || state.getValue(BooleanProperty.create(state.getValue(FACING).getOpposite().toString())))
@@ -239,6 +217,11 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (!state.is(newState.getBlock()))
+            withBlockEntityDo(level, pos, be -> {
+                if (be.upgrade != EngineUpgrades.NONE)
+                    popResource(level, pos, be.upgrade.getItem());
+            });
         if (state.hasBlockEntity() && (!state.is(newState.getBlock()) || !newState.hasBlockEntity()))
             level.removeBlockEntity(pos);
         BlockPos shaftPos = pos.relative(state.getValue(FACING), 2);
@@ -271,14 +254,7 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
         return 96;
     }
 
-    public enum HugeEngineDirection implements StringRepresentable{
-        BOTTOM, DOWN, MIDDLE, UP, TOP;
 
-        @Override
-        public String getSerializedName() {
-            return CreateLang.asId(name());
-        }
-    }
 
     private static class PlacementHelper implements IPlacementHelper {
         @Override

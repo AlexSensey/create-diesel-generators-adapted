@@ -1,9 +1,11 @@
 package com.jesz.createdieselgenerators;
 
-import com.jesz.createdieselgenerators.content.cement.CementFluid;
+import com.jesz.createdieselgenerators.content.concrete.ConcreteBucketItem;
+import com.jesz.createdieselgenerators.content.concrete.ConcreteFluid;
 import com.tterrag.registrate.util.entry.FluidEntry;
 import net.minecraft.world.item.DyeColor;
 import net.minecraftforge.fluids.ForgeFlowingFluid;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,17 +69,20 @@ public class CDGFluids {
                             .slopeFindDistance(5)
                             .explosionResistance(100f))
                     .register();
-    public static final Map<DyeColor, FluidEntry<ForgeFlowingFluid.Flowing>> CEMENT = new HashMap<>();
+    public static final Map<DyeColor, FluidEntry<ForgeFlowingFluid.Flowing>> CONCRETE = new HashMap<>();
     static {
         for (DyeColor color : DyeColor.values()) {
-            CEMENT.put(color,
+            CONCRETE.put(color,
                     REGISTRATE.fluid(color.getName() + "_cement", CreateDieselGenerators.rl("block/cement/" + color.getName() + "_still"), CreateDieselGenerators.rl("block/cement/" + color.getName() + "_flow"))
+                            .lang(StringUtils.capitalize(color.getName()) + " Concrete")
                     .properties(b -> b.viscosity(1500)
                             .density(500))
                     .fluidProperties(p -> p.levelDecreasePerBlock(3)
                             .tickRate(12)
                             .slopeFindDistance(2)
-                            .explosionResistance(100f)).source(p -> new CementFluid(p, color))
+                            .explosionResistance(100f)).source(p -> new ConcreteFluid(p, color))
+                    .bucket((f, p) -> new ConcreteBucketItem(color, f, p))
+                            .build()
                     .register()
             );
         }

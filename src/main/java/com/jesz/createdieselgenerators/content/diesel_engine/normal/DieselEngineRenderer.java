@@ -50,7 +50,7 @@ public class DieselEngineRenderer extends ShaftRenderer<DieselEngineBlockEntity>
                                      angle == 3 ? CDGPartialModels.ENGINE_PISTONS_VERTICAL_2 :
                                      angle == 2 ? CDGPartialModels.ENGINE_PISTONS_VERTICAL_1 :
                                              CDGPartialModels.ENGINE_PISTONS_VERTICAL_0
-                            , be.getBlockState()).center().rotateYDegrees(be.getBlockState().getValue(FACING) == Direction.DOWN ? 180 : 270).rotateZ(be.getBlockState().getValue(FACING) == Direction.DOWN ? 180 : 0).uncenter()
+                            , be.getBlockState()).center().rotateYDegrees(be.getBlockState().getValue(FACING) == Direction.DOWN ? 180 : 270).rotateZDegrees(be.getBlockState().getValue(FACING) == Direction.DOWN ? 180 : 0).uncenter()
                      .light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()));
         }
 

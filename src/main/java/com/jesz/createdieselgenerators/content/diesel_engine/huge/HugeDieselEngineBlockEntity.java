@@ -164,9 +164,8 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
     public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
         if(cap == ForgeCapabilities.FLUID_HANDLER && side == null)
             return tank.getCapability().cast();
-        else if (cap == ForgeCapabilities.FLUID_HANDLER && getBlockState().getValue(BooleanProperty.create(side.toString())))
-            if(side.getAxis() != getBlockState().getValue(FACING).getAxis())
-                return tank.getCapability().cast();
+        else if (cap == ForgeCapabilities.FLUID_HANDLER && side.getAxis() != getBlockState().getValue(FACING).getAxis())
+            return tank.getCapability().cast();
 
         return super.getCapability(cap, side);
     }

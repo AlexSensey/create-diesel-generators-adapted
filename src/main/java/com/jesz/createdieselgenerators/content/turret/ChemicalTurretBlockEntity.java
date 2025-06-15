@@ -68,6 +68,10 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
             shootFluids();
         if(targetedEntity == null)
             return;
+        if(controllingEntity == null) {
+            targetedEntity = null;
+            return;
+        }
         if(Math.abs(targetedHorizontalRotation - horizontalRotation)%360 <= 4 || Math.abs(targetedHorizontalRotation - horizontalRotation)%360 >= 356)
             shootFluids();
     }

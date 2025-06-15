@@ -1,9 +1,0 @@
-{
-    "parent": "item/generated",
-    "textures": {
-        "layer0": "createdieselgenerators:item/track_layers_bag"
-    },
-    "overrides": [
-        { "predicate": { "createdieselgenerators:tracks": 0.0000001 }, "model": "createdieselgenerators:item/track_layers_bag_filled" }
-    ]
-}

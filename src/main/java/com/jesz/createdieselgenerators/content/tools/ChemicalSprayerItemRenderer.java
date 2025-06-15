@@ -15,7 +15,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 public class ChemicalSprayerItemRenderer extends CustomRenderedItemModelRenderer {
-    protected static final PartialModel COG = PartialModel.of(new ResourceLocation("createdieselgenerators:item/chemical_sprayer_cog"));
+    protected static final PartialModel COG = PartialModel.of(new ResourceLocation("createdieselgenerators:item/chemical_sprayer/cog"));
 
     @Override
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {

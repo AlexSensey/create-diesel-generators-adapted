@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "createdieselgenerators:block/pumpjack_bearing_back",
+    "side": "createdieselgenerators:block/pumpjack_bearing_side",
+    "top": "createdieselgenerators:block/pumpjack_bearing_top"
+  }
+}

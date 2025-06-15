@@ -1,0 +1,16 @@
+{
+	"credit": "Made with Blockbench",
+	"textures": {
+		"1": "create:block/pipes"
+	},
+	"elements": [
+		{
+			"from": [3, 3, -0.05],
+			"to": [13, 13, -0.05],
+			"rotation": {"angle": 0, "axis": "y", "origin": [3, 3, 0]},
+			"faces": {
+				"north": {"uv": [11, 11, 16, 16], "texture": "#1"}
+			}
+		}
+	]
+}

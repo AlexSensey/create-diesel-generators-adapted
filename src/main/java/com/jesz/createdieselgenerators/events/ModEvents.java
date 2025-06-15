@@ -3,8 +3,8 @@ package com.jesz.createdieselgenerators.events;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
+import com.jesz.createdieselgenerators.CDGSpriteShifts;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
-import com.jesz.createdieselgenerators.compat.kubejs.CDGKubeJSPlugin;
 import com.jesz.createdieselgenerators.compat.kubejs.LighterSkinsEventJS;
 import com.jesz.createdieselgenerators.content.canister.SpoutCanisterFilling;
 import com.jesz.createdieselgenerators.content.molds.BasinSpoutCasting;
@@ -14,13 +14,13 @@ import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagCo
 import com.jesz.createdieselgenerators.content.turret.TurretOperatorHatLayer;
 import com.simibubi.create.AllBlockEntityTypes;
 import com.simibubi.create.api.behaviour.spouting.BlockSpoutingBehaviour;
+import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -30,12 +30,11 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
-
-import static com.jesz.createdieselgenerators.content.turret.TurretOperatorHatLayer.registerOn;
 
 @Mod.EventBusSubscriber(modid = CreateDieselGenerators.ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModEvents {

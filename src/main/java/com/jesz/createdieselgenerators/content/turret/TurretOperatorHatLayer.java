@@ -44,7 +44,7 @@ public class TurretOperatorHatLayer<T extends LivingEntity, M extends EntityMode
         ms.pushPose();
 
         TransformStack<PoseTransformStack> msr = TransformStack.of(ms);
-        TrainHatInfo info = TrainHatInfoReloadListener.getHatInfoFor(entity.getType());
+        TrainHatInfo info = TrainHatInfoReloadListener.getHatInfoFor(entity);
         List<ModelPart> partsToHead = new ArrayList<>();
 
         if (entityModel instanceof AgeableListModel<?> model && model instanceof com.jesz.createdieselgenerators.mixins.AgeableListModelAccessor modelA) {

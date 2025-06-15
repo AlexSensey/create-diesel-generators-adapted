@@ -42,6 +42,8 @@ public class CDGCommands {
 
 
         int finalAmount = amount;
+        if (finalAmount == Integer.MAX_VALUE)
+            source.sendSuccess(() -> Component.literal("This oil chunk is infinite.").withStyle(ChatFormatting.GRAY), false);
         source.sendSuccess(() -> Component.literal("There is ").withStyle(ChatFormatting.GRAY).append(Component.literal(finalAmount +"B").withStyle(ChatFormatting.GOLD)).append(" of Oil in this Chunk.").withStyle(ChatFormatting.GRAY), false);
 
         return 1;

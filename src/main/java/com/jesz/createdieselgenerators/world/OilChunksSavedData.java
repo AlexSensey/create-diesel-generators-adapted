@@ -72,7 +72,7 @@ public class OilChunksSavedData extends SavedData {
     }
     public int getChunkOilAmount(ChunkPos chunk){
         if(chunks.containsKey(chunk))
-            return CDGConfig.OIL_DEPOSITS_INFINITE.get() ? Integer.MAX_VALUE : chunks.get(chunk);
+            return chunks.get(chunk) > CDGConfig.OIL_DEPOSITS_INFINITE.get() ? Integer.MAX_VALUE : chunks.get(chunk);
         return -1;
     }
 
@@ -101,11 +101,13 @@ public class OilChunksSavedData extends SavedData {
             return 0;
         if(isHighInOil ? (random.nextFloat(0, 100) >= CDGConfig.HIGH_OIL_PERCENTAGE.get()) : (amount % 100 >= CDGConfig.OIL_PERCENTAGE.get()))
             return 0;
-        if(CDGConfig.OIL_DEPOSITS_INFINITE.get())
-            return Integer.MAX_VALUE;
+
+        int finalAmount = (int) (Mth.clamp(amount % 15000, 0, 12000)* CDGConfig.OIL_MULTIPLIER.get());
         if(isHighInOil)
-            return (int) (Mth.clamp(amount % 400000, 8000, 400000)* CDGConfig.HIGH_OIL_MULTIPLIER.get());
-        return (int) (Mth.clamp(amount % 15000, 0, 12000)* CDGConfig.OIL_MULTIPLIER.get());
+            finalAmount =  (int) (Mth.clamp(amount % 400000, 8000, 400000)* CDGConfig.HIGH_OIL_MULTIPLIER.get());
+        if(finalAmount > CDGConfig.OIL_DEPOSITS_INFINITE.get())
+            return Integer.MAX_VALUE;
+        return finalAmount;
     }
     public static List<Holder<Biome>> getBiomesInChunk(ServerLevel level, ChunkPos chunkPos){
         List<Holder<Biome>> list = new ArrayList<>();

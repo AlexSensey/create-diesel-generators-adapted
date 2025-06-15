@@ -2,6 +2,7 @@ package com.jesz.createdieselgenerators.fuel_type;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonSyntaxException;
 import com.jesz.createdieselgenerators.compat.kubejs.CDGKubeJSPlugin;
 import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock;
 import com.jesz.createdieselgenerators.packets.CDGPackets;
@@ -40,15 +41,19 @@ public class FuelTypeManager {
             fuelTypes.clear();
             for (Map.Entry<ResourceLocation, JsonElement> entry : map.entrySet()) {
                 JsonElement element = entry.getValue();
-                if(!element.isJsonObject())
+                if (!element.isJsonObject())
                     continue;
 
+                if (!element.getAsJsonObject().has("fluid"))
+                    throw new JsonSyntaxException("Invalid Fuel Type: missing fuel values for normal engine");
+
                 String fluidName = element.getAsJsonObject().get("fluid").getAsString();
+
                 if (fluidName.startsWith("#")) {
                     fuelTags.put(fluidName.substring(1), FuelType.fromJSON(element));
                 } else {
                     Optional<Holder.Reference<Fluid>> fluid = ForgeRegistries.FLUIDS.getDelegate(new ResourceLocation(fluidName));
-                    if(fluid.isEmpty())
+                    if (fluid.isEmpty())
                         continue;
                     fuelTypes.put(fluid.get().get(), FuelType.fromJSON(element));
                 }
@@ -86,6 +91,11 @@ public class FuelTypeManager {
                 );
         }
     }
+    public static boolean isFuel(Fluid fluid) {
+        tryPopulateTags();
+        return fuelTypes.containsKey(fluid);
+    }
+
     public static FuelType getType(Fluid fluid){
         return fuelTypes.get(fluid);
     }

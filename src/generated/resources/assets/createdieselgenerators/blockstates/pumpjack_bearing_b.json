@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "createdieselgenerators:block/pumpjack_bearing_b"
+    },
+    "facing=north": {
+      "model": "createdieselgenerators:block/pumpjack_bearing_b",
+      "y": 270
+    },
+    "facing=south": {
+      "model": "createdieselgenerators:block/pumpjack_bearing_b",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "createdieselgenerators:block/pumpjack_bearing_b",
+      "y": 180
+    }
+  }
+}

@@ -4,10 +4,12 @@ import com.jesz.createdieselgenerators.compat.EveryCompatCompat;
 import com.jesz.createdieselgenerators.compat.computercraft.CCProxy;
 import com.jesz.createdieselgenerators.content.molds.MoldType;
 import com.jesz.createdieselgenerators.content.tools.lighter.LighterModel;
+import com.jesz.createdieselgenerators.datagen.CDGDatagen;
 import com.jesz.createdieselgenerators.packets.CDGPackets;
 import com.jesz.createdieselgenerators.ponder.CDGPonderPlugin;
 import com.simibubi.create.compat.Mods;
 import com.simibubi.create.foundation.data.CreateRegistrate;
+import com.simibubi.create.infrastructure.data.CreateDatagen;
 import net.createmod.ponder.foundation.PonderIndex;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
@@ -15,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
@@ -46,17 +49,22 @@ public class CreateDieselGenerators
         MoldType.register();
         CDGMountedStorageTypes.register();
         CDGCreativeTab.register(modEventBus);
+
+
         if(ModList.get().isLoaded("moonlight"))
             EveryCompatCompat.init();
-
         Mods.COMPUTERCRAFT.executeIfInstalled(() -> CCProxy::register);
+
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> onClient(modEventBus, forgeEventBus));
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, CDGConfig.SERVER_SPEC, ID + "-server.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, CDGConfig.COMMON_SPEC, ID + "-common.toml");
         CDGPackets.registerPackets();
         MinecraftForge.EVENT_BUS.register(this);
+
         REGISTRATE.registerEventListeners(modEventBus);
+        modEventBus.addListener(EventPriority.LOWEST, CDGDatagen::gatherData);
+
     }
 
     public static void onClient(IEventBus modEventBus, IEventBus forgeEventBus) {

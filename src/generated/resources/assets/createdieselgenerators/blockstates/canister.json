@@ -1,0 +1,92 @@
+{
+  "variants": {
+    "enchanted=false,facing=down,waterlogged=false": {
+      "model": "createdieselgenerators:block/canister/block",
+      "x": 180
+    },
+    "enchanted=false,facing=down,waterlogged=true": {
+      "model": "createdieselgenerators:block/canister/block",
+      "x": 180
+    },
+    "enchanted=false,facing=east,waterlogged=false": {
+      "model": "createdieselgenerators:block/canister/block_horizontal",
+      "y": 90
+    },
+    "enchanted=false,facing=east,waterlogged=true": {
+      "model": "createdieselgenerators:block/canister/block_horizontal",
+      "y": 90
+    },
+    "enchanted=false,facing=north,waterlogged=false": {
+      "model": "createdieselgenerators:block/canister/block_horizontal"
+    },
+    "enchanted=false,facing=north,waterlogged=true": {
+      "model": "createdieselgenerators:block/canister/block_horizontal"
+    },
+    "enchanted=false,facing=south,waterlogged=false": {
+      "model": "createdieselgenerators:block/canister/block_horizontal",
+      "y": 180
+    },
+    "enchanted=false,facing=south,waterlogged=true": {
+      "model": "createdieselgenerators:block/canister/block_horizontal",
+      "y": 180
+    },
+    "enchanted=false,facing=up,waterlogged=false": {
+      "model": "createdieselgenerators:block/canister/block"
+    },
+    "enchanted=false,facing=up,waterlogged=true": {
+      "model": "createdieselgenerators:block/canister/block"
+    },
+    "enchanted=false,facing=west,waterlogged=false": {
+      "model": "createdieselgenerators:block/canister/block_horizontal",
+      "y": 270
+    },
+    "enchanted=false,facing=west,waterlogged=true": {
+      "model": "createdieselgenerators:block/canister/block_horizontal",
+      "y": 270
+    },
+    "enchanted=true,facing=down,waterlogged=false": {
+      "model": "createdieselgenerators:block/canister/block",
+      "x": 180
+    },
+    "enchanted=true,facing=down,waterlogged=true": {
+      "model": "createdieselgenerators:block/canister/block",
+      "x": 180
+    },
+    "enchanted=true,facing=east,waterlogged=false": {
+      "model": "createdieselgenerators:block/canister/block_horizontal",
+      "y": 90
+    },
+    "enchanted=true,facing=east,waterlogged=true": {
+      "model": "createdieselgenerators:block/canister/block_horizontal",
+      "y": 90
+    },
+    "enchanted=true,facing=north,waterlogged=false": {
+      "model": "createdieselgenerators:block/canister/block_horizontal"
+    },
+    "enchanted=true,facing=north,waterlogged=true": {
+      "model": "createdieselgenerators:block/canister/block_horizontal"
+    },
+    "enchanted=true,facing=south,waterlogged=false": {
+      "model": "createdieselgenerators:block/canister/block_horizontal",
+      "y": 180
+    },
+    "enchanted=true,facing=south,waterlogged=true": {
+      "model": "createdieselgenerators:block/canister/block_horizontal",
+      "y": 180
+    },
+    "enchanted=true,facing=up,waterlogged=false": {
+      "model": "createdieselgenerators:block/canister/block"
+    },
+    "enchanted=true,facing=up,waterlogged=true": {
+      "model": "createdieselgenerators:block/canister/block"
+    },
+    "enchanted=true,facing=west,waterlogged=false": {
+      "model": "createdieselgenerators:block/canister/block_horizontal",
+      "y": 270
+    },
+    "enchanted=true,facing=west,waterlogged=true": {
+      "model": "createdieselgenerators:block/canister/block_horizontal",
+      "y": 270
+    }
+  }
+}

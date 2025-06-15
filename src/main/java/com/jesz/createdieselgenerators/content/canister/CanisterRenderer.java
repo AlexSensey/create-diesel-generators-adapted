@@ -19,13 +19,15 @@ public class CanisterRenderer extends SmartBlockEntityRenderer<CanisterBlockEnti
             return;
         CachedBuffers.block(blockEntity.getBlockState())
                 .center()
-                .scale(1.001f)
+                .scale(1)
                 .uncenter()
+                .light(light)
                 .renderInto(ms, buffer.getBuffer(RenderType.cutout()));
         CachedBuffers.block(blockEntity.getBlockState())
                 .center()
-                .scale(1.001f)
+                .scale(1)
                 .uncenter()
+                .light(light)
                 .renderInto(ms, buffer.getBuffer(RenderType.glint()));
     }
 }

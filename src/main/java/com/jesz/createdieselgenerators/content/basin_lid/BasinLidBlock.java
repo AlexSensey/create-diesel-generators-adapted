@@ -23,9 +23,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
@@ -88,6 +90,7 @@ public class BasinLidBlock extends Block implements ProperWaterloggedBlock, IBE<
         if (flag != state.getValue(POWERED)) {
             if(flag != state.getValue(OPEN)) {
                 level.levelEvent(null, flag ? 1037 : 1036, pos, 0);
+                level.playSound(null, pos, flag ? BlockSetType.IRON.trapdoorOpen() : BlockSetType.IRON.trapdoorClose(), SoundSource.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
             }
             level.setBlock(pos, state.setValue(POWERED, flag).setValue(OPEN, flag), 2);
             if(flag && level.getBlockEntity(pos) instanceof BasinLidBlockEntity a && a.steamInside) {
@@ -122,6 +125,8 @@ public class BasinLidBlock extends Block implements ProperWaterloggedBlock, IBE<
             level.setBlock(pos, state.setValue(OPEN, !currentState), 3);
             level.levelEvent(null, currentState ? 1037:1036, pos, 0);
         }
+        level.playSound(null, pos, !currentState ? BlockSetType.IRON.trapdoorOpen() : BlockSetType.IRON.trapdoorClose(), SoundSource.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
+
         return InteractionResult.SUCCESS;
     }
 

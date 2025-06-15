@@ -10,6 +10,7 @@ import com.simibubi.create.compat.jei.category.animations.AnimatedKinetics;
 import com.simibubi.create.foundation.fluid.FluidRenderer;
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.gui.UIRenderHelper;
+import net.createmod.catnip.platform.ForgeCatnipServices;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -74,7 +75,7 @@ public class AnimatedSpoutCastingStation extends AnimatedKinetics {
         float from = 3f / 16f;
         float to = 17f / 16f;
         FluidStack fluidStack = fluids.get(0);
-        FluidRenderer.renderFluidBox(fluidStack.getFluid(), fluidStack.getAmount(), from, from, from, to, to, to, buffer, matrixStack, LightTexture.FULL_BRIGHT, false, true, fluidStack.getTag());
+        ForgeCatnipServices.FLUID_RENDERER.renderFluidBox(fluidStack, from, from, from, to, to, to, buffer, matrixStack, LightTexture.FULL_BRIGHT, false, true);
 
         matrixStack.popPose();
 
@@ -85,7 +86,7 @@ public class AnimatedSpoutCastingStation extends AnimatedKinetics {
         matrixStack.translate(-0.5f, 0, -0.5f);
         from = -width / 2 + 0.5f;
         to = width / 2 + 0.5f;
-        FluidRenderer.renderFluidBox(fluidStack.getFluid(), fluidStack.getAmount(), from, 0, from, to, 2, to, buffer, matrixStack, LightTexture.FULL_BRIGHT, false, true, fluidStack.getTag());
+        ForgeCatnipServices.FLUID_RENDERER.renderFluidBox(fluidStack, from, 0, from, to, 2, to, buffer, matrixStack, LightTexture.FULL_BRIGHT, false, true);
 
         buffer.endBatch();
         Lighting.setupFor3DItems();

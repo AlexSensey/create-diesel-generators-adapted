@@ -1,0 +1,68 @@
+{
+  "variants": {
+    "facing=east,pipe=false,powered=false": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block",
+      "y": 90
+    },
+    "facing=east,pipe=false,powered=true": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block",
+      "y": 90
+    },
+    "facing=east,pipe=true,powered=false": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block_pipe",
+      "y": 90
+    },
+    "facing=east,pipe=true,powered=true": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block_pipe",
+      "y": 90
+    },
+    "facing=north,pipe=false,powered=false": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block",
+      "y": 180
+    },
+    "facing=north,pipe=false,powered=true": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block",
+      "y": 180
+    },
+    "facing=north,pipe=true,powered=false": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block_pipe",
+      "y": 180
+    },
+    "facing=north,pipe=true,powered=true": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block_pipe",
+      "y": 180
+    },
+    "facing=south,pipe=false,powered=false": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block",
+      "y": 180
+    },
+    "facing=south,pipe=false,powered=true": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block",
+      "y": 180
+    },
+    "facing=south,pipe=true,powered=false": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block_pipe",
+      "y": 180
+    },
+    "facing=south,pipe=true,powered=true": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block_pipe",
+      "y": 180
+    },
+    "facing=west,pipe=false,powered=false": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block",
+      "y": 90
+    },
+    "facing=west,pipe=false,powered=true": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block",
+      "y": 90
+    },
+    "facing=west,pipe=true,powered=false": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block_pipe",
+      "y": 90
+    },
+    "facing=west,pipe=true,powered=true": {
+      "model": "createdieselgenerators:block/modular_diesel_engine/block_pipe",
+      "y": 90
+    }
+  }
+}

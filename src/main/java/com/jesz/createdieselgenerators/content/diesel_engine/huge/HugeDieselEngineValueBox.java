@@ -22,7 +22,7 @@ public class HugeDieselEngineValueBox extends ValueBoxTransform.Sided {
 
     @Override
     public Vec3 getLocalOffset(LevelAccessor level, BlockPos pos, BlockState state) {
-        Vec3 location = new Vec3(0.5, 0.5, 0.9485);
+        Vec3 location = new Vec3(0.5, 0.5, 1);
         location = VecHelper.rotateCentered(location, AngleHelper.horizontalAngle(getSide()), Direction.Axis.Y);
         location = VecHelper.rotateCentered(location, AngleHelper.verticalAngle(getSide()), Direction.Axis.X);
         return location;

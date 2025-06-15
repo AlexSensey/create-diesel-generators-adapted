@@ -267,7 +267,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
             updateConnectivity();
     }
     protected List<Recipe<?>> getMatchingRecipes() {
-        List<Recipe<?>> list = RecipeFinder.get( new Object(), level, recipe -> recipe.getType() == CDGRecipes.BULK_FERMENTING.getType());
+        List<Recipe<?>> list = RecipeFinder.get(RECIPE_CACHE_KEY, level, recipe -> recipe.getType() == CDGRecipes.BULK_FERMENTING.getType());
         return list.stream()
                 .filter(r -> {
                     BulkFermentingRecipe recipe = (BulkFermentingRecipe)r;
@@ -283,6 +283,12 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
                 .collect(Collectors.toList());
 
     }
+
+    static final Object RECIPE_CACHE_KEY = new Object();
+    Object getRecipeCacheKey() {
+        return RECIPE_CACHE_KEY;
+    }
+
     @Override
     public BlockPos getLastKnownPos() {
         return lastKnownPos;

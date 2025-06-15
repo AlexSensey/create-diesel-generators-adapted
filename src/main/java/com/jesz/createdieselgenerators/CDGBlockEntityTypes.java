@@ -23,8 +23,16 @@ import com.jesz.createdieselgenerators.content.pumpjack.*;
 import com.jesz.createdieselgenerators.content.turret.ChemicalTurretBlockEntity;
 import com.jesz.createdieselgenerators.content.turret.ChemicalTurretRenderer;
 import com.simibubi.create.AllPartialModels;
+import com.simibubi.create.content.fluids.pipes.FluidPipeBlockEntity;
 import com.simibubi.create.content.kinetics.base.*;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
+import com.tterrag.registrate.util.entry.BlockEntry;
+import com.tterrag.registrate.util.nullness.NonNullSupplier;
+import net.minecraft.world.level.block.Block;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.jesz.createdieselgenerators.CreateDieselGenerators.REGISTRATE;
 
@@ -36,11 +44,18 @@ public class CDGBlockEntityTypes {
             .validBlocks(CDGBlocks.BURNER)
             .renderer(() -> BurnerRenderer::new)
             .register();
+
+
+    public static final BlockEntityEntry<FluidPipeBlockEntity> CONCRETE_ENCASED_FLUID_PIPE = REGISTRATE.blockEntity("concrete_encased_fluid_pipe", FluidPipeBlockEntity::new)
+            .validBlocksDeferred(() -> new ArrayList<>(CDGBlocks.CONCRETE_ENCASED_FLUID_PIPES.values()))
+            .register();
+
 //    public static final BlockEntityEntry<FluidCouplingBlockEntity> FLUID_COUPLING = REGISTRATE.blockEntity("fluid_coupling", FluidCouplingBlockEntity::new)
 //            .instance(() -> ShaftInstance::new )
 //            .validBlocks(CDGBlocks.FLUID_COUPLING)
 //            .renderer(() -> ShaftRenderer::new)
 //            .register();
+
     public static final BlockEntityEntry<ChemicalTurretBlockEntity> CHEMICAL_TURRET = REGISTRATE.blockEntity("chemical_turret", ChemicalTurretBlockEntity::new)
             .validBlocks(CDGBlocks.CHEMICAL_TURRET)
             .renderer(() -> ChemicalTurretRenderer::new)
