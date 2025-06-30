@@ -33,51 +33,52 @@ public class DistillationControllerItem extends Item {
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        if(context.getLevel().getBlockEntity(context.getClickedPos()) instanceof FluidTankBlockEntity ftbe && AllBlocks.FLUID_TANK.has(ftbe.getBlockState())){
-            ItemStack itemInHand = context.getPlayer().getItemInHand(InteractionHand.MAIN_HAND);
-            BlockPos controllerPos = ftbe.getController();
-            int width = ftbe.getControllerBE().getWidth();
-            int height = ftbe.getControllerBE().getHeight();
-            FluidStack fluidInTank = ftbe.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(new FluidTank(0)).getFluidInTank(0).copy();
-            List<BlockPos> positions = new ArrayList<>();
+        if (!(context.getLevel().getBlockEntity(context.getClickedPos()) instanceof FluidTankBlockEntity ftbe && AllBlocks.FLUID_TANK.has(ftbe.getBlockState())))
+            return super.useOn(context);
+        ItemStack itemInHand = context.getPlayer().getItemInHand(InteractionHand.MAIN_HAND);
+        BlockPos controllerPos = ftbe.getController();
+        int width = ftbe.getControllerBE().getWidth();
+        int height = ftbe.getControllerBE().getHeight();
+        FluidStack fluidInTank = ftbe.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(new FluidTank(0)).getFluidInTank(0).copy();
+        List<BlockPos> positions = new ArrayList<>();
 
-            for (int y = 0; y < height; y++) {
-                for (int z = 0; z < width; z++) {
-                    for (int x = 0; x < width; x++) {
-                        if (positions.size() >= itemInHand.getCount() && !context.getPlayer().isCreative())
-                            break;
-                        BlockPos currentPos = controllerPos.offset(x, y, z);
-                        if (ConnectivityHandler.isConnected(context.getLevel(), controllerPos, currentPos))
-                            positions.add(currentPos);
-                    }
+        for (int y = 0; y < height; y++) {
+            for (int z = 0; z < width; z++) {
+                for (int x = 0; x < width; x++) {
+                    if (positions.size() >= itemInHand.getCount() && !context.getPlayer().isCreative())
+                        break;
+                    BlockPos currentPos = controllerPos.offset(x, y, z);
+                    if (ConnectivityHandler.isConnected(context.getLevel(), controllerPos, currentPos))
+                        positions.add(currentPos);
                 }
             }
-            for (BlockPos pos : positions) {
-                context.getLevel().setBlock(pos, CDGBlocks.DISTILLATION_TANK.getDefaultState(), 3);
-                if (context.getLevel().isClientSide) {
-                    for (int i = 0; i < 30; i++) {
-                        Vec3 offset = VecHelper.offsetRandomly(VecHelper.getCenterOf(pos), context.getLevel().getRandom(), .3f);
-                        Vec3 motion = VecHelper.offsetRandomly(Vec3.ZERO, context.getLevel().getRandom(), .1f);
-                        context.getLevel().addParticle(new ItemParticleOption(ParticleTypes.ITEM, itemInHand), offset.x(), offset.y(),
-                                offset.z(), motion.x(), motion.y(), motion.z());
-                    }
-                }
-            }
-            AllSoundEvents.WRENCH_ROTATE.playAt(context.getLevel(), controllerPos.getX() + (double) width / 2, controllerPos.getY() + (double) height / 2, controllerPos.getZ() + (double) width / 2, 2f, 1f, false);
-            if (!context.getPlayer().isCreative())
-                itemInHand.shrink(positions.size());
-
-            if (context.getLevel().getBlockEntity(controllerPos) instanceof DistillationTankBlockEntity be) {
-                be.updateConnectivity();
-                be.updateVerticalMulti();
-                be.updateTemperature();
-                IFluidHandler tank = be.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
-                if (tank != null)
-                    tank.fill(fluidInTank, IFluidHandler.FluidAction.EXECUTE);
-            }
-
-            return InteractionResult.SUCCESS;
         }
-        return super.useOn(context);
+
+        for (BlockPos pos : positions) {
+            context.getLevel().setBlock(pos, CDGBlocks.DISTILLATION_TANK.getDefaultState(), 3);
+            if (context.getLevel().isClientSide) {
+                for (int i = 0; i < 30; i++) {
+                    Vec3 offset = VecHelper.offsetRandomly(VecHelper.getCenterOf(pos), context.getLevel().getRandom(), .3f);
+                    Vec3 motion = VecHelper.offsetRandomly(Vec3.ZERO, context.getLevel().getRandom(), .1f);
+                    context.getLevel().addParticle(new ItemParticleOption(ParticleTypes.ITEM, itemInHand), offset.x(), offset.y(),
+                            offset.z(), motion.x(), motion.y(), motion.z());
+                }
+            }
+        }
+        AllSoundEvents.WRENCH_ROTATE.playAt(context.getLevel(), controllerPos.getX() + (double) width / 2, controllerPos.getY() + (double) height / 2, controllerPos.getZ() + (double) width / 2, 2f, 1f, false);
+        if (!context.getPlayer().isCreative())
+            itemInHand.shrink(positions.size());
+
+        if (context.getLevel().getBlockEntity(controllerPos) instanceof DistillationTankBlockEntity be) {
+            be.updateConnectivity();
+            be.updateVerticalMulti();
+            be.updateTemperature();
+            IFluidHandler tank = be.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
+            if (tank != null)
+                tank.fill(fluidInTank, IFluidHandler.FluidAction.EXECUTE);
+        }
+
+        return InteractionResult.SUCCESS;
+
     }
 }

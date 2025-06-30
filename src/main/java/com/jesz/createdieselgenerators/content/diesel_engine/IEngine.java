@@ -6,43 +6,48 @@ import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.templates.FluidTank;
 
 public interface IEngine {
 
-    default boolean enabled(){
-        if(fs().isEmpty())
-            return false;
-        if(FuelTypeManager.isFuel(fs().getFluid()))
-            return !CDGConfig.ENGINES_DISABLED_WITH_REDSTONE.get() || !self().getBlockState().getValue(DieselEngineBlock.POWERED);
+    default boolean enabled() {
+        if (validFS())
+            return !(CDGConfig.ENGINES_DISABLED_WITH_REDSTONE.get() && self().getBlockState().getValue(DieselEngineBlock.POWERED));
         return false;
     }
-    default boolean validFS(){
-        if(fs().isEmpty())
+
+    default boolean validFS() {
+        if (fs().isEmpty())
             return false;
-        return FuelTypeManager.isFuel(fs().getRawFluid());
-    }
-    default FluidStack fs(){
-        return getTank().getPrimaryHandler().getFluid();
+        return FuelTypeManager.isFuel(fs().getFluid());
     }
 
-    default float getFuelSpeed(){
-        return FuelTypeManager.getGeneratedSpeed(self(), fs().getRawFluid());
+    default FluidStack fs() {
+        return getTank().getFluid();
     }
-    default float getFuelStress(){
-        return FuelTypeManager.getGeneratedStress(self(), fs().getRawFluid()) / getFuelSpeed();
+
+    default float getFuelSpeed() {
+        return FuelTypeManager.getGeneratedSpeed(self(), fs().getFluid());
     }
-    default void tickFuelUsage(float multiplier){
-        if(getTick() % 20 == 0){
-            getTank().getPrimaryHandler().drain((int) (FuelTypeManager.getBurnRate(self(), fs().getRawFluid()) * multiplier), IFluidHandler.FluidAction.EXECUTE);
-        }
+
+    default float getFuelCapacity() {
+        float speed = getFuelSpeed();
+        if (speed == 0)
+            return speed;
+        return FuelTypeManager.getGeneratedStress(self(), fs().getFluid()) / speed;
     }
-    default void tickFuelUsage(){
-        tickFuelUsage(1);
+
+    default float getFuelBurnRate() {
+        return FuelTypeManager.getBurnRate(self(), fs().getFluid());
     }
-    int getTick();
+
+    default float getFuelSoundPitch() {
+        return FuelTypeManager.getSoundPitch(fs().getFluid());
+    }
+
+    float getRemainingTicks();
+
     SmartBlockEntity self();
-    SmartFluidTankBehaviour getTank();
 
-    void playSound();
+    FluidTank getTank();
 }

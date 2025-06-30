@@ -2,8 +2,8 @@ package com.jesz.createdieselgenerators.compat.jei;
 
 import com.jesz.createdieselgenerators.CDGBlocks;
 import com.jesz.createdieselgenerators.CDGPartialModels;
+import com.jesz.createdieselgenerators.content.diesel_engine.EngineTypes;
 import com.jesz.createdieselgenerators.content.diesel_engine.huge.HugeDieselEngineBlock;
-import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -20,24 +20,24 @@ public class AnimatedDieselEngineElement extends AnimatedKinetics {
     @Override
     public void draw(GuiGraphics graphics, int xOffset, int yOffset) {
         PoseStack matrixStack = graphics.pose();
-        byte enginesEnabled = (byte) ((DieselEngineBlock.EngineTypes.NORMAL.enabled() ? 1 : 0) + (DieselEngineBlock.EngineTypes.MODULAR.enabled() ? 1 : 0) + (DieselEngineBlock.EngineTypes.HUGE.enabled() ? 1 : 0));
+        byte enginesEnabled = (byte) ((EngineTypes.NORMAL.enabled() ? 1 : 0) + (EngineTypes.MODULAR.enabled() ? 1 : 0) + (EngineTypes.HUGE.enabled() ? 1 : 0));
         int currentEngineIndex = (AnimationTickHolder.getTicks() % (120)) / 20;
-        List<DieselEngineBlock.EngineTypes> enabledEngines = Arrays.stream(DieselEngineBlock.EngineTypes.values()).filter(DieselEngineBlock.EngineTypes::enabled).toList();
-        DieselEngineBlock.EngineTypes currentEngine = enabledEngines.get(currentEngineIndex % enginesEnabled);
+        List<EngineTypes> enabledEngines = Arrays.stream(EngineTypes.values()).filter(EngineTypes::enabled).toList();
+        EngineTypes currentEngine = enabledEngines.get(currentEngineIndex % enginesEnabled);
         matrixStack.pushPose();
         matrixStack.translate(xOffset, yOffset, 1000);
 
         matrixStack.mulPose(Axis.XP.rotationDegrees(-15.5f));
         matrixStack.mulPose(Axis.YP.rotationDegrees(22.5f + 90));
         int scale = 25;
-        if(currentEngine == DieselEngineBlock.EngineTypes.HUGE)
+        if(currentEngine == EngineTypes.HUGE)
             scale = 17;
-        blockElement(shaft(Direction.Axis.X)).atLocal(0, currentEngine == DieselEngineBlock.EngineTypes.HUGE ? -1.25 : 0, 0)
+        blockElement(shaft(Direction.Axis.X)).atLocal(0, currentEngine == EngineTypes.HUGE ? -1.25 : 0, 0)
                 .rotateBlock(-getCurrentAngle() * 6, 0, 0)
                 .scale(scale)
                 .render(graphics);
         int angle = (int) (getCurrentAngle() * 18 % 360)/36;
-        if(currentEngine == DieselEngineBlock.EngineTypes.HUGE) {
+        if(currentEngine == EngineTypes.HUGE) {
             blockElement(CDGPartialModels.ENGINE_PISTON_CONNECTOR).atLocal(0, -1.25, 0)
                     .rotateBlock(-getCurrentAngle() * 6, 0, 0)
                     .scale(scale)
@@ -49,7 +49,7 @@ public class AnimatedDieselEngineElement extends AnimatedKinetics {
                     .scale(scale)
                     .render(graphics);
         }
-        if(currentEngine == DieselEngineBlock.EngineTypes.NORMAL){
+        if(currentEngine == EngineTypes.NORMAL){
             blockElement(angle == 10? CDGPartialModels.ENGINE_PISTONS_0 :
                     angle == 9 ? CDGPartialModels.ENGINE_PISTONS_1 :
                     angle == 8 ? CDGPartialModels.ENGINE_PISTONS_2 :
@@ -63,7 +63,7 @@ public class AnimatedDieselEngineElement extends AnimatedKinetics {
                 .rotateBlock(0, 90, 0)
                 .scale(scale)
                 .render(graphics);
-        }else if(currentEngine == DieselEngineBlock.EngineTypes.MODULAR){
+        }else if(currentEngine == EngineTypes.MODULAR){
             blockElement(angle == 10? CDGPartialModels.MODULAR_ENGINE_PISTONS_0 :
                     angle == 9 ? CDGPartialModels.MODULAR_ENGINE_PISTONS_1 :
                     angle == 8 ? CDGPartialModels.MODULAR_ENGINE_PISTONS_2 :
@@ -79,8 +79,8 @@ public class AnimatedDieselEngineElement extends AnimatedKinetics {
                 .render(graphics);
         }
 
-        blockElement(currentEngine == DieselEngineBlock.EngineTypes.MODULAR ? CDGBlocks.MODULAR_DIESEL_ENGINE.getDefaultState() :
-                currentEngine == DieselEngineBlock.EngineTypes.HUGE ? CDGBlocks.HUGE_DIESEL_ENGINE.getDefaultState().setValue(HugeDieselEngineBlock.FACING, Direction.UP) :
+        blockElement(currentEngine == EngineTypes.MODULAR ? CDGBlocks.MODULAR_DIESEL_ENGINE.getDefaultState() :
+                currentEngine == EngineTypes.HUGE ? CDGBlocks.HUGE_DIESEL_ENGINE.getDefaultState().setValue(HugeDieselEngineBlock.FACING, Direction.UP) :
                         CDGBlocks.DIESEL_ENGINE.getDefaultState())
                 .rotateBlock(0, 90, 0)
                 .scale(scale)

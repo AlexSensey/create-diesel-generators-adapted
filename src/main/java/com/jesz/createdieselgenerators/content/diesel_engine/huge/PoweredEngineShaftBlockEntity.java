@@ -3,12 +3,13 @@ package com.jesz.createdieselgenerators.content.diesel_engine.huge;
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
 import net.createmod.catnip.data.Couple;
 import net.createmod.catnip.data.Pair;
+import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -24,30 +25,37 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
     float speed;
     int movementDirection;
     int initialTicks;
+
     public PoweredEngineShaftBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
         movementDirection = 0;
     }
-    public boolean isEngineForConnectorDisplay( BlockPos pos ){
+
+    public boolean isEngineForConnectorDisplay( BlockPos pos ) {
 
         Direction.Axis axis = getBlockState().getValue(AXIS);
-        for( Direction d : List.of(axis == Direction.Axis.Z ? Direction.UP : Direction.NORTH,axis == Direction.Axis.Z ? Direction.DOWN : Direction.SOUTH,axis == Direction.Axis.X ? Direction.UP : Direction.EAST,axis == Direction.Axis.X ? Direction.DOWN : Direction.WEST)){
+        for (Direction d : List.of(axis == Direction.Axis.Z ? Direction.UP : Direction.NORTH, axis == Direction.Axis.Z ? Direction.DOWN : Direction.SOUTH, axis == Direction.Axis.X ? Direction.UP : Direction.EAST, axis == Direction.Axis.X ? Direction.DOWN : Direction.WEST)) {
             BlockState st = getLevel().getBlockState(getBlockPos().relative(d, 2));
             if(st.getBlock() instanceof HugeDieselEngineBlock && st.getValue(FACING) == d.getOpposite())
                 return(getBlockPos().relative(d, 2).equals(pos));
         }
         return false;
     }
+
     public List<Pair<BlockPos, Couple<Float>>> engines = new ArrayList<>(4);
-    public void update(BlockPos sourcePos, int direction, float stress, float speed){
+
+    public void update(BlockPos sourcePos, int direction, float stress, float speed) {
         boolean found = false;
         for (Pair<BlockPos, Couple<Float>> engine : engines)
             if(engine.getFirst().equals(sourcePos)){
                 found = true;
                 break;
             }
-        if(!found)
-            engines.add(Pair.of(sourcePos, Couple.create(stress, speed)));
+        if (!found) {
+            List<Pair<BlockPos, Couple<Float>>> newEngines = new ArrayList<>(engines);
+            newEngines.add(Pair.of(sourcePos, Couple.create(stress, speed)));
+            engines = newEngines;
+        }
 
         AtomicReference<Float> maxSpeed = new AtomicReference<>(0f);
 
@@ -60,12 +68,17 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
         this.movementDirection = direction;
         reActivateSource = true;
     }
-    public boolean canBePoweredBy(BlockPos globalPos) {
+
+    public boolean canBePoweredBy() {
         return initialTicks == 0;
     }
+
     public void removeGenerator(BlockPos sourcePos) {
-        engines.removeIf(p -> p.getFirst().equals(sourcePos));
-        if(engines.isEmpty()){
+        List<Pair<BlockPos, Couple<Float>>> newEngines = new ArrayList<>(engines);
+        newEngines.removeIf(p -> p.getFirst().equals(sourcePos));
+        engines = newEngines;
+
+        if (engines.isEmpty()) {
             movementDirection = 0;
             speed = 0;
             stressCapacity = 0;
@@ -76,12 +89,13 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
     @Override
     protected void write(CompoundTag compound, boolean clientPacket) {
         super.write(compound, clientPacket);
+
         compound.putInt("Direction", movementDirection);
         if (initialTicks > 0)
             compound.putInt("Warmup", initialTicks);
         ListTag engineList = new ListTag();
 
-        for (Pair<BlockPos, Couple<Float>> engine : engines){
+        for (Pair<BlockPos, Couple<Float>> engine : List.copyOf(engines)){
             CompoundTag tag = new CompoundTag();
             tag.putFloat("Capacity", engine.getSecond().getFirst());
             tag.putFloat("Speed", engine.getSecond().getSecond());
@@ -90,7 +104,6 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
         };
         compound.putFloat("GeneratedSpeed", speed);
         compound.put("Engines", engineList);
-        compound.putFloat("Pitch", targetStressPitch);
     }
 
     @Override
@@ -98,25 +111,24 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
         super.read(compound, clientPacket);
         movementDirection = compound.getInt("Direction");
         initialTicks = compound.getInt("Warmup");
+
         ListTag engineList = compound.getList("Engines", CompoundTag.TAG_COMPOUND);
-        engines.clear();
+        List<Pair<BlockPos, Couple<Float>>> newEngines = new ArrayList<>();
         for (int i = 0; i < engineList.size(); i++) {
-            engines.add(Pair.of(NbtUtils.readBlockPos(engineList.getCompound(i).getCompound("Pos")),
+            newEngines.add(Pair.of(NbtUtils.readBlockPos(engineList.getCompound(i).getCompound("Pos")),
                     Couple.create(engineList.getCompound(i).getFloat("Capacity"),
                             engineList.getCompound(i).getFloat("Speed"))));
         }
-        engines.clear();
+        engines = newEngines;
 
         speed = compound.getFloat("GeneratedSpeed");
-        targetStressPitch = compound.getFloat("Pitch");
     }
 
     @Override
     public float getGeneratedSpeed() {
         return movementDirection * speed;
     }
-    public float currentStressPitch = 0;
-    float targetStressPitch = 0;
+
     @Override
     public float calculateAddedStressCapacity() {
         if(movementDirection == 0)
@@ -127,24 +139,10 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
         this.lastCapacityProvided = capacity;
         return capacity;
     }
+
     @Override
     public int getRotationAngleOffset(Direction.Axis axis) {
         int combinedCoords = axis.choose(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ());
         return super.getRotationAngleOffset(axis) + (combinedCoords % 2 == 0 ? 180 : 0);
-    }
-    @Override
-    public void updateFromNetwork(float maxStress, float currentStress, int networkSize) {
-        super.updateFromNetwork(maxStress, currentStress, networkSize);
-        if(maxStress == 0)
-            targetStressPitch = 0;
-        else
-            targetStressPitch = currentStress / maxStress * 4;
-        sendData();
-    }
-
-    @Override
-    public void tick() {
-        super.tick();
-        currentStressPitch = Mth.lerp(0.2f, currentStressPitch, targetStressPitch);
     }
 }

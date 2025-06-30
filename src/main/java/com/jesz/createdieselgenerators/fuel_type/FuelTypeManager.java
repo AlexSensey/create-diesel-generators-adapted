@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
 import com.jesz.createdieselgenerators.compat.kubejs.CDGKubeJSPlugin;
-import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock;
+import com.jesz.createdieselgenerators.content.diesel_engine.EngineTypes;
 import com.jesz.createdieselgenerators.packets.CDGPackets;
 import com.jesz.createdieselgenerators.packets.FuelTypesUpdatePacket;
 import net.minecraft.core.Holder;
@@ -28,7 +28,7 @@ public class FuelTypeManager {
     public static Map<Fluid, FuelType> fuelTypes = new HashMap<>();
     public static Map<String, FuelType> fuelTags = new HashMap<>();
     static boolean sentPacket = true;
-    public static class ReloadListener extends SimpleJsonResourceReloadListener{
+    public static class ReloadListener extends SimpleJsonResourceReloadListener {
         private static final Gson GSON = new Gson();
         public static final ReloadListener INSTANCE = new ReloadListener();
 
@@ -71,7 +71,9 @@ public class FuelTypeManager {
         // since the fuel types are registered before the tags, this weird bit of code is needed for it to work
         if (fuelTags.isEmpty()) {
             if (!sentPacket) {
-                CDGPackets.getChannel().send(PacketDistributor.ALL.noArg(), new FuelTypesUpdatePacket(FuelTypeManager.fuelTypes));
+                try {
+                    CDGPackets.getChannel().send(PacketDistributor.ALL.noArg(), new FuelTypesUpdatePacket(FuelTypeManager.fuelTypes));
+                } catch (NullPointerException ignored) {}
                 sentPacket = true;
             }
             return;
@@ -91,6 +93,7 @@ public class FuelTypeManager {
                 );
         }
     }
+
     public static boolean isFuel(Fluid fluid) {
         tryPopulateTags();
         return fuelTypes.containsKey(fluid);
@@ -99,55 +102,61 @@ public class FuelTypeManager {
     public static FuelType getType(Fluid fluid){
         return fuelTypes.get(fluid);
     }
+
     public static float getBurnerStrength(Fluid fluid) {
         tryPopulateTags();
         if (fuelTypes.containsKey(fluid))
             return fuelTypes.get(fluid).getBurnerStrength();
         return 0;
     }
+
     public static float getGeneratedSpeed(BlockEntity be, Fluid fluid) {
         tryPopulateTags();
         if (fuelTypes.containsKey(fluid))
             return fuelTypes.get(fluid).getGenerated(be).getFirst();
         return 0;
     }
+
     public static float getGeneratedStress(BlockEntity be, Fluid fluid) {
         tryPopulateTags();
         if (fuelTypes.containsKey(fluid))
             return fuelTypes.get(fluid).getGenerated(be).getSecond();
         return 0;
     }
-    public static float getGeneratedSpeed(DieselEngineBlock.EngineTypes engine, Fluid fluid) {
+
+    public static float getGeneratedSpeed(EngineTypes engine, Fluid fluid) {
         tryPopulateTags();
         if (fuelTypes.containsKey(fluid))
-            if(engine == DieselEngineBlock.EngineTypes.NORMAL)
+            if(engine == EngineTypes.NORMAL)
                 return fuelTypes.get(fluid).getGeneratedNormal().getFirst();
-            else if(engine == DieselEngineBlock.EngineTypes.MODULAR)
+            else if(engine == EngineTypes.MODULAR)
                 return fuelTypes.get(fluid).getGeneratedModular().getFirst();
-            else if(engine == DieselEngineBlock.EngineTypes.HUGE)
+            else if(engine == EngineTypes.HUGE)
                 return fuelTypes.get(fluid).getGeneratedHuge().getFirst();
         return 0;
     }
-    public static float getGeneratedStress(DieselEngineBlock.EngineTypes engine, Fluid fluid) {
+
+    public static float getGeneratedStress(EngineTypes engine, Fluid fluid) {
         tryPopulateTags();
         if(fuelTypes.containsKey(fluid))
-            if(engine == DieselEngineBlock.EngineTypes.NORMAL)
+            if(engine == EngineTypes.NORMAL)
                 return fuelTypes.get(fluid).getGeneratedNormal().getSecond();
-            else if(engine == DieselEngineBlock.EngineTypes.MODULAR)
+            else if(engine == EngineTypes.MODULAR)
                 return fuelTypes.get(fluid).getGeneratedModular().getSecond();
-            else if(engine == DieselEngineBlock.EngineTypes.HUGE)
+            else if(engine == EngineTypes.HUGE)
                 return fuelTypes.get(fluid).getGeneratedHuge().getSecond();
         return 0;
     }
-    public static int getBurnRate(DieselEngineBlock.EngineTypes engine, Fluid fluid) {
+
+    public static float getBurnRate(EngineTypes engine, Fluid fluid) {
         tryPopulateTags();
         if(fuelTypes.containsKey(fluid))
-            if(engine == DieselEngineBlock.EngineTypes.NORMAL)
-                return fuelTypes.get(fluid).getBurnNormal();
-            else if(engine == DieselEngineBlock.EngineTypes.MODULAR)
-                return fuelTypes.get(fluid).getBurnModular();
-            else if(engine == DieselEngineBlock.EngineTypes.HUGE)
-                return fuelTypes.get(fluid).getBurnHuge();
+            if(engine == EngineTypes.NORMAL)
+                return fuelTypes.get(fluid).normalBurn();
+            else if(engine == EngineTypes.MODULAR)
+                return fuelTypes.get(fluid).modularBurn();
+            else if(engine == EngineTypes.HUGE)
+                return fuelTypes.get(fluid).hugeBurn();
         return 0;
     }
     public static float getGeneratedSpeed(Fluid fluid) {
@@ -162,22 +171,22 @@ public class FuelTypeManager {
             return fuelTypes.get(fluid).getGeneratedNormal().getSecond();
         return 0;
     }
-    public static int getBurnRate(BlockEntity be, Fluid fluid) {
+    public static float getBurnRate(BlockEntity be, Fluid fluid) {
         tryPopulateTags();
         if (fuelTypes.containsKey(fluid))
             return fuelTypes.get(fluid).getBurn(be);
         return 0;
     }
-    public static int getBurnRate(Fluid fluid) {
+    public static float getBurnRate(Fluid fluid) {
         tryPopulateTags();
         if (fuelTypes.containsKey(fluid))
-            return fuelTypes.get(fluid).getBurnNormal();
+            return fuelTypes.get(fluid).normalBurn();
         return 0;
     }
-    public static int getSoundSpeed(Fluid fluid) {
+    public static float getSoundPitch(Fluid fluid) {
         tryPopulateTags();
         if (fuelTypes.containsKey(fluid))
-            return fuelTypes.get(fluid).getSoundSpeed();
+            return fuelTypes.get(fluid).soundPitch();
         return 1;
     }
 }

@@ -1,6 +1,7 @@
 package com.jesz.createdieselgenerators.content.diesel_engine.modular;
 
 import com.jesz.createdieselgenerators.CDGSpriteShifts;
+import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.foundation.block.connected.AllCTTypes;
 import com.simibubi.create.foundation.block.connected.CTSpriteShiftEntry;
 import com.simibubi.create.foundation.block.connected.CTType;
@@ -25,11 +26,9 @@ public class ModularDieselEngineCTBehavior extends ConnectedTextureBehaviour {
     }
 
     @Override
-    public boolean connectsTo(BlockState state, BlockState other, BlockAndTintGetter reader, BlockPos pos, BlockPos otherPos, Direction face, Direction primaryOffset, Direction secondaryOffset) {
-        if(!(state.getBlock() instanceof ModularDieselEngineBlock && other.getBlock() instanceof ModularDieselEngineBlock))
+    public boolean connectsTo(BlockState state, BlockState other, BlockAndTintGetter level, BlockPos pos, BlockPos otherPos, Direction face, Direction primaryOffset, Direction secondaryOffset) {
+        if (!(state.getBlock() instanceof ModularDieselEngineBlock && other.getBlock() instanceof ModularDieselEngineBlock))
             return false;
-        if(pos.relative(state.getValue(FACING)).equals(otherPos) || pos.relative(state.getValue(FACING).getOpposite()).equals(otherPos))
-            return state.getValue(FACING).getAxis() == other.getValue(FACING).getAxis();
-        return false;
+        return ConnectivityHandler.isConnected(level, pos, otherPos);
     }
 }

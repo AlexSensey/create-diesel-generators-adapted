@@ -23,10 +23,12 @@ public interface EntityAttribute {
     List<EntityAttribute> all = new LinkedList<>();
     EntityAttribute STANDARD_TRAITS = register(StandardTraits.IS_HOSTILE);
     EntityAttribute IS_MOB = register(new IsMob(EntityType.PIG));
-    static EntityAttribute register(EntityAttribute attribute){
+
+    static EntityAttribute register(EntityAttribute attribute) {
         all.add(attribute);
         return attribute;
     }
+
     static EntityAttribute fromNBT(CompoundTag compound) {
         for (EntityAttribute attribute : all){
             EntityAttribute finalAttribute = attribute.getById(new ResourceLocation(compound.getString("Id")));
@@ -41,21 +43,29 @@ public interface EntityAttribute {
     }
 
     ResourceLocation getId();
+
     boolean test(Entity entity);
+
     EntityAttribute read(CompoundTag tag);
+
     default CompoundTag write() {
         CompoundTag tag = new CompoundTag();
         tag.putString("Id", getId().toString());
         return tag;
     }
+
     List<EntityAttribute> listAttributesOf(ItemStack stack);
+
     boolean appliesTo(ItemStack stack);
+
     Component format(boolean inverted);
-    default EntityAttribute register(){
+
+    default EntityAttribute register() {
         all.add(this);
         return this;
     }
-    static List<EntityType<?>> getAllEntityTypesFromStack(ItemStack stack){
+
+    static List<EntityType<?>> getAllEntityTypesFromStack(ItemStack stack) {
         List<EntityType<?>> list = new LinkedList();
         if(stack.getItem() instanceof SpawnEggItem item)
             list.add(item.getType(stack.getTag()));
@@ -68,21 +78,23 @@ public interface EntityAttribute {
         }
         return list;
     }
-    enum StandardTraits implements EntityAttribute{
+
+    enum StandardTraits implements EntityAttribute {
         IS_HOSTILE(e -> e instanceof Monster, stack -> {
             boolean hostile = false;
-            for(EntityType<?> type : getAllEntityTypesFromStack(stack)){
-                if(type.getCategory() == MobCategory.MONSTER)
+            for (EntityType<?> type : getAllEntityTypesFromStack(stack)) {
+                if (type.getCategory() == MobCategory.MONSTER)
                     hostile = true;
             }
             return hostile;
         });
         Predicate<ItemStack> itemTest;
         Predicate<Entity> test;
-        StandardTraits(Predicate<Entity> test, Predicate<ItemStack> itemTest){
+        StandardTraits(Predicate<Entity> test, Predicate<ItemStack> itemTest) {
             this.test = test;
             this.itemTest = itemTest;
         }
+
         @Override
         public ResourceLocation getId() {
             return CreateDieselGenerators.rl(name().toLowerCase(Locale.ROOT));
@@ -97,6 +109,7 @@ public interface EntityAttribute {
         public boolean test(Entity entity) {
             return test.test(entity);
         }
+
         @Override
         public CompoundTag write() {
             CompoundTag tag = EntityAttribute.super.write();
@@ -138,6 +151,7 @@ public interface EntityAttribute {
             return CreateDieselGenerators.lang("entity_attributes."+getId().getPath()+(inverted ? ".inverted" : ""));
         }
     }
+
     class IsMob implements EntityAttribute {
 
         EntityType<?> type;

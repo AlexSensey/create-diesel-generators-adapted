@@ -5,7 +5,6 @@ import com.jesz.createdieselgenerators.CDGBlocks;
 import com.jesz.createdieselgenerators.CDGConfig;
 import com.jesz.createdieselgenerators.content.ICDGKinetics;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
-import com.simibubi.create.api.schematic.requirement.SpecialBlockEntityItemRequirement;
 import com.simibubi.create.api.schematic.requirement.SpecialBlockItemRequirement;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
@@ -15,10 +14,8 @@ import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
@@ -38,9 +35,8 @@ import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -54,7 +50,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 import static net.minecraft.core.Direction.NORTH;
 import static net.minecraft.core.Direction.SOUTH;
@@ -64,17 +59,6 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
-    public enum EngineTypes{
-        NORMAL(CDGConfig.NORMAL_ENGINES), MODULAR(CDGConfig.MODULAR_ENGINES), HUGE(CDGConfig.HUGE_ENGINES);
-
-        final Supplier<Boolean> isEnabled;
-        EngineTypes(Supplier<Boolean> isEnabled){
-            this.isEnabled = isEnabled;
-        }
-        public boolean enabled(){
-            return isEnabled.get();
-        }
-    }
     public DieselEngineBlock(Properties properties) {
         super(properties);
         registerDefaultState(
@@ -83,9 +67,10 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
                         .setValue(POWERED, false));
 
     }
+
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return super.getStateForPlacement(context).setValue(WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).is(Fluids.WATER));
+        return withWater(super.getStateForPlacement(context), context);
     }
 
     @Override
@@ -96,11 +81,12 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
         withBlockEntityDo(context.getLevel(), context.getClickedPos(), be -> {
-            if(be.upgrade != EngineUpgrades.NONE){
+            if(be.upgrade != EngineUpgrades.EMPTY){
                 if(!context.getLevel().isClientSide) {
                     if (!context.getPlayer().isCreative())
                         context.getPlayer().getInventory().placeItemBackInInventory(be.upgrade.getItem());
-                    be.upgrade = EngineUpgrades.NONE;
+                    be.upgrade = EngineUpgrades.EMPTY;
+                    be.sendData();
                     IWrenchable.playRotateSound(context.getLevel(), context.getClickedPos());
                 }
             }
@@ -119,10 +105,10 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
     }
 
     @Override
-    public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState,
-                                  LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pNeighborPos) {
-        updateWater(pLevel, pState, pCurrentPos);
-        return pState;
+    public BlockState updateShape(BlockState state, Direction direction, BlockState otherState,
+                                  LevelAccessor level, BlockPos pos, BlockPos otherPos) {
+        updateWater(level, state, pos);
+        return state;
     }
 
     @Override
@@ -158,70 +144,67 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos,
-                                 Player player, InteractionHand hand, BlockHitResult hit) {
-        ItemStack itemInHand = player.getItemInHand(hand);
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        ItemStack stack = player.getItemInHand(hand);
 
         for (EngineUpgrades upgrade : EngineUpgrades.allUpgrades) {
-            if (upgrade == EngineUpgrades.NONE)
+            if (upgrade == EngineUpgrades.EMPTY)
                 continue;
-            if (upgrade.getItem().is(itemInHand.getItem())) {
+            if (upgrade.getItem().is(stack.getItem())) {
                 withBlockEntityDo(level, pos, be -> {
                     if (!upgrade.canAddOn(be))
                         return;
-                    if(be.upgrade != EngineUpgrades.NONE)
+                    if(be.upgrade != EngineUpgrades.EMPTY)
                         return;
 
                     if(!player.isCreative())
-                        itemInHand.shrink(1);
+                        stack.shrink(1);
                     be.upgrade = upgrade;
+                    be.sendData();
                     IWrenchable.playRotateSound(level, pos);
                 });
                 return InteractionResult.SUCCESS;
             }
         }
 
-        if(!CDGConfig.ENGINES_FILLED_WITH_ITEMS.get())
-            return super.use(state, level, pos, player, hand, hit);
-        if (itemInHand.isEmpty())
+        if(!CDGConfig.ENGINES_FILLED_WITH_ITEMS.get() || stack.isEmpty() || !(level.getBlockEntity(pos) instanceof SmartBlockEntity be))
             return InteractionResult.PASS;
-        if(level.getBlockEntity(pos) instanceof SmartBlockEntity be){
-            IFluidHandler tank = be.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
-            if(tank == null)
-                return InteractionResult.PASS;
-            if(itemInHand.getItem() instanceof BucketItem bi) {
-                if (!tank.getFluidInTank(0).isEmpty())
-                    return InteractionResult.FAIL;
-                tank.fill(new FluidStack(bi.getFluid(), 1000), IFluidHandler.FluidAction.EXECUTE);
-                if(!player.isCreative())
-                    player.setItemInHand(hand, new ItemStack(Items.BUCKET));
-                return InteractionResult.SUCCESS;
-            }
-            if(itemInHand.getItem() instanceof MilkBucketItem) {
-                if (!tank.getFluidInTank(0).isEmpty())
-                    return InteractionResult.FAIL;
-                tank.fill(new FluidStack(ForgeMod.MILK.get(), 1000), IFluidHandler.FluidAction.EXECUTE);
-                if(!player.isCreative())
-                    player.setItemInHand(hand, new ItemStack(Items.BUCKET));
-                return InteractionResult.SUCCESS;
-            }
-            IFluidHandlerItem itemTank = itemInHand.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).orElse(null);
-            if(itemTank == null)
-                return InteractionResult.PASS;
-            itemTank.drain(tank.fill(itemTank.getFluidInTank(0), IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
+
+        IFluidHandler tank = be.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
+
+        if(tank == null)
+            return InteractionResult.PASS;
+
+        if (stack.getItem() instanceof BucketItem || stack.getItem() instanceof MilkBucketItem) {
+            Fluid fluid = stack.getItem() instanceof BucketItem bi ? bi.getFluid() : ForgeMod.MILK.get();
+
+            if (!tank.getFluidInTank(0).isEmpty())
+                return InteractionResult.FAIL;
+
+            tank.fill(new FluidStack(fluid, 1000), IFluidHandler.FluidAction.EXECUTE);
+            if (!player.isCreative())
+                player.setItemInHand(hand, new ItemStack(Items.BUCKET));
+
+            return InteractionResult.SUCCESS;
         }
-        return super.use(state, level, pos, player, hand, hit);
+
+        IFluidHandlerItem itemTank = stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).orElse(null);
+        if(itemTank == null)
+            return InteractionResult.PASS;
+
+        itemTank.drain(tank.fill(itemTank.getFluidInTank(0), IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
+        return InteractionResult.SUCCESS;
     }
 
 
     @Override
-    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
 
-        if (pState.getValue(FACING) == NORTH || pState.getValue(FACING) == SOUTH){
+        if (state.getValue(FACING) == NORTH || state.getValue(FACING) == SOUTH){
             return Shapes.or(Block.box(3, 3, 0, 13, 13, 16), Block.box(0,0,0,16,4,16));
-        }else if(pState.getValue(FACING) == Direction.DOWN){
+        }else if(state.getValue(FACING) == Direction.DOWN){
             return Shapes.or(Block.box(3,0,3, 13, 16, 13), Block.box(0, 4, 4, 16, 12, 12));
-        }else if(pState.getValue(FACING) == Direction.UP){
+        }else if(state.getValue(FACING) == Direction.UP){
             return Shapes.or(Block.box(3,0,3, 13, 16, 13), Block.box(4, 4, 0, 12, 12, 16));
         }else{
             return Shapes.or(Block.box(0, 3, 3, 16, 13, 13), Block.box(0,0,0,16,4,16));
@@ -256,7 +239,7 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.is(newState.getBlock()))
             withBlockEntityDo(level, pos, be -> {
-                if (be.upgrade != EngineUpgrades.NONE)
+                if (be.upgrade != EngineUpgrades.EMPTY)
                     popResource(level, pos, be.upgrade.getItem());
             });
         super.onRemove(state, level, pos, newState, isMoving);

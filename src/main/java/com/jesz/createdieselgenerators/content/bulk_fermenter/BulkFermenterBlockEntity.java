@@ -2,6 +2,7 @@ package com.jesz.createdieselgenerators.content.bulk_fermenter;
 
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGRecipes;
+import com.jesz.createdieselgenerators.content.distillation.DistillationRecipe;
 import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
@@ -126,6 +127,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
         if(currentRecipe == null)
             return;
         processingTime = (currentRecipe.getProcessingDuration());
+        processingTime = (int) (processingTime * Math.cbrt(width * width * height));
         sendData();
     }
     @Override
@@ -198,55 +200,6 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
                     }
                 }
             }
-//            if(processingTime >= 0){
-//                if(!level.isClientSide && processingTime % 20 == 0 && new Random().nextInt() % 4 == 0)
-//                    level.playSound(null, worldPosition.offset(width/2, height/2, width/2), SoundEvents.BUBBLE_COLUMN_UPWARDS_AMBIENT,
-//                            SoundSource.BLOCKS, .15f, .75f);
-//
-//                if (processingTime == 1)
-//                    level.playSound(null, worldPosition.offset(width/2, height/2, width/2), SoundEvents.BREWING_STAND_BREW,
-//                            SoundSource.BLOCKS, .15f, .75f);
-//
-//                if(currentRecipe == null)
-//                    processingTime = -1;
-//                else {
-//                    if(processingTime == 1 && !level.isClientSide){
-//                        IItemHandler container = itemCapability.orElse(new ItemStackHandler(0));
-//                        BulkFermenterFluidHandler tank = (BulkFermenterFluidHandler) fluidCapability.orElse(new BulkFermenterFluidHandler(0, null));
-//
-//                        processingTime = -1;
-//
-//                        currentRecipe.remove(container);
-//                        currentRecipe.remove(tank);
-//
-//                        for (FluidStack output : currentRecipe.getFluidResults()) {
-//                            if(output.isFluidEqual(tank.tank1.getFluid()) || tank.tank2.isEmpty()){
-//                                tank.tank1.fill(output, IFluidHandler.FluidAction.EXECUTE);
-//                            } else if(output.isFluidEqual(tank.tank2.getFluid()) || tank.tank2.isEmpty()){
-//                                tank.tank2.fill(output, IFluidHandler.FluidAction.EXECUTE);
-//                            }
-//                        }
-//                        for(ProcessingOutput output : currentRecipe.getRollableResults()) {
-//                            for (int i = 0; i < container.getSlots(); i++) {
-//                                ItemStack stack = container.getStackInSlot(i);
-//                                if(output.getStack().is(stack.getItem())) {
-//                                    if (64 - stack.getCount() >= output.getStack().getCount())
-//                                        if (ItemStack.tagMatches(output.getStack(), stack)) {
-//                                            container.insertItem(i, output.rollOutput(), false);
-//                                            break;
-//                                        }
-//                                }else if(stack.isEmpty()){
-//                                    container.insertItem(i, output.rollOutput(), false);
-//                                    break;
-//                                }
-//                            }
-//                        }
-//
-//                    }else {
-//                       processingTime--;
-//                    }
-//                }
-//            }
         }
         super.tick();
         if (syncCooldown > 0) {
@@ -269,6 +222,11 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     protected List<Recipe<?>> getMatchingRecipes() {
         List<Recipe<?>> list = RecipeFinder.get(RECIPE_CACHE_KEY, level, recipe -> recipe.getType() == CDGRecipes.BULK_FERMENTING.getType());
         return list.stream()
+                .sorted((r1, r2) -> {
+                    if(r1 instanceof DistillationRecipe recipe1 && r2 instanceof DistillationRecipe recipe2)
+                        return recipe2.getRequiredHeat().ordinal() - recipe1.getRequiredHeat().ordinal();
+                    return 0;
+                })
                 .filter(r -> {
                     BulkFermentingRecipe recipe = (BulkFermentingRecipe)r;
                     LazyOptional<IItemHandler> itemCap = itemCapability;

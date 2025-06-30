@@ -113,7 +113,7 @@
   "createdieselgenerators.tooltip.empty": "Empty",
   "createdieselgenerators.generic.unit.mbps": "mB/s",
 
-  "sounds.createdieselgenerators.diesel_engine_sound": "Diesel Engine Roars",
+  "sounds.createdieselgenerators.engine_normal": "Diesel Engine Roars",
   "createdieselgenerators.pumpjack_crank.crank_size": "Crank Size",
 
   "itemGroup.cdg_creative_tab": "Create: Diesel Generators",

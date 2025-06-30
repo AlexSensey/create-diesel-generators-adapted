@@ -10,6 +10,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,49 +21,46 @@ public class FuelTypesUpdatePacket extends SimplePacketBase {
     }
     public FuelTypesUpdatePacket(FriendlyByteBuf buffer){
         allTypes = new HashMap<>();
-        for (int i = 0; true; i++) {
-            String id = buffer.readUtf();
-            if(id.equals("Jesus loves you"))
-                break;
-            Fluid fluid = ForgeRegistries.FLUIDS.getValue(new ResourceLocation(id));
-            if(fluid instanceof EmptyFluid)
-                break;
+
+        buffer.readCollection(ArrayList::new, b -> {
+            Fluid fluid = ForgeRegistries.FLUIDS.getValue(buffer.readResourceLocation());
             FuelType type = new FuelType(
                     buffer.readFloat(),
                     buffer.readFloat(),
-                    buffer.readByte(),
                     buffer.readFloat(),
                     buffer.readFloat(),
-                    buffer.readByte(),
                     buffer.readFloat(),
                     buffer.readFloat(),
-                    buffer.readByte(),
-                    buffer.readByte(),
+                    buffer.readFloat(),
+                    buffer.readFloat(),
+                    buffer.readFloat(),
+                    buffer.readFloat(),
                     buffer.readFloat()
             );
             allTypes.put(fluid, type);
-        }
+            return null;
+        });
     }
 
     @Override
     public void write(FriendlyByteBuf buffer) {
-        allTypes.forEach((fluid, type) -> {
-            buffer.writeUtf(ForgeRegistries.FLUIDS.getKey(fluid).toString());
+        buffer.writeCollection(allTypes.entrySet(), (b, e) -> {
+            Fluid fluid = e.getKey();
+            FuelType type = e.getValue();
+            buffer.writeResourceLocation(ForgeRegistries.FLUIDS.getKey(fluid));
 
-            buffer.writeFloat(type.getGeneratedNormal().getFirst());
-            buffer.writeFloat(type.getGeneratedNormal().getSecond());
-            buffer.writeByte(type.getBurnNormal());
-            buffer.writeFloat(type.getGeneratedModular().getFirst());
-            buffer.writeFloat(type.getGeneratedModular().getSecond());
-            buffer.writeByte(type.getBurnModular());
-            buffer.writeFloat(type.getGeneratedHuge().getFirst());
-            buffer.writeFloat(type.getGeneratedHuge().getSecond());
-            buffer.writeByte(type.getBurnHuge());
-
-            buffer.writeByte(type.getSoundSpeed());
-            buffer.writeFloat(type.getBurnerStrength());
+            buffer.writeFloat(type.normalSpeed());
+            buffer.writeFloat(type.normalStrength());
+            buffer.writeFloat(type.normalBurn());
+            buffer.writeFloat(type.modularSpeed());
+            buffer.writeFloat(type.modularStrength());
+            buffer.writeFloat(type.modularBurn());
+            buffer.writeFloat(type.hugeSpeed());
+            buffer.writeFloat(type.hugeStrength());
+            buffer.writeFloat(type.hugeBurn());
+            buffer.writeFloat(type.soundPitch());
+            buffer.writeFloat(type.burnerStrength());
         });
-        buffer.writeUtf("Jesus loves you");
     }
 
 

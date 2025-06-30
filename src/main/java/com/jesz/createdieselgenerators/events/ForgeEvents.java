@@ -6,7 +6,7 @@ import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.commands.CDGCommands;
 import com.jesz.createdieselgenerators.content.ICDGKinetics;
 import com.jesz.createdieselgenerators.content.andesite_girder.AndesiteGirderWrenchBehaviour;
-import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock;
+import com.jesz.createdieselgenerators.content.diesel_engine.EngineTypes;
 import com.jesz.createdieselgenerators.content.entity_filter.ReverseLootTable;
 import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
 import com.jesz.createdieselgenerators.mixins.LootPoolAccessor;
@@ -39,7 +39,6 @@ import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.trading.MerchantOffer;
-import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -203,17 +202,17 @@ public class ForgeEvents {
                     tooltip.add(1, Component.translatable("createdieselgenerators.tooltip.holdForFuelStats", Component.translatable("createdieselgenerators.tooltip.keyAlt").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.DARK_GRAY));
                     tooltip.add(2, Component.empty());
 
-                    byte enginesEnabled = (byte) ((DieselEngineBlock.EngineTypes.NORMAL.enabled() ? 1 : 0) + (DieselEngineBlock.EngineTypes.MODULAR.enabled() ? 1 : 0) + (DieselEngineBlock.EngineTypes.HUGE.enabled() ? 1 : 0));
+                    byte enginesEnabled = (byte) ((EngineTypes.NORMAL.enabled() ? 1 : 0) + (EngineTypes.MODULAR.enabled() ? 1 : 0) + (EngineTypes.HUGE.enabled() ? 1 : 0));
                     int currentEngineIndex = (AnimationTickHolder.getTicks() % (120)) / 20;
-                    List<DieselEngineBlock.EngineTypes> enabledEngines = Arrays.stream(DieselEngineBlock.EngineTypes.values()).filter(DieselEngineBlock.EngineTypes::enabled).toList();
-                    DieselEngineBlock.EngineTypes currentEngine = enabledEngines.get(currentEngineIndex % enginesEnabled);
+                    List<EngineTypes> enabledEngines = Arrays.stream(EngineTypes.values()).filter(EngineTypes::enabled).toList();
+                    EngineTypes currentEngine = enabledEngines.get(currentEngineIndex % enginesEnabled);
                     float currentSpeed = FuelTypeManager.getGeneratedSpeed(currentEngine, fluid);
                     float currentCapacity = FuelTypeManager.getGeneratedStress(currentEngine, fluid);
                     float currentBurn = FuelTypeManager.getBurnRate(currentEngine, fluid);
 
                     if(enginesEnabled != 1)
                         tooltip.add(3, Component.translatable("block.createdieselgenerators."+
-                                (currentEngine == DieselEngineBlock.EngineTypes.MODULAR ? "large_" : currentEngine == DieselEngineBlock.EngineTypes.HUGE ? "huge_" : "")+"diesel_engine").withStyle(ChatFormatting.GRAY));
+                                (currentEngine == EngineTypes.MODULAR ? "large_" : currentEngine == EngineTypes.HUGE ? "huge_" : "")+"diesel_engine").withStyle(ChatFormatting.GRAY));
                     tooltip.add(enginesEnabled != 1 ? 4 : 3, Component.translatable("createdieselgenerators.tooltip.fuelSpeed", CreateLang.number(currentSpeed).component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
                     tooltip.add(enginesEnabled != 1 ? 5 : 4, Component.translatable("createdieselgenerators.tooltip.fuelStress", CreateLang.number(currentCapacity).component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
                     tooltip.add(enginesEnabled != 1 ? 6 : 5, Component.translatable("createdieselgenerators.tooltip.fuelBurnRate", CreateLang.number(currentBurn).component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));

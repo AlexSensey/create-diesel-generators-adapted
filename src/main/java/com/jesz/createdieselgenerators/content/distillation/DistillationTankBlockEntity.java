@@ -208,6 +208,11 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
 
         List<Recipe<?>> list = RecipeFinder.get(getRecipeCacheKey(), level, recipe -> recipe.getType() == CDGRecipes.DISTILLATION.getType());
         return list.stream()
+                .sorted((r1, r2) -> {
+                    if(r1 instanceof DistillationRecipe recipe1 && r2 instanceof DistillationRecipe recipe2)
+                        return recipe2.getRequiredHeat().ordinal() - recipe1.getRequiredHeat().ordinal();
+                    return 0;
+                })
                 .filter(r ->{
                             if(r instanceof DistillationRecipe recipe){
                                 if(!recipe.getRequiredHeat().testBlazeBurner(currentHeating))
@@ -665,7 +670,6 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
         return !(level.getBlockEntity(getBlockPos().below()) instanceof DistillationTankBlockEntity be && isSameMultiBlock(be));
     }
     void checkForRecipes(){
-        level.getProfiler().push("recipeFinding");
         if(processingTime <= -1) {
             List<Recipe<?>> r = getMatchingRecipes();
             if (!r.isEmpty()) {
@@ -675,7 +679,6 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
                 currentRecipe = null;
             }
         }
-        level.getProfiler().pop();
     }
 
     private boolean isSameMultiBlock(DistillationTankBlockEntity be) {

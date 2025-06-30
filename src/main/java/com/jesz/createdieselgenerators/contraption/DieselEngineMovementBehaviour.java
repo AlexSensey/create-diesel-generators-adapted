@@ -1,60 +1,82 @@
 package com.jesz.createdieselgenerators.contraption;
 
+import com.jesz.createdieselgenerators.CDGBlocks;
 import com.jesz.createdieselgenerators.CDGConfig;
-import com.jesz.createdieselgenerators.CDGPartialModels;
-import com.jesz.createdieselgenerators.CDGSounds;
+import com.jesz.createdieselgenerators.CDGSoundEvents;
+import com.jesz.createdieselgenerators.content.diesel_engine.EngineSoundInstance;
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.trains.entity.CarriageContraption;
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
+import com.simibubi.create.infrastructure.config.AllConfigs;
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class DieselEngineMovementBehaviour implements MovementBehaviour {
+    @OnlyIn(Dist.CLIENT)
+    static Map<Pair<UUID, BlockPos>, EngineSoundInstance> soundInstances = new HashMap<>();
+
     @Override
     public boolean isActive(MovementContext context) {
         return context.contraption instanceof CarriageContraption && MovementBehaviour.super.isActive(context);
     }
 
+    @Nullable
+    @Override
+    public ItemStack canBeDisabledVia(MovementContext context) {
+        return CDGBlocks.DIESEL_ENGINE.asStack();
+    }
+
     @Override
     public void tick(MovementContext context) {
-        MovementBehaviour.super.tick(context);
-        if(!context.world.isClientSide)
+        if (!context.world.isClientSide)
             return;
+
         CarriageContraption contraption = ((CarriageContraption)context.contraption);
         CarriageContraptionEntity entity = (CarriageContraptionEntity) contraption.entity;
-
-        if(!context.data.contains("StoppedTicks"))
-            context.data.putInt("StoppedTicks", 31);
-        if(context.motion.length() < 0.05) {
-            if (context.data.getInt("StoppedTicks") >= 30)
-                return;
-            context.data.putInt("StoppedTicks", context.data.getInt("StoppedTicks")+1);
-        }else
-            context.data.putInt("StoppedTicks", 0);
-
 
         if(!CDGConfig.ENGINES_EMIT_SOUND_ON_TRAINS.get() || entity.getCarriage().train.derailed)
             return;
 
-        int ticks = context.data.getInt("Tick");
-        if(ticks >= 2){
-            double trainSpeed = context.motion.length()*2;
-            double lastTrainSpeed = context.data.getDouble("TrainSpeed");
-            double acc = (trainSpeed-0.0)-lastTrainSpeed;
-            context.data.putDouble("TrainSpeed", trainSpeed);
+        double trainSpeed = context.motion.length() * 2 / (entity.getCarriage().train.maxSpeed() / 28);
+        double lastTrainSpeed = context.data.getDouble("TrainSpeed");
+        double acceleration = trainSpeed - lastTrainSpeed;
+        context.data.putDouble("TrainSpeed", trainSpeed);
 
-            float throttle = Mth.lerp(0.1f, context.data.getFloat("Throttle"),
-                    (float) Math.max(0, acc)*20);
-            context.data.putFloat("Throttle", throttle);
+        float throttle = Mth.lerp(0.05f, context.data.getFloat("Throttle"),
+                (float) Math.max(0, Math.min(1, acceleration)));
+        context.data.putFloat("Throttle", throttle);
 
-            float pitch = 1f+throttle;
-            float volume = 0.125f+throttle/5;
-            context.world.playLocalSound(context.position.x, context.position.y, context.position.z, CDGSounds.DIESEL_ENGINE_SOUND.get(), SoundSource.BLOCKS, volume, pitch, false);
+        EngineSoundInstance instance = soundInstances.get(Pair.of(entity.getUUID(), context.localPos));
 
-            ticks = 0;
+        if (context.disabled) {
+            if (instance != null)
+                instance.fadeOut();
+            return;
         }
-        context.data.putInt("Tick", ticks+1);
 
+        if (instance == null) {
+            instance = new EngineSoundInstance(CDGSoundEvents.ENGINE_NORMAL.get(), context.position);
+            instance.setVolume(1f);
+            Minecraft.getInstance().getSoundManager().play(instance);
+        }
+        Minecraft.getInstance().getChatListener().handleSystemMessage(Component.literal(String.format("%.2f", throttle)), true);
+        instance.keepAlive();
+        instance.setPitch((float) Math.min(2, Math.max(Math.min(0.14, throttle) * 2 + trainSpeed / 28, 0.1f)));
+        instance.setPosition(context.position);
     }
 }

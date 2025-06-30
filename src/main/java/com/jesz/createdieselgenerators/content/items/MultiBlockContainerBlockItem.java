@@ -37,19 +37,19 @@ public class MultiBlockContainerBlockItem extends BlockItem {
     }
 
     @Override
-    protected boolean updateCustomBlockEntityTag(BlockPos p_195943_1_, Level p_195943_2_, Player p_195943_3_,
-                                                 ItemStack p_195943_4_, BlockState p_195943_5_) {
-        MinecraftServer minecraftserver = p_195943_2_.getServer();
+    protected boolean updateCustomBlockEntityTag(BlockPos pos, Level level, Player player,
+                                                 ItemStack stack, BlockState state) {
+        MinecraftServer minecraftserver = level.getServer();
         if (minecraftserver == null)
             return false;
-        CompoundTag nbt = p_195943_4_.getTagElement("BlockEntityTag");
+        CompoundTag nbt = stack.getTagElement("BlockEntityTag");
         if (nbt != null) {
             nbt.remove("Size");
             nbt.remove("Height");
             nbt.remove("Controller");
             nbt.remove("LastKnownPos");
         }
-        return super.updateCustomBlockEntityTag(p_195943_1_, p_195943_2_, p_195943_3_, p_195943_4_, p_195943_5_);
+        return super.updateCustomBlockEntityTag(pos, level, player, stack, state);
     }
 
     private <T extends BlockEntity & IMultiBlockEntityContainer> void tryMultiPlace(BlockPlaceContext ctx) {

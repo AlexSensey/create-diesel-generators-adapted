@@ -1,19 +1,17 @@
 package com.jesz.createdieselgenerators.compat.jei;
 
 import com.jesz.createdieselgenerators.CDGBlocks;
-import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock;
+import com.jesz.createdieselgenerators.content.diesel_engine.EngineTypes;
 import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
 import com.simibubi.create.compat.jei.EmptyBackground;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.foundation.utility.CreateLang;
 import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
-import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.createmod.catnip.animation.AnimationTickHolder;
@@ -66,10 +64,10 @@ public class DieselEngineCategory implements IRecipeCategory<DieselEngineJeiReci
     public void draw(DieselEngineJeiRecipeType recipe, IRecipeSlotsView iRecipeSlotsView, GuiGraphics graphics, double mouseX, double mouseY) {
         AllGuiTextures.JEI_ARROW.render(graphics, 82, 40);
         AllGuiTextures.JEI_SHADOW.render(graphics, 28, 52);
-        byte enginesEnabled = (byte) ((DieselEngineBlock.EngineTypes.NORMAL.enabled() ? 1 : 0) + (DieselEngineBlock.EngineTypes.MODULAR.enabled() ? 1 : 0) + (DieselEngineBlock.EngineTypes.HUGE.enabled() ? 1 : 0));
+        byte enginesEnabled = (byte) ((EngineTypes.NORMAL.enabled() ? 1 : 0) + (EngineTypes.MODULAR.enabled() ? 1 : 0) + (EngineTypes.HUGE.enabled() ? 1 : 0));
         int currentEngineIndex = (AnimationTickHolder.getTicks() % (120)) / 20;
-        List<DieselEngineBlock.EngineTypes> enabledEngines = Arrays.stream(DieselEngineBlock.EngineTypes.values()).filter(DieselEngineBlock.EngineTypes::enabled).toList();
-        DieselEngineBlock.EngineTypes currentEngine = enabledEngines.get(currentEngineIndex % enginesEnabled);
+        List<EngineTypes> enabledEngines = Arrays.stream(EngineTypes.values()).filter(EngineTypes::enabled).toList();
+        EngineTypes currentEngine = enabledEngines.get(currentEngineIndex % enginesEnabled);
         float currentSpeed = FuelTypeManager.getGeneratedSpeed(currentEngine, recipe.fluid);
         float currentCapacity = FuelTypeManager.getGeneratedStress(currentEngine, recipe.fluid);
         float currentBurn = FuelTypeManager.getBurnRate(currentEngine, recipe.fluid);

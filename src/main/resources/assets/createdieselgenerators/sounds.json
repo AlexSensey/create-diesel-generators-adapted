@@ -1,9 +1,9 @@
 {
-  "diesel_engine_sound": {
-    "subtitle": "sounds.createdieselgenerators.diesel_engine_sound",
+  "engine_normal": {
+    "subtitle": "sounds.createdieselgenerators.engine_normal",
     "sounds": [
       {
-        "name": "createdieselgenerators:diesel_engine_sound",
+        "name": "createdieselgenerators:engine_normal",
         "type": "file",
         "attenuation_distance": 16
       }

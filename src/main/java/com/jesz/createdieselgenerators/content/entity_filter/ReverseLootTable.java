@@ -17,10 +17,10 @@ public class ReverseLootTable implements PreparableReloadListener {
 
     public static final Map<Item, List<EntityType<?>>> ALL = new HashMap<>();
 
-    public final CompletableFuture<Void> reload(PreparationBarrier p_10780_, ResourceManager p_10781_, ProfilerFiller p_10782_, ProfilerFiller p_10783_, Executor p_10784_, Executor p_10785_) {
+    public final CompletableFuture<Void> reload(PreparationBarrier stage, ResourceManager resourceManager, ProfilerFiller workerProfiler, ProfilerFiller mainProfiler, Executor workerExecutor, Executor mainExecutor) {
         return CompletableFuture.supplyAsync(() -> {
             ALL.clear();
             return null;
-        }, p_10784_).thenCompose(p_10780_::wait).thenAcceptAsync((p_10792_) -> {}, p_10785_);
+        }, workerExecutor).thenCompose(stage::wait).thenAcceptAsync((o) -> {}, mainExecutor);
     }
 }

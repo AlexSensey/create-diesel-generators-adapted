@@ -112,8 +112,6 @@ public class CastingRecipe extends ProcessingRecipe<Container> {
         MoldType moldInBasin = null;
         for (int i = 0; i < availableItems.getSlots(); i++) {
             ItemStack stack = availableItems.getStackInSlot(i);
-            if (stack == null)
-                continue;
 
             if (stack.getItem() instanceof MoldItem && MoldItem.getMold(stack) == moldType)
                 moldInBasin = MoldItem.getMold(stack);

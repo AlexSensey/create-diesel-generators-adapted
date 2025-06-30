@@ -7,14 +7,14 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
-public class CDGSounds {
+public class CDGSoundEvents {
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS =
-            DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, "createdieselgenerators");
+            DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, CreateDieselGenerators.ID);
 
-    public static RegistryObject<SoundEvent> DIESEL_ENGINE_SOUND = registerSoundEvent("diesel_engine_sound");
+    public static RegistryObject<SoundEvent> ENGINE_NORMAL = registerSoundEvent("engine_normal");
 
     private static RegistryObject<SoundEvent> registerSoundEvent(String name) {
-        return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(new ResourceLocation("createdieselgenerators", name)));
+        return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(CreateDieselGenerators.rl(name)));
     }
 
     public static void register(IEventBus eventBus) {

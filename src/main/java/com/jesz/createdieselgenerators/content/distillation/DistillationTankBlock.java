@@ -63,7 +63,7 @@ public class DistillationTankBlock extends Block implements IBE<DistillationTank
 
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < width; z++) {
-                    context.getLevel().setBlock(pos.offset(x, 0, z), AllBlocks.FLUID_TANK.getDefaultState(), 3);
+                    context.getLevel().setBlockAndUpdate(pos.offset(x, 0, z), AllBlocks.FLUID_TANK.getDefaultState());
                     context.getLevel().updateNeighborsAt(pos.offset(x, 0, z), AllBlocks.FLUID_TANK.get());
                     if (context.getLevel().isClientSide) {
                         for (int i = 0; i < 30; i++) {

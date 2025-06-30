@@ -31,13 +31,13 @@ public class EngineStateDisplaySource extends DisplaySource {
 
 
         } else if(context.getSourceBlockEntity() instanceof ModularDieselEngineBlockEntity sourceBE) {
-            ModularDieselEngineBlockEntity frontEngine = sourceBE.controller;
-            if(frontEngine != null && frontEngine.length != 0)
-                if(frontEngine.validFS())
+            ModularDieselEngineBlockEntity controller = sourceBE.getControllerBE();
+            if(controller != null && controller.getHeight() != 0)
+                if(controller.validFS())
                     return List.of(
                             Component.translatable("createdieselgenerators.display_source.engine_status").append(" : "),
-                            Component.translatable("createdieselgenerators.display_source.speed").append(Math.abs(frontEngine.getGeneratedSpeed()) + Component.translatable("create.generic.unit.rpm").getString()),
-                            Component.translatable("createdieselgenerators.display_source.stress").append(Math.abs(frontEngine.calculateAddedStressCapacity() * frontEngine.getGeneratedSpeed()) + Component.translatable("create.generic.unit.stress").getString())
+                            Component.translatable("createdieselgenerators.display_source.speed").append(Math.abs(controller.getGeneratedSpeed()) + Component.translatable("create.generic.unit.rpm").getString()),
+                            Component.translatable("createdieselgenerators.display_source.stress").append(Math.abs(controller.calculateAddedStressCapacity() * controller.getGeneratedSpeed()) + Component.translatable("create.generic.unit.stress").getString())
                 );
 
             return List.of(
@@ -50,8 +50,8 @@ public class EngineStateDisplaySource extends DisplaySource {
             if(sourceBE.enabled())
                 return List.of(
                         Component.translatable("createdieselgenerators.display_source.engine_status").append(" : "),
-                        Component.translatable("createdieselgenerators.display_source.speed").append(Math.abs(FuelTypeManager.getGeneratedSpeed(sourceBE, sourceBE.tank.getPrimaryHandler().getFluid().getFluid())) + Component.translatable("create.generic.unit.rpm").getString()),
-                        Component.translatable("createdieselgenerators.display_source.stress").append(Math.abs(FuelTypeManager.getGeneratedStress(sourceBE, sourceBE.tank.getPrimaryHandler().getFluid().getFluid())) + Component.translatable("create.generic.unit.stress").getString())
+                        Component.translatable("createdieselgenerators.display_source.speed").append(Math.abs(FuelTypeManager.getGeneratedSpeed(sourceBE, sourceBE.getTank().getFluid().getFluid())) + Component.translatable("create.generic.unit.rpm").getString()),
+                        Component.translatable("createdieselgenerators.display_source.stress").append(Math.abs(FuelTypeManager.getGeneratedStress(sourceBE, sourceBE.getTank().getFluid().getFluid())) + Component.translatable("create.generic.unit.stress").getString())
                 );
 
             return List.of(

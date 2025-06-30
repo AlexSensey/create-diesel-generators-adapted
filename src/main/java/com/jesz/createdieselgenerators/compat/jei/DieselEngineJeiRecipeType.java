@@ -8,7 +8,7 @@ public class DieselEngineJeiRecipeType {
     public static final RecipeType<DieselEngineJeiRecipeType> DIESEL_COMBUSTION =
             RecipeType.create("createdieselgenerators", "diesel_combustion", DieselEngineJeiRecipeType.class);
 
-    public int burnRate;
+    public float burnRate;
     public float speed;
     public Fluid fluid;
     public float stress;

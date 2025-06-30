@@ -1,16 +1,14 @@
 package com.jesz.createdieselgenerators.content.diesel_engine;
 
-import com.jesz.createdieselgenerators.CDGConfig;
-import com.jesz.createdieselgenerators.CDGItems;
-import com.jesz.createdieselgenerators.CDGPartialModels;
-import com.jesz.createdieselgenerators.CreateDieselGenerators;
+import com.jesz.createdieselgenerators.*;
 import com.jesz.createdieselgenerators.content.diesel_engine.huge.HugeDieselEngineBlock;
 import com.jesz.createdieselgenerators.content.diesel_engine.huge.HugeDieselEngineBlockEntity;
 import com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlock;
 import com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlockEntity;
 import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlockEntity;
-import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
+import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.render.CachedBuffers;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -19,6 +17,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,32 +28,55 @@ import static com.jesz.createdieselgenerators.content.diesel_engine.normal.Diese
 
 public interface EngineUpgrades {
     List<EngineUpgrades> allUpgrades = new ArrayList<>();
-    EngineUpgrades NONE = add(new NoUpgrade());
-    EngineUpgrades SILENCER = add(new SilencerUpgrade());
-    EngineUpgrades TURBOCHARGER = add(new TurbochargerUpgrade());
-    static EngineUpgrades add(EngineUpgrades upgrade){
+    EngineUpgrades EMPTY = register(new EmptyUpgrade());
+    EngineUpgrades SILENCER = register(new SilencerUpgrade());
+    EngineUpgrades TURBOCHARGER = register(new TurbochargerUpgrade());
+
+    static EngineUpgrades register(EngineUpgrades upgrade) {
         allUpgrades.add(upgrade);
         return upgrade;
     }
+
+    static EngineUpgrades get(ResourceLocation rl) {
+
+        for (EngineUpgrades upgrade : EngineUpgrades.allUpgrades) {
+            if (upgrade.getId().equals(rl)) {
+                return upgrade;
+            }
+        }
+        return EMPTY;
+    }
     ResourceLocation getId();
-    default boolean canAddOn(IEngine engine){
+    default boolean canAddOn(IEngine engine) {
         return true;
     }
 
-    default float getSpeed(float speed, IEngine engine){
+    default float getSpeed(float speed, IEngine engine) {
         return speed;
     }
-    default float getStress(float stress, IEngine engine){
-        return stress;
+    default float getCapacity(float capacity, IEngine engine) {
+        return capacity;
     }
 
-    default void playSounds(int tick, IEngine engine){
-        if ((tick % Math.max(1, FuelTypeManager.getSoundSpeed(engine.fs().getFluid()))) == 0)
-            engine.playSound();
+    @OnlyIn(Dist.CLIENT)
+    default <T extends SmartBlockEntity & IEngine> EngineSoundInstance createSoundInstance(T engine, Vec3 pos) {
+        return new EngineSoundInstance(CDGSoundEvents.ENGINE_NORMAL.get(), pos);
     }
+
+    default <T extends SmartBlockEntity & IEngine> float getPitchMultiplier(T engine) {
+        return 1f;
+    }
+
+    default <T extends SmartBlockEntity & IEngine> float getVolume(T engine) {
+        return 0.5f;
+    }
+
     ItemStack getItem();
 
-    default void render(BlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light) {}
+    default void render(BlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light) {
+
+    }
+
     static void renderPartial(BlockEntity be, PoseStack ms, MultiBufferSource buffer,
                               PartialModel normalModel, PartialModel normalVerticalModel,
                               PartialModel modularModel, PartialModel hugeModel, int light) {
@@ -104,7 +128,8 @@ public interface EngineUpgrades {
 
         }
     }
-    class NoUpgrade implements EngineUpgrades{
+
+    class EmptyUpgrade implements EngineUpgrades {
         @Override
         public ResourceLocation getId() {
             return CreateDieselGenerators.rl("none");
@@ -115,7 +140,8 @@ public interface EngineUpgrades {
             return ItemStack.EMPTY;
         }
     }
-    class SilencerUpgrade implements EngineUpgrades{
+
+    class SilencerUpgrade implements EngineUpgrades {
         @Override
         public ResourceLocation getId() {
             return CreateDieselGenerators.rl("silencer");
@@ -128,15 +154,17 @@ public interface EngineUpgrades {
         }
 
         @Override
-        public void playSounds(int tick, IEngine engine) {}
-
-        @Override
         public ItemStack getItem() {
             return CDGItems.ENGINE_SILENCER.get().getDefaultInstance();
         }
 
+        @Override
+        public <T extends SmartBlockEntity & IEngine> float getVolume(T engine) {
+            return 0.05f;
+        }
     }
-    class TurbochargerUpgrade implements EngineUpgrades{
+
+    class TurbochargerUpgrade implements EngineUpgrades {
         @Override
         public ResourceLocation getId() {
             return CreateDieselGenerators.rl("turbocharger");
@@ -148,20 +176,14 @@ public interface EngineUpgrades {
         }
 
         @Override
-        public float getStress(float stress, IEngine engine) {
-            return (float) (stress * CDGConfig.TURBOCHARGED_ENGINE_MULTIPLIER.get());
+        public float getCapacity(float capacity, IEngine engine) {
+            return (float) (capacity * CDGConfig.TURBOCHARGED_ENGINE_MULTIPLIER.get());
         }
 
         @Override
         public void render(BlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light) {
-           renderPartial(be, ms, buffer, CDGPartialModels.ENGINE_TURBOCHARGER, CDGPartialModels.ENGINE_TURBOCHARGER_VERTICAL,
-                   CDGPartialModels.MODULAR_TURBOCHARGER, CDGPartialModels.ENGINE_TURBOCHARGER, light);
-        }
-
-        @Override
-        public void playSounds(int tick, IEngine engine) {
-            if ((tick % Math.max(1, FuelTypeManager.getSoundSpeed(engine.fs().getFluid()) / 2)) == 0)
-                engine.playSound();
+            renderPartial(be, ms, buffer, CDGPartialModels.ENGINE_TURBOCHARGER, CDGPartialModels.ENGINE_TURBOCHARGER_VERTICAL,
+                    CDGPartialModels.MODULAR_TURBOCHARGER, CDGPartialModels.ENGINE_TURBOCHARGER, light);
         }
 
         @Override
@@ -172,6 +194,11 @@ public interface EngineUpgrades {
         @Override
         public boolean canAddOn(IEngine engine) {
             return engine instanceof DieselEngineBlockEntity || engine instanceof ModularDieselEngineBlockEntity;
+        }
+
+        @Override
+        public <T extends SmartBlockEntity & IEngine> float getPitchMultiplier(T engine) {
+            return 1.5f;
         }
     }
 }

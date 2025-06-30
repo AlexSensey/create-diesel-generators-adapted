@@ -12,7 +12,7 @@ import java.util.List;
 public class MoldType {
     public static final List<MoldType> types = new LinkedList<>();
 
-    public static MoldType BOW_MOLD = new MoldType(CreateDieselGenerators.rl("bowl"));
+    public static MoldType BOWL_MOLD = new MoldType(CreateDieselGenerators.rl("bowl"));
     public static MoldType LINES_MOLD = new MoldType(CreateDieselGenerators.rl("lines"));
     public static MoldType CHAIN_MOLD = new MoldType(CreateDieselGenerators.rl("chain"));
     public static MoldType BAR_MOLD = new MoldType(CreateDieselGenerators.rl("bar"));

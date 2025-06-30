@@ -1,10 +1,8 @@
 package com.jesz.createdieselgenerators.content.diesel_engine.normal;
 
-import com.jesz.createdieselgenerators.CDGSounds;
-import com.jesz.createdieselgenerators.compat.computercraft.CCProxy;
+import com.jesz.createdieselgenerators.content.diesel_engine.EngineSoundInstance;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.jesz.createdieselgenerators.content.diesel_engine.IEngine;
-import com.simibubi.create.compat.computercraft.AbstractComputerBehaviour;
 import com.simibubi.create.content.contraptions.bearing.WindmillBearingBlockEntity;
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
@@ -17,42 +15,42 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.minecraftforge.fml.DistExecutor;
 
 import java.util.List;
 
 import static com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock.FACING;
-import static com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock.StressImpact;
 
 public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implements IEngine {
-    public SmartFluidTankBehaviour tank;
-    public AbstractComputerBehaviour computerBehaviour;
-    public ScrollOptionBehaviour<WindmillBearingBlockEntity.RotationDirection> movementDirection;
-    int tick;
-    EngineUpgrades upgrade = EngineUpgrades.NONE;
+    ScrollOptionBehaviour<WindmillBearingBlockEntity.RotationDirection> movementDirection;
 
-    BlockState state;
+    float remainingTicks = 0;
+    EngineUpgrades upgrade = EngineUpgrades.EMPTY;
+    SmartFluidTankBehaviour tank;
+
     public DieselEngineBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
-        this.state = state;
     }
+
     @Override
     public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (computerBehaviour.isPeripheralCap(cap))
-            return computerBehaviour.getPeripheralCapability();
-        if(state.getValue(FACING) == Direction.DOWN) {
+        if(getBlockState().getValue(FACING) == Direction.DOWN) {
             if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.WEST)
                 return tank.getCapability().cast();
             if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.EAST)
                 return tank.getCapability().cast();
-        }else if(state.getValue(FACING) == Direction.UP){
+        }else if(getBlockState().getValue(FACING) == Direction.UP){
             if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.NORTH)
                 return tank.getCapability().cast();
             if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.SOUTH)
@@ -63,120 +61,101 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
         }
         return super.getCapability(cap, side);
     }
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap) {
-        if(cap == ForgeCapabilities.FLUID_HANDLER)
-            return tank.getCapability().cast();
-        return super.getCapability(cap);
-    }
 
     @Override
     protected void write(CompoundTag compound, boolean clientPacket) {
         super.write(compound, clientPacket);
-        compound.putInt("Tick", tick);
-        if (clientPacket)
-            compound.putFloat("Pitch", targetStressPitch);
+        compound.putFloat("RemainingTicks", remainingTicks);
         compound.putString("Upgrade", upgrade.getId().toString());
     }
 
     @Override
     protected void read(CompoundTag compound, boolean clientPacket) {
         super.read(compound, clientPacket);
-        tick = compound.getInt("Tick");
-        if (clientPacket)
-            targetStressPitch = compound.getFloat("Pitch");
-
-        upgrade = EngineUpgrades.NONE;
-        for (EngineUpgrades upgrade : EngineUpgrades.allUpgrades){
-            if(upgrade.getId().toString().equals(compound.getString("Upgrade"))){
-                this.upgrade = upgrade;
-                break;
-            }
-        }
+        remainingTicks = compound.getFloat("RemainingTicks");
+        upgrade = EngineUpgrades.get(new ResourceLocation(compound.getString("Upgrade")));
     }
+
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
-        behaviours.add(computerBehaviour = CCProxy.behaviour(this));
-
         movementDirection = new ScrollOptionBehaviour<>(WindmillBearingBlockEntity.RotationDirection.class,
                 CreateLang.translateDirect("contraptions.windmill.rotation_direction"), this, new DieselEngineValueBox());
-        movementDirection.withCallback($ -> onDirectionChanged());
+        movementDirection.withCallback(v -> reActivateSource = true);
+        tank = SmartFluidTankBehaviour.single(this, 1000);
 
         behaviours.add(movementDirection);
-        tank = SmartFluidTankBehaviour.single(this, 1000);
         behaviours.add(tank);
-        super.addBehaviours(behaviours);
     }
-    public void onDirectionChanged(){}
-    @Override
-    public void initialize() {
-        super.initialize();
-        if (!hasSource() || getGeneratedSpeed() > getTheoreticalSpeed())
-            updateGeneratedRotation();
-    }
+
     @Override
     public float calculateAddedStressCapacity() {
-        if(getGeneratedSpeed() == 0 || !enabled())
-            return 0;
-        float capacity = upgrade.getStress(getFuelStress(), this);
+        float capacity = upgrade.getCapacity(getFuelCapacity() * (1 / upgrade.getSpeed(getFuelSpeed(), this)) * getFuelSpeed(), this);
         lastCapacityProvided = capacity;
         return capacity;
     }
 
     @Override
     public float getGeneratedSpeed() {
-        if(!enabled())
+        if (!enabled())
             return 0;
-        return convertToDirection((movementDirection.getValue() == 1 ? -1 : 1) * upgrade.getStress(IEngine.super.getFuelSpeed(), this), state.getValue(FACING));
+        return convertToDirection((movementDirection.getValue() == 1 ? -1 : 1) * upgrade.getSpeed(getFuelSpeed(), this), getBlockState().getValue(FACING));
     }
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        boolean added = super.addToGoggleTooltip(tooltip, isPlayerSneaking);
-        if (!StressImpact.isEnabled())
-            return added;
-
-        float stressBase = calculateAddedStressCapacity();
-        if (Mth.equal(stressBase, 0))
-            return added;
-        return containedFluidTooltip(tooltip, isPlayerSneaking, tank.getCapability().cast());
+        if (getGeneratedSpeed() == 0)
+            return false;
+        super.addToGoggleTooltip(tooltip, isPlayerSneaking);
+        containedFluidTooltip(tooltip, isPlayerSneaking, tank.getCapability().cast());
+        return true;
     }
-    float currentStressPitch = 0;
-    float targetStressPitch = 0;
+
     @Override
     public void tick() {
         super.tick();
-        state = getBlockState();
+
         reActivateSource = true;
-        currentStressPitch = Mth.lerp(0.2f, currentStressPitch, targetStressPitch);
-        if (level.isClientSide && enabled())
-            upgrade.playSounds(tick, this);
-        if(enabled()){
-            tickFuelUsage();
-            tick++;
+
+        if (enabled()) {
+            if (remainingTicks < 2) {
+                remainingTicks += 1 / getFuelBurnRate();
+                tank.getPrimaryHandler().drain(1, IFluidHandler.FluidAction.EXECUTE);
+            }
+
+            if (remainingTicks >= 0)
+                remainingTicks--;
         }
 
+        if (level.isClientSide) {
+            DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> this::tickClient);
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    protected EngineSoundInstance soundInstance;
+    @OnlyIn(Dist.CLIENT)
+    protected void tickClient() {
+        if (enabled()) {
+            if (soundInstance == null || soundInstance.isStopped()) {
+                Minecraft.getInstance()
+                        .getSoundManager()
+                        .play(soundInstance = upgrade.createSoundInstance(this, Vec3.atCenterOf(getBlockPos())));
+            } else {
+                soundInstance.keepAlive();
+                soundInstance.setPitch(upgrade.getPitchMultiplier(this) * getFuelSoundPitch());
+                soundInstance.setVolume(upgrade.getVolume(this));
+            }
+        } else {
+            if (soundInstance != null) {
+                soundInstance.fadeOut();
+                soundInstance = null;
+            }
+        }
     }
 
     @Override
-    public void playSound() {
-        if (level.isClientSide && Minecraft.getInstance().player.position().distanceTo(Vec3.atBottomCenterOf(worldPosition)) < 15)
-            level.playLocalSound(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), CDGSounds.DIESEL_ENGINE_SOUND.get(), SoundSource.BLOCKS, 0.3f,1f + currentStressPitch, false);
-    }
-
-    @Override
-    public void updateFromNetwork(float maxStress, float currentStress, int networkSize) {
-        super.updateFromNetwork(maxStress, currentStress, networkSize);
-        if(maxStress == 0)
-            targetStressPitch = 0;
-        else
-            targetStressPitch = currentStress / maxStress * 4;
-        sendData();
-    }
-
-    @Override
-    public int getTick() {
-        return tick;
+    public float getRemainingTicks() {
+        return remainingTicks;
     }
 
     @Override
@@ -185,7 +164,7 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
     }
 
     @Override
-    public SmartFluidTankBehaviour getTank() {
-        return tank;
+    public FluidTank getTank() {
+        return tank.getPrimaryHandler();
     }
 }

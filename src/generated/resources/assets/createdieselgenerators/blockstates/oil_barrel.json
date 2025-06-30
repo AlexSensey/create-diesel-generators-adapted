@@ -1,7 +1,225 @@
 {
   "variants": {
-    "": {
+    "axis=x,color=black": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=blue": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=brown": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=cyan": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=gray": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=green": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=light_blue": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=light_gray": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=lime": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=magenta": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=none": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=orange": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=pink": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=purple": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=red": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=white": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,color=yellow": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y,color=black": {
       "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=blue": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=brown": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=cyan": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=gray": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=green": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=light_blue": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=light_gray": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=lime": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=magenta": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=none": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=orange": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=pink": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=purple": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=red": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=white": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=y,color=yellow": {
+      "model": "createdieselgenerators:block/oil_barrel"
+    },
+    "axis=z,color=black": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=blue": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=brown": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=cyan": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=gray": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=green": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=light_blue": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=light_gray": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=lime": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=magenta": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=none": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=orange": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=pink": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=purple": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=red": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=white": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,color=yellow": {
+      "model": "createdieselgenerators:block/oil_barrel_sideways_clockwise",
+      "x": 90,
+      "y": 180
     }
   }
 }

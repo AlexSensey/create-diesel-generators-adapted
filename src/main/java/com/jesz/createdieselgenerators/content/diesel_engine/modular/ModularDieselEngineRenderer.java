@@ -9,6 +9,8 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 
+import java.util.Objects;
+
 import static com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlock.FACING;
 
 public class ModularDieselEngineRenderer extends ShaftRenderer<ModularDieselEngineBlockEntity> {
@@ -21,11 +23,8 @@ public class ModularDieselEngineRenderer extends ShaftRenderer<ModularDieselEngi
     protected void renderSafe(ModularDieselEngineBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
         int angle = (int) (Math.abs(KineticBlockEntityRenderer.getAngleForBe(be, be.getBlockPos(), KineticBlockEntityRenderer.getRotationAxisOf(be))*180/Math.PI) * 3 % 360)/36;
 
-        ModularDieselEngineBlockEntity controller = be.controller;
-        if (controller == null)
-            be.upgrade.render(be, partialTicks, ms, buffer, light);
-        else
-            controller.upgrade.render(be, partialTicks, ms, buffer, light);
+        ModularDieselEngineBlockEntity controller = be.getControllerBE();
+        Objects.requireNonNullElse(controller, be).upgrade.render(be, partialTicks, ms, buffer, light);
 
         CachedBuffers.partial( angle == 10? CDGPartialModels.MODULAR_ENGINE_PISTONS_0 :
                                 angle == 9 ? CDGPartialModels.MODULAR_ENGINE_PISTONS_1 :

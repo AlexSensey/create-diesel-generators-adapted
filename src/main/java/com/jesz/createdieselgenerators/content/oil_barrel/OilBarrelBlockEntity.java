@@ -34,8 +34,6 @@ import static com.jesz.createdieselgenerators.content.oil_barrel.OilBarrelBlock.
 
 public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBlockEntityContainer.Fluid, IHaveGoggleInformation {
 
-    private static final int MAX_SIZE = 3;
-
     protected LazyOptional<IFluidHandler> fluidCapability;
     protected boolean forceFluidLevelUpdate;
     protected FluidTank tankInventory;
@@ -125,7 +123,6 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
     protected void onFluidStackChanged(FluidStack newFluidStack) {
         if (!hasLevel())
             return;
-        int maxY = (int) ((getFillState() * height) + 1);
 
         for (int yOffset = 0; yOffset < height; yOffset++) {
             for (int xOffset = 0; xOffset < width; xOffset++) {
@@ -206,7 +203,7 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
 
     private void refreshCapability() {
         LazyOptional<IFluidHandler> oldCap = fluidCapability;
-        fluidCapability = LazyOptional.of(() -> handlerForCapability());
+        fluidCapability = LazyOptional.of(this::handlerForCapability);
         oldCap.invalidate();
     }
 
@@ -278,17 +275,13 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
         }
     }
 
-    public float getFillState() {
-        return (float) tankInventory.getFluidAmount() / tankInventory.getCapacity();
-    }
-
     @Override
     public void write(CompoundTag compound, boolean clientPacket) {
         if (updateConnectivity)
             compound.putBoolean("Uninitialized", true);
         if (lastKnownPos != null)
             compound.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
-//        if (!isController())
+        if (!isController())
             compound.put("Controller", NbtUtils.writeBlockPos(getController()));
         if (isController()) {
             compound.put("TankContent", tankInventory.writeToNBT(new CompoundTag()));

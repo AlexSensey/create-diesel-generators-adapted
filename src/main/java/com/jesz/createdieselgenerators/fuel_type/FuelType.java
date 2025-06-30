@@ -8,36 +8,7 @@ import com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDies
 import net.createmod.catnip.data.Couple;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-public class FuelType {
-    float normalSpeed;
-    float modularSpeed;
-    float hugeSpeed;
-
-    float normalStrength;
-    float modularStrength;
-    float hugeStrength;
-
-    float burnerStrength;
-
-    int normalBurn;
-    int modularBurn;
-    int hugeBurn;
-    int soundSpeed;
-    public FuelType(float normalSpeed, float normalStrength, int normalBurn,
-                    float modularSpeed, float modularStrength, int modularBurn,
-                    float hugeSpeed, float hugeStrength, int hugeBurn, int soundSpeed, float burnerStrength){
-        this.normalSpeed = normalSpeed;
-        this.modularSpeed = modularSpeed;
-        this.hugeSpeed = hugeSpeed;
-        this.normalStrength = normalStrength;
-        this.modularStrength = modularStrength;
-        this.hugeStrength = hugeStrength;
-        this.normalBurn = normalBurn;
-        this.modularBurn = modularBurn;
-        this.hugeBurn = hugeBurn;
-        this.soundSpeed = soundSpeed;
-        this.burnerStrength = burnerStrength;
-    }
+public record FuelType(float normalSpeed, float normalStrength, float normalBurn, float modularSpeed, float modularStrength, float modularBurn, float hugeSpeed, float hugeStrength, float hugeBurn, float soundPitch, float burnerStrength) {
 
     public static FuelType fromJSON(JsonElement element) {
         if (!element.getAsJsonObject().has("normal"))
@@ -50,14 +21,14 @@ public class FuelType {
         return new FuelType(
                 normalEngineObject.has("speed") ? normalEngineObject.get("speed").getAsFloat(): 16,
                 normalEngineObject.has("strength") ? normalEngineObject.get("strength").getAsFloat() : 1024,
-                normalEngineObject.has("burn_rate") ? normalEngineObject.get("burn_rate").getAsInt() : 1,
+                normalEngineObject.has("burn_rate") ? normalEngineObject.get("burn_rate").getAsFloat() : 1,
                 modularEngineObject.has("speed") ? modularEngineObject.get("speed").getAsFloat(): 16,
                 modularEngineObject.has("strength") ? modularEngineObject.get("strength").getAsFloat() : 1024,
-                modularEngineObject.has("burn_rate") ? modularEngineObject.get("burn_rate").getAsInt() : 1,
+                modularEngineObject.has("burn_rate") ? modularEngineObject.get("burn_rate").getAsFloat() : 1,
                 hugeEngineObject.has("speed") ? hugeEngineObject.get("speed").getAsFloat(): 16,
                 hugeEngineObject.has("strength") ? hugeEngineObject.get("strength").getAsFloat() : 1024,
-                hugeEngineObject.has("burn_rate") ? hugeEngineObject.get("burn_rate").getAsInt() : 1,
-                element.getAsJsonObject().has("sound_speed") ? element.getAsJsonObject().get("sound_speed").getAsInt() : 1,
+                hugeEngineObject.has("burn_rate") ? hugeEngineObject.get("burn_rate").getAsFloat() : 1,
+                element.getAsJsonObject().has("sound_pitch") ? element.getAsJsonObject().get("sound_pitch").getAsFloat() : 1,
                 element.getAsJsonObject().has("burner_multiplier") ? element.getAsJsonObject().get("burner_multiplier").getAsFloat() : 1
         );
     }
@@ -78,16 +49,11 @@ public class FuelType {
     public Couple<Float> getGeneratedModular() {return Couple.create(modularSpeed, modularStrength);}
     public Couple<Float> getGeneratedHuge() {return Couple.create(hugeSpeed, hugeStrength);}
 
-    public int getBurn(BlockEntity be) {
+    public float getBurn(BlockEntity be) {
         if(be instanceof HugeDieselEngineBlockEntity)
-            return getBurnHuge();
+            return hugeBurn;
         if(be instanceof ModularDieselEngineBlockEntity)
-            return getBurnModular();
-        return getBurnNormal();
+            return modularBurn;
+        return normalBurn;
     }
-
-    public int getBurnNormal(){ return normalBurn; }
-    public int getBurnModular(){ return modularBurn; }
-    public int getBurnHuge(){ return hugeBurn; }
-    public int getSoundSpeed() { return soundSpeed; }
 }

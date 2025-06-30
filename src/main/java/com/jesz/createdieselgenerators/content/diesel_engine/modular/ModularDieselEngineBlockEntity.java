@@ -1,279 +1,218 @@
 package com.jesz.createdieselgenerators.content.diesel_engine.modular;
 
-import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
-import com.jesz.createdieselgenerators.CDGSounds;
-import com.jesz.createdieselgenerators.compat.computercraft.CCProxy;
+import com.jesz.createdieselgenerators.content.diesel_engine.EngineSoundInstance;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.jesz.createdieselgenerators.content.diesel_engine.IEngine;
-import com.simibubi.create.compat.computercraft.AbstractComputerBehaviour;
+import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.content.contraptions.bearing.WindmillBearingBlockEntity;
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
+import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
-import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
-
+import com.simibubi.create.foundation.fluid.SmartFluidTank;
 import com.simibubi.create.foundation.utility.CreateLang;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.minecraftforge.fml.DistExecutor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.Objects;
 
-import static com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlock.*;
+import static com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlock.FACING;
+import static com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlock.PIPE;
 
-public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity implements IEngine {
-    public ModularDieselEngineBlockEntity controller = null;
-    BlockPos controllerPos = null;
-    int tick;
-    public int length;
-    EngineUpgrades upgrade = EngineUpgrades.NONE;
+public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity implements IEngine, IMultiBlockEntityContainer.Fluid {
+    protected ScrollOptionBehaviour<WindmillBearingBlockEntity.RotationDirection> movementDirection;
+    protected float remainingTicks = 0;
+    protected int length = 1;
+    @NotNull
+    protected EngineUpgrades upgrade = EngineUpgrades.EMPTY;
+    protected LazyOptional<IFluidHandler> fluidCapability = LazyOptional.empty();
+    protected FluidTank tankInventory = new SmartFluidTank(1000, f -> { sendData();});
+    protected BlockPos controller;
+    protected BlockPos lastKnownPos;
+    protected boolean updateConnectivity = false;
+    protected boolean updateCapability = false;
+
 
     public ModularDieselEngineBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
     }
 
-    public SmartFluidTankBehaviour tank;
-
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (computerBehaviour.isPeripheralCap(cap))
-            return computerBehaviour.getPeripheralCapability();
-        if (getBlockState().getValue(PIPE)) {
-            ModularDieselEngineBlockEntity controller = this.controller;
-            if (cap == ForgeCapabilities.FLUID_HANDLER && (side == Direction.UP || side == null))
-                if (controller != null)
-                    return controller.tank.getCapability().cast();
-                else
-                    return tank.getCapability().cast();
-        }
-        return super.getCapability(cap, side);
-    }
-    @Override
-    protected void write(CompoundTag compound, boolean clientPacket) {
-        super.write(compound, clientPacket);
-        compound.putInt("Tick", tick);
-        if(controllerPos != null)
-            compound.put("Controller", NbtUtils.writeBlockPos(controllerPos));
-        if(clientPacket)
-            compound.putFloat("Pitch", targetStressPitch);
-        compound.putString("Upgrade", upgrade.getId().toString());
-    }
-
-    @Override
-    protected void read(CompoundTag compound, boolean clientPacket) {
-        super.read(compound, clientPacket);
-        tick = compound.getInt("Tick");
-        controllerPos = NbtUtils.readBlockPos(compound.getCompound("Controller"));
-        if(clientPacket)
-            targetStressPitch = compound.getFloat("Pitch");
-        upgrade = EngineUpgrades.NONE;
-        for (EngineUpgrades upgrade : EngineUpgrades.allUpgrades){
-            if(upgrade.getId().toString().equals(compound.getString("Upgrade"))){
-                this.upgrade = upgrade;
-                break;
-            }
-        }
-    }
-    public ScrollOptionBehaviour<WindmillBearingBlockEntity.RotationDirection> movementDirection;
-    public AbstractComputerBehaviour computerBehaviour;
-
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
-        behaviours.add(computerBehaviour = CCProxy.behaviour(this));
-
         movementDirection = new ScrollOptionBehaviour<>(WindmillBearingBlockEntity.RotationDirection.class,
                 CreateLang.translateDirect("contraptions.windmill.rotation_direction"), this, new ModularDieselEngineValueBox());
-        movementDirection.withCallback($ -> onDirectionChanged());
+        movementDirection.withCallback(this::onDirectionChanged);
 
         behaviours.add(movementDirection);
-        tank = SmartFluidTankBehaviour.single(this, 1000);
-        behaviours.add(tank);
         super.addBehaviours(behaviours);
-    }
-    public void onDirectionChanged() {
-        ModularDieselEngineBlockEntity controller = this.controller;
-        if(controller == null)
-            return;
-        ModularDieselEngineBlockEntity lastEngine = getBackEngine();
-        if(lastEngine == null)
-            return;
-        while (lastEngine != null) {
-            lastEngine.movementDirection.setValue(movementDirection.getValue());
-            lastEngine = lastEngine.getBackEngine();
-        }
     }
 
     @Override
-    public void initialize() {
-        super.initialize();
-        updateConnectivity();
+    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+        if (!fluidCapability.isPresent())
+            refreshCapability();
+        if (side == null || (side == Direction.UP && getBlockState().getValue(PIPE)))
+            return fluidCapability.cast();
+        return super.getCapability(cap, side);
+    }
+
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        if (isController()) {
+            if (getGeneratedSpeed() == 0)
+                return false;
+            super.addToGoggleTooltip(tooltip, isPlayerSneaking);
+            containedFluidTooltip(tooltip, isPlayerSneaking, fluidCapability.cast());
+            return true;
+        }
+        ModularDieselEngineBlockEntity controller = getControllerBE();
+        if (controller == null)
+            return false;
+        return controller.addToGoggleTooltip(tooltip, isPlayerSneaking);
+    }
+
+    public void onDirectionChanged(int v) {
+        ModularDieselEngineBlockEntity controller = getControllerBE();
+        if (controller != null) {
+            controller.movementDirection.setValue(v);
+            controller.reActivateSource = true;
+
+            for (int i = 0; i < controller.getHeight(); i++) {
+                if (level.getBlockEntity(controller.getBlockPos().relative(controller.getBlockState().getValue(FACING).getAxis(), i)) instanceof ModularDieselEngineBlockEntity be && be.movementDirection.getValue() != v)
+                    be.movementDirection.setValue(v);
+            }
+        }
     }
 
     @Override
     public float calculateAddedStressCapacity() {
-        if (getGeneratedSpeed() == 0)
-            capacity = 0;
-        else if(!validFS())
-            capacity = 0;
-        else if(!enabled())
-            capacity = 0;
-        else
-            capacity = upgrade.getStress(getFuelStress() * length, this);
+        float capacity = upgrade.getCapacity(getFuelCapacity() * getHeight() * (1 / upgrade.getSpeed(getFuelSpeed(), this)) * getFuelSpeed(), this);
         lastCapacityProvided = capacity;
         return capacity;
     }
 
     @Override
     public float getGeneratedSpeed() {
-
-        if(!validFS() || controller != this)
+        if(!enabled() || !isController() || remainingTicks < 1)
             return 0;
-        if(!enabled())
-            return 0;
-
-        return convertToDirection((movementDirection.getValue() == 1 ? -1 : 1) * upgrade.getSpeed(IEngine.super.getFuelSpeed(), this), getBlockState().getValue(ModularDieselEngineBlock.FACING));
+        return convertToDirection((movementDirection.getValue() == 1 ? -1 : 1) * upgrade.getSpeed(getFuelSpeed(), this), getBlockState().getValue(ModularDieselEngineBlock.FACING));
     }
 
-    @Override
-    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        boolean added = super.addToGoggleTooltip(tooltip, isPlayerSneaking);
-        ModularDieselEngineBlockEntity frontEngine = this.controller;
-        if (!StressImpact.isEnabled() || frontEngine == null)
-            return added;
-        float stressBase = frontEngine.calculateAddedStressCapacity();
-        if (Mth.equal(stressBase, 0))
-            return added;
-        if(frontEngine != this){
-            CreateLang.translate("gui.goggles.generator_stats")
-                    .forGoggles(tooltip);
-            CreateLang.translate("tooltip.capacityProvided")
-                    .style(ChatFormatting.GRAY)
-                    .forGoggles(tooltip);
-
-            float stressTotal = Math.abs(frontEngine.getGeneratedSpeed()* stressBase);
-
-            CreateLang.number(stressTotal)
-                    .translate("generic.unit.stress")
-                    .style(ChatFormatting.AQUA)
-                    .space()
-                    .add(CreateLang.translate("gui.goggles.at_current_speed")
-                            .style(ChatFormatting.DARK_GRAY))
-                    .forGoggles(tooltip, 1);
-
-        }
-        return containedFluidTooltip(tooltip, isPlayerSneaking, frontEngine.tank.getCapability().cast());
-    }
-    int soundCounter = 0;
-    float currentStressPitch = 0;
-    float targetStressPitch = 0;
-    float lastSpeed = 0;
-    float lastCapacity = 0;
     @Override
     public void tick() {
         super.tick();
-        currentStressPitch = Mth.lerp(0.2f, currentStressPitch, targetStressPitch);
 
+        if (updateCapability) {
+            updateCapability = false;
+            refreshCapability();
+        }
+        if (updateConnectivity)
+            updateConnectivity();
 
-        if (getGeneratedSpeed() != lastSpeed || lastCapacity != calculateAddedStressCapacity()) {
-            reActivateSource = true;
-            lastCapacityProvided = lastCapacity;
-            lastCapacity = calculateAddedStressCapacity();
-            lastSpeed = getGeneratedSpeed();
+        if (!isController()) {
+            if (upgrade == EngineUpgrades.EMPTY)
+                return;
+            ModularDieselEngineBlockEntity controller = getControllerBE();
+
+            if (controller.upgrade == EngineUpgrades.EMPTY)
+                controller.upgrade = upgrade;
+            else
+                Block.popResource(level, getBlockPos(), upgrade.getItem());
+            upgrade = EngineUpgrades.EMPTY;
+
+            return;
         }
 
-        ModularDieselEngineBlockEntity controller = this.controller;
-        if(controller == null)
-            return;
-        if(controller != this) {
-            tank.getPrimaryHandler().drain(controller.tank.getPrimaryHandler().fill(tank.getPrimaryHandler().getFluid(), IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
-            if (upgrade != EngineUpgrades.NONE && controller.upgrade == EngineUpgrades.NONE) {
-                controller.upgrade = upgrade;
-                upgrade = EngineUpgrades.NONE;
+        reActivateSource = true;
+        if (enabled()) {
+            if (remainingTicks < 2) {
+                remainingTicks += 1 / getFuelBurnRate();
+                tankInventory.drain(1, IFluidHandler.FluidAction.EXECUTE);
+            }
+
+            if (remainingTicks >= 0)
+                remainingTicks--;
+        }
+
+        if (level.isClientSide) {
+            DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> this::tickClient);
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    protected EngineSoundInstance soundInstance;
+
+    @OnlyIn(Dist.CLIENT)
+    protected void tickClient() {
+        if (enabled()) {
+            Vec3 pos = Vec3.atCenterOf(getBlockPos());
+            if (getBlockState().getValue(FACING).getAxis() == Direction.Axis.X)
+                pos = pos.add((double) length / 2 - 0.5, 0, 0);
+            else
+                pos = pos.add(0, 0, (double) length / 2 - 0.5);
+            if (soundInstance == null || soundInstance.isStopped() || soundInstance.getX() != pos.x || soundInstance.getZ() != pos.z) {
+                Minecraft.getInstance()
+                        .getSoundManager()
+                        .play(soundInstance = upgrade.createSoundInstance(this, pos));
+            } else {
+                soundInstance.keepAlive();
+                soundInstance.setPitch(upgrade.getPitchMultiplier(this) * getFuelSoundPitch());
+                soundInstance.setVolume(upgrade.getVolume(this));
+            }
+        } else {
+            if (soundInstance != null) {
+                soundInstance.fadeOut();
+                soundInstance = null;
             }
         }
-        if (controller.validFS() && controller.enabled() && (controller == this || (worldPosition.hashCode() == 11))) {
-            tickFuelUsage(length);
-            controller.upgrade.playSounds(tick, this);
-        }
-        tick++;
     }
-    @Override
-    public void updateFromNetwork(float maxStress, float currentStress, int networkSize) {
-        super.updateFromNetwork(maxStress, currentStress, networkSize);
-        if(maxStress == 0)
-            targetStressPitch = 0;
-        else
-            targetStressPitch = currentStress / maxStress * 4;
-        sendData();
+
+    void refreshCapability() {
+        LazyOptional<IFluidHandler> oldCap = fluidCapability;
+        fluidCapability = LazyOptional.of(this::handlerForCapability);
+        oldCap.invalidate();
     }
-    public ModularDieselEngineBlockEntity getBackEngine() {
-        Direction facing = getBlockState().getValue(HORIZONTAL_FACING);
-        if(facing.getAxisDirection() == Direction.AxisDirection.POSITIVE)
-            facing = facing.getOpposite();
-        ModularDieselEngineBlockEntity be = level.getBlockEntity(worldPosition.relative(facing), CDGBlockEntityTypes.LARGE_DIESEL_ENGINE.get()).orElse(null);
-        return be == null ? null : be.getBlockState().getValue(FACING).getAxis() != getBlockState().getValue(FACING).getAxis() ? null : be;
+
+    private IFluidHandler handlerForCapability() {
+        return isController() ? (tankInventory)
+                : ((getControllerBE() != null) ? getControllerBE().handlerForCapability() : new FluidTank(0));
     }
-    public ModularDieselEngineBlockEntity getFrontEngine() {
-        Direction facing = getBlockState().getValue(HORIZONTAL_FACING);
-        if(facing.getAxisDirection() == Direction.AxisDirection.NEGATIVE)
-            facing = facing.getOpposite();
-        ModularDieselEngineBlockEntity be = level.getBlockEntity(worldPosition.relative(facing), CDGBlockEntityTypes.LARGE_DIESEL_ENGINE.get()).orElse(null);
-        return be == null ? null : be.getBlockState().getValue(FACING).getAxis() != getBlockState().getValue(FACING).getAxis() ? null : be;
-    }
-    public void updateConnectivity(){
-        ModularDieselEngineBlockEntity frontEngine = getFrontEngine();
-        if(frontEngine != null){
-            frontEngine.updateConnectivity();
+
+    public void updateConnectivity() {
+        if (soundInstance != null)
+            soundInstance = null;
+        updateConnectivity = false;
+        if (level.isClientSide)
             return;
-        }
-        controller = this;
-        controllerPos = worldPosition;
-        ModularDieselEngineBlockEntity backEngine = getBackEngine();
-        if(backEngine == null){
-            length = 1;
+        if (!isController())
             return;
-        }
-        ModularDieselEngineBlockEntity lastEngine = backEngine;
-        int length = 1;
-        for (;lastEngine != null; length++) {
-            lastEngine = lastEngine.getBackEngine();
-        }
-        this.length = length;
-        lastEngine = backEngine;
-        while (lastEngine != null) {
-            lastEngine.length = length;
-            lastEngine.controller = controller;
-            lastEngine.controllerPos = controllerPos;
-            lastEngine = lastEngine.getBackEngine();
-        }
+        ConnectivityHandler.formMulti(this);
     }
-    public void removed() {
-        ModularDieselEngineBlockEntity lastEngine = getBackEngine();
-        while (lastEngine != null) {
-            tank.getPrimaryHandler().drain(lastEngine.tank.getPrimaryHandler().fill(tank.getPrimaryHandler().getFluid(), IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
-            lastEngine.length = 1;
-            lastEngine.controller = null;
-            lastEngine = lastEngine.getBackEngine();
-        }
-    }
+
     @Override
-    public int getTick() {
-        return tick;
+    public float getRemainingTicks() {
+        return remainingTicks;
     }
 
     @Override
@@ -282,14 +221,162 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
     }
 
     @Override
-    public SmartFluidTankBehaviour getTank() {
-        return tank;
+    public FluidTank getTank() {
+        return tankInventory;
     }
 
     @Override
-    public void playSound() {
-        if (level.isClientSide && Minecraft.getInstance().player.position().distanceTo(Vec3.atBottomCenterOf(worldPosition)) < 15)
-            level.playLocalSound(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), CDGSounds.DIESEL_ENGINE_SOUND.get(), SoundSource.BLOCKS, 0.3f,1f + currentStressPitch, false);
+    public BlockPos getController() {
+        return isController() ? worldPosition : controller;
+    }
+
+    @Override
+    public ModularDieselEngineBlockEntity getControllerBE() {
+        if (isController() || !hasLevel())
+            return this;
+        BlockEntity be = level.getBlockEntity(controller);
+        if (be instanceof ModularDieselEngineBlockEntity)
+            return (ModularDieselEngineBlockEntity) be;
+        return null;
+    }
+
+    @Override
+    public boolean isController() {
+        return controller == null || controller.equals(worldPosition);
+    }
+
+    @Override
+    public void setController(BlockPos controller) {
+        if (level.isClientSide && !isVirtual())
+            return;
+        if (controller.equals(this.controller))
+            return;
+        this.controller = controller;
+        refreshCapability();
+        setChanged();
+        sendData();
+    }
+
+    @Override
+    public void removeController(boolean keepContents) {
+        if (level.isClientSide)
+            return;
+        updateConnectivity = true;
+        controller = null;
+        length = 1;
+        reActivateSource = true;
+
+        refreshCapability();
+        setChanged();
+        sendData();
+    }
+
+    @Override
+    protected void read(CompoundTag tag, boolean clientPacket) {
+        super.read(tag, clientPacket);
+
+        BlockPos controllerBefore = controller;
+        int prevHeight = length;
+
+        updateConnectivity = tag.contains("Uninitialized");
+        upgrade = EngineUpgrades.get(new ResourceLocation(tag.getString("Upgrade")));
+        remainingTicks = tag.getFloat("remainingTicks");
+        controller = null;
+        lastKnownPos = null;
+
+        if (tag.contains("LastKnownPos"))
+            lastKnownPos = NbtUtils.readBlockPos(tag.getCompound("LastKnownPos"));
+        if (tag.contains("Controller"))
+            controller = NbtUtils.readBlockPos(tag.getCompound("Controller"));
+
+        if (isController()) {
+            length = tag.getInt("Height");
+            tankInventory.readFromNBT(tag.getCompound("TankContent"));
+            if (tankInventory.getSpace() < 0)
+                tankInventory.drain(-tankInventory.getSpace(), IFluidHandler.FluidAction.EXECUTE);
+        }
+
+        updateCapability = true;
+
+        if (!clientPacket)
+            return;
+
+        boolean changeOfController = !Objects.equals(controllerBefore, controller);
+        if (changeOfController || prevHeight != length) {
+            if (hasLevel())
+                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 16);
+            if (isController())
+                tankInventory.setCapacity(1000);
+            invalidateRenderBoundingBox();
+        }
+    }
+
+    @Override
+    public void write(CompoundTag compound, boolean clientPacket) {
+        super.write(compound, clientPacket);
+        if (updateConnectivity)
+            compound.putBoolean("Uninitialized", true);
+        if (lastKnownPos != null)
+            compound.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
+        if (!isController())
+            compound.put("Controller", NbtUtils.writeBlockPos(controller));
+        if (isController()) {
+            compound.putString("Upgrade", upgrade.getId().toString());
+            compound.putFloat("remainingTicks", remainingTicks);
+            compound.put("TankContent", tankInventory.writeToNBT(new CompoundTag()));
+            compound.putInt("Height", length);
+        }
+    }
+
+    @Override
+    public BlockPos getLastKnownPos() {
+        return lastKnownPos;
+    }
+
+    @Override
+    public void preventConnectivityUpdate() {
+        updateConnectivity = false;
+    }
+
+    @Override
+    public void notifyMultiUpdated() {
+        reActivateSource = true;
+        setChanged();
+    }
+
+    @Override
+    public Direction.Axis getMainConnectionAxis() {
+        return getBlockState().getValue(FACING).getAxis();
+    }
+
+    @Override
+    public int getMaxLength(Direction.Axis longAxis, int width) {
+        return 8;
+    }
+
+    @Override
+    public int getMaxWidth() {
+        return 1;
+    }
+
+    @Override
+    public int getHeight() {
+        return length;
+    }
+
+    @Override
+    public void setHeight(int height) {
+        length = height;
+    }
+
+    @Override
+    public int getWidth() {
+        return 1;
+    }
+
+    @Override
+    public void setWidth(int width) {
+
     }
 }
 

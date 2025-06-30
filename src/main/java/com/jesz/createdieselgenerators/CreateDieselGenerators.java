@@ -9,7 +9,6 @@ import com.jesz.createdieselgenerators.packets.CDGPackets;
 import com.jesz.createdieselgenerators.ponder.CDGPonderPlugin;
 import com.simibubi.create.compat.Mods;
 import com.simibubi.create.foundation.data.CreateRegistrate;
-import com.simibubi.create.infrastructure.data.CreateDatagen;
 import net.createmod.ponder.foundation.PonderIndex;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
@@ -43,7 +42,7 @@ public class CreateDieselGenerators
         CDGFluids.register();
         CDGBlockEntityTypes.register();
         CDGEntityTypes.register();
-        CDGSounds.register(modEventBus);
+        CDGSoundEvents.register(modEventBus);
         CDGRecipes.register(modEventBus);
         CDGMenuTypes.register();
         MoldType.register();

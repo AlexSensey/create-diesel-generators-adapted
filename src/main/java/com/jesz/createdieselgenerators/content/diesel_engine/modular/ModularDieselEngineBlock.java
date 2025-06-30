@@ -5,6 +5,7 @@ import com.jesz.createdieselgenerators.CDGBlocks;
 import com.jesz.createdieselgenerators.CDGConfig;
 import com.jesz.createdieselgenerators.content.ICDGKinetics;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
+import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.api.schematic.requirement.SpecialBlockItemRequirement;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock;
@@ -13,7 +14,6 @@ import com.simibubi.create.content.schematics.requirement.ItemRequirement;
 import com.simibubi.create.foundation.block.IBE;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.placement.PoleHelper;
-import net.createmod.catnip.outliner.Outliner;
 import net.createmod.catnip.placement.IPlacementHelper;
 import net.createmod.catnip.placement.PlacementHelpers;
 import net.minecraft.core.BlockPos;
@@ -26,7 +26,6 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -36,7 +35,7 @@ import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -65,143 +64,120 @@ public class ModularDieselEngineBlock extends HorizontalKineticBlock implements 
     public ModularDieselEngineBlock(Properties properties) {
         super(properties);
         registerDefaultState(super.defaultBlockState()
-                    .setValue(PIPE, true)
-                    .setValue(POWERED, false));
+                .setValue(PIPE, true)
+                .setValue(POWERED, false));
     }
+
     @Override
     public boolean canConnectRedstone(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
         return true;
     }
+
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighbourState, LevelAccessor level, BlockPos pos, BlockPos neighbourPos) {
+    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
+        if (oldState.getBlock() == state.getBlock() || isMoving)
+            super.onPlace(state, level, pos, oldState, isMoving);
         withBlockEntityDo(level, pos, ModularDieselEngineBlockEntity::updateConnectivity);
-        return super.updateShape(state, direction, neighbourState, level, pos, neighbourPos);
     }
 
     @Override
     public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos otherPos, boolean moving) {
-        ModularDieselEngineBlockEntity be = level.getBlockEntity(pos, CDGBlockEntityTypes.LARGE_DIESEL_ENGINE.get()).orElse(null);
-        if (be == null) {
-            super.neighborChanged(state, level, pos, block, otherPos, moving);
-            return;
-        }
-        ModularDieselEngineBlockEntity controller = be.controller;
-        if (controller == null)
-            controller = be;
-
-        boolean powered = false;
-
-        if (level.hasNeighborSignal(pos))
-            powered = true;
-        else
-            for (int i = 0; i < controller.length; i++)
-                if (level.hasNeighborSignal(controller.getBlockPos().relative(controller.getBlockState().getValue(FACING).getAxis(), -i)))
-                    powered = true;
-
-        level.setBlock(controller.getBlockPos(), controller.getBlockState().setValue(POWERED, powered), 2);
-
+        level.setBlockAndUpdate(pos, state.setValue(POWERED, level.hasNeighborSignal(pos)));
         super.neighborChanged(state, level, pos, block, otherPos, moving);
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
-                                 BlockHitResult hit) {
-        ItemStack itemInHand = player.getItemInHand(hand);
-
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        ItemStack stack = player.getItemInHand(hand);
         IPlacementHelper placementHelper = PlacementHelpers.get(placementHelperId);
         if (!player.isShiftKeyDown() && player.mayBuild()) {
-            if (placementHelper.matchesItem(itemInHand)) {
-                placementHelper.getOffset(player, level, state, pos, hit)
-                        .placeInWorld(level, (BlockItem) itemInHand.getItem(), player, hand, hit);
+            if (placementHelper.matchesItem(stack)) {
+                placementHelper.getOffset(player, level, state, pos, hitResult)
+                        .placeInWorld(level, (BlockItem) stack.getItem(), player, hand, hitResult);
                 return InteractionResult.SUCCESS;
             }
         }
 
         for (EngineUpgrades upgrade : EngineUpgrades.allUpgrades) {
-            if (upgrade == EngineUpgrades.NONE)
+            if (upgrade == EngineUpgrades.EMPTY)
                 continue;
-            if (upgrade.getItem().is(itemInHand.getItem())) {
+            if (upgrade.getItem().is(stack.getItem())) {
                 withBlockEntityDo(level, pos, be -> {
-                    if (!upgrade.canAddOn(be))
-                        return;
-                    if(be.upgrade != EngineUpgrades.NONE || (be.controller != null && be.controller.upgrade != EngineUpgrades.NONE))
+                    ModularDieselEngineBlockEntity controller = be.getControllerBE();
+                    if (controller == null || !upgrade.canAddOn(be) || controller.upgrade != EngineUpgrades.EMPTY)
                         return;
 
                     if(!player.isCreative())
-                        itemInHand.shrink(1);
+                        stack.shrink(1);
                     be.upgrade = upgrade;
                     IWrenchable.playRotateSound(level, pos);
+                    controller.sendData();
                 });
                 return InteractionResult.SUCCESS;
             }
         }
-        if(!CDGConfig.ENGINES_FILLED_WITH_ITEMS.get())
-            return super.use(state, level, pos, player, hand, hit);
-        if (itemInHand.isEmpty())
+        if(!CDGConfig.ENGINES_FILLED_WITH_ITEMS.get() || stack.isEmpty() || !(level.getBlockEntity(pos) instanceof SmartBlockEntity be))
             return InteractionResult.PASS;
-        if(level.getBlockEntity(pos) instanceof SmartBlockEntity be){
-            IFluidHandler tank = be.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
-            if(tank == null)
-                return InteractionResult.PASS;
-            if(itemInHand.getItem() instanceof BucketItem bi) {
-                if (!tank.getFluidInTank(0).isEmpty())
-                    return InteractionResult.FAIL;
-                tank.fill(new FluidStack(bi.getFluid(), 1000), IFluidHandler.FluidAction.EXECUTE);
-                if(!player.isCreative())
-                    player.setItemInHand(hand, new ItemStack(Items.BUCKET));
-                return InteractionResult.SUCCESS;
-            }
-            if(itemInHand.getItem() instanceof MilkBucketItem) {
-                if (!tank.getFluidInTank(0).isEmpty())
-                    return InteractionResult.FAIL;
-                tank.fill(new FluidStack(ForgeMod.MILK.get(), 1000), IFluidHandler.FluidAction.EXECUTE);
-                if(!player.isCreative())
-                    player.setItemInHand(hand, new ItemStack(Items.BUCKET));
-                return InteractionResult.SUCCESS;
-            }
-            IFluidHandlerItem itemTank = itemInHand.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).orElse(null);
-            if(itemTank == null)
-                return InteractionResult.PASS;
-            itemTank.drain(tank.fill(itemTank.getFluidInTank(0), IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
+
+        IFluidHandler tank = be.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
+        if(tank == null)
+            return InteractionResult.PASS;
+
+        if (stack.getItem() instanceof BucketItem || stack.getItem() instanceof MilkBucketItem) {
+            Fluid fluid = stack.getItem() instanceof BucketItem bi ? bi.getFluid() : ForgeMod.MILK.get();
+
+            if (!tank.getFluidInTank(0).isEmpty())
+                return InteractionResult.FAIL;
+
+            tank.fill(new FluidStack(fluid, 1000), IFluidHandler.FluidAction.EXECUTE);
+            if (!player.isCreative())
+                player.setItemInHand(hand, new ItemStack(Items.BUCKET));
+
+            return InteractionResult.SUCCESS;
         }
-        return super.use(state, level, pos, player, hand, hit);
+
+        IFluidHandlerItem itemTank = stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).orElse(null);
+        if(itemTank == null)
+            return InteractionResult.PASS;
+        itemTank.drain(tank.fill(itemTank.getFluidInTank(0), IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
+        return InteractionResult.SUCCESS;
     }
+
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
-        if(context.getClickedFace() == Direction.UP){
+        if (context.getClickedFace() == Direction.UP) {
             KineticBlockEntity.switchToBlockState(context.getLevel(), context.getClickedPos(), updateAfterWrenched(state.setValue(PIPE, !state.getValue(PIPE)), context));
             IWrenchable.playRotateSound(context.getLevel(), context.getClickedPos());
             return InteractionResult.SUCCESS;
         }
+
         withBlockEntityDo(context.getLevel(), context.getClickedPos(), be -> {
-            ModularDieselEngineBlockEntity controller = be.controller;
-            if(be.upgrade != EngineUpgrades.NONE || (controller != null && controller.upgrade != EngineUpgrades.NONE)){
-                if(!context.getLevel().isClientSide) {
-                    if (controller != null) {
-                        if (!context.getPlayer().isCreative())
-                            context.getPlayer().getInventory().placeItemBackInInventory(controller.upgrade.getItem());
-                        controller.upgrade = EngineUpgrades.NONE;
-                        IWrenchable.playRotateSound(context.getLevel(), context.getClickedPos());
-                        return;
-                    }
-                    if (!context.getPlayer().isCreative())
-                        context.getPlayer().getInventory().placeItemBackInInventory(be.upgrade.getItem());
-                    be.upgrade = EngineUpgrades.NONE;
-                    IWrenchable.playRotateSound(context.getLevel(), context.getClickedPos());
-                }
-            }
+            ModularDieselEngineBlockEntity controller = be.getControllerBE();
+
+            if (controller == null || controller.upgrade == EngineUpgrades.EMPTY || context.getLevel().isClientSide())
+                return;
+
+            if (!context.getPlayer().isCreative())
+                context.getPlayer().getInventory().placeItemBackInInventory(be.upgrade.getItem());
+
+            controller.upgrade = EngineUpgrades.EMPTY;
+            controller.sendData();
+            IWrenchable.playRotateSound(context.getLevel(), context.getClickedPos());
         });
         return InteractionResult.SUCCESS;
     }
+
     @Override
     public BlockState getRotatedBlockState(BlockState originalState, Direction targetedFace) {
         return originalState;
     }
+
     @Override
     protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
         builder.add(PIPE, POWERED);
         super.createBlockStateDefinition(builder);
     }
+
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext pContext) {
         if(pContext.getPlayer().isShiftKeyDown())
@@ -212,21 +188,28 @@ public class ModularDieselEngineBlock extends HorizontalKineticBlock implements 
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        withBlockEntityDo(level, pos, ModularDieselEngineBlockEntity::removed);
         if (!state.is(newState.getBlock()))
             withBlockEntityDo(level, pos, be -> {
-                if (be.upgrade != EngineUpgrades.NONE)
+                if (be.upgrade != EngineUpgrades.EMPTY)
                     popResource(level, pos, be.upgrade.getItem());
             });
+
+        if (state.hasBlockEntity() && (state.getBlock() != newState.getBlock() || !newState.hasBlockEntity()) &&
+                level.getBlockEntity(pos) instanceof ModularDieselEngineBlockEntity be) {
+            level.removeBlockEntity(pos);
+            ConnectivityHandler.splitMulti(be);
+        }
         super.onRemove(state, level, pos, newState, isMoving);
     }
+
     @Override
     public Class<ModularDieselEngineBlockEntity> getBlockEntityClass() {
         return ModularDieselEngineBlockEntity.class;
     }
+
     @Override
     public BlockEntityType<? extends ModularDieselEngineBlockEntity> getBlockEntityType() {
-        return CDGBlockEntityTypes.LARGE_DIESEL_ENGINE.get();
+        return CDGBlockEntityTypes.MODULAR_DIESEL_ENGINE.get();
     }
 
     @Override
@@ -243,6 +226,7 @@ public class ModularDieselEngineBlock extends HorizontalKineticBlock implements 
         return state.getValue(FACING)
                 .getAxis() == face.getAxis();
     }
+
     @Override
     public Direction.Axis getRotationAxis(BlockState blockState) {
         return blockState.getValue(FACING)

@@ -26,13 +26,8 @@ import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.fluids.pipes.FluidPipeBlockEntity;
 import com.simibubi.create.content.kinetics.base.*;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
-import com.tterrag.registrate.util.entry.BlockEntry;
-import com.tterrag.registrate.util.nullness.NonNullSupplier;
-import net.minecraft.world.level.block.Block;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import static com.jesz.createdieselgenerators.CreateDieselGenerators.REGISTRATE;
 
@@ -65,7 +60,7 @@ public class CDGBlockEntityTypes {
             .validBlocks(CDGBlocks.DIESEL_ENGINE)
             .renderer(() -> DieselEngineRenderer::new)
             .register();
-    public static final BlockEntityEntry<ModularDieselEngineBlockEntity> LARGE_DIESEL_ENGINE = REGISTRATE.blockEntity("large_diesel_engine_tile_entity", ModularDieselEngineBlockEntity::new)
+    public static final BlockEntityEntry<ModularDieselEngineBlockEntity> MODULAR_DIESEL_ENGINE = REGISTRATE.blockEntity("large_diesel_engine_tile_entity", ModularDieselEngineBlockEntity::new)
             .visual(() -> ShaftVisual::new )
             .validBlocks(CDGBlocks.MODULAR_DIESEL_ENGINE)
             .renderer(() -> ModularDieselEngineRenderer::new)
