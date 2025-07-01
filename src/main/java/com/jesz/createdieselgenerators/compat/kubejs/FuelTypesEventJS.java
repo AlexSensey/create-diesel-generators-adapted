@@ -22,7 +22,6 @@ public class FuelTypesEventJS extends EventJS {
         return new FuelTypeBuilder(t -> {
             if(fluidId.startsWith("#")){
                 FuelTypeManager.fuelTags.put(fluidId.substring(1), t);
-                FuelTypeManager.tryPopulateTags();
             }else{
                 Optional<Holder.Reference<Fluid>> fluid = ForgeRegistries.FLUIDS.getDelegate(new ResourceLocation(fluidId));
                 if(fluid.isEmpty())
@@ -33,7 +32,7 @@ public class FuelTypesEventJS extends EventJS {
     }
     @Info("Removes a fuel type")
     public void remove(String fluidId){
-        if(fluidId.startsWith("#")){
+        if (fluidId.startsWith("#")){
             FuelTypeManager.fuelTags.remove(fluidId.substring(1));
         }else{
             Optional<Holder.Reference<Fluid>> fluid = ForgeRegistries.FLUIDS.getDelegate(new ResourceLocation(fluidId));

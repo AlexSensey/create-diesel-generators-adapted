@@ -6,6 +6,7 @@ import com.simibubi.create.AllItems;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
 import net.createmod.catnip.math.Pointing;
+import net.createmod.ponder.api.PonderPalette;
 import net.createmod.ponder.api.element.ElementLink;
 import net.createmod.ponder.api.element.WorldSectionElement;
 import net.createmod.ponder.api.scene.SceneBuilder;
@@ -58,7 +59,7 @@ public class DieselEngineScenes {
         scene.world().showSection(pipe, Direction.WEST);
         scene.world().showSection(tank, Direction.NORTH);
         scene.idle(30);
-        FuelTypeManager.tryPopulateTags();
+
         Supplier<FluidStack> content = () -> {
             currentFuel = new FluidStack(FuelTypeManager.fuelTypes.isEmpty() ? CDGFluids.DIESEL.get() : FuelTypeManager.fuelTypes.keySet().stream().toList().get(new Random().nextInt(0, FuelTypeManager.fuelTypes.size() - 1)), 16000);
             return currentFuel;
@@ -68,8 +69,9 @@ public class DieselEngineScenes {
         scene.world().showSection(cogs, Direction.NORTH);
         scene.idle(30);
         scene.overlay().showText(55)
+                .colored(PonderPalette.BLUE)
                 .attachKeyFrame()
-                .text("Give it some fuel and it will produce kinetic energy.")
+                .text("Once you give it some fuel, the engine will start generating rotational force.")
                 .pointAt(util.vector().blockSurface(util.grid().at(1, 2, 1), Direction.NORTH))
                 .placeNearTarget();
         scene.idle(30);
@@ -86,6 +88,7 @@ public class DieselEngineScenes {
         scene.world().modifyKineticSpeed(util.select().fromTo(1, 2, 0, 1, 2, 2),f -> 96f);
         scene.idle(60);
     }
+
     public static void huge(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
         scene.title("huge_diesel_engine", "Setting up a Diesel Engine");
@@ -113,7 +116,6 @@ public class DieselEngineScenes {
         scene.world().showSection(pipes, Direction.DOWN);
         scene.idle(15);
 
-        FuelTypeManager.tryPopulateTags();
         Supplier<FluidStack> content = () -> {
             currentFuel = new FluidStack(FuelTypeManager.fuelTypes.isEmpty() ? CDGFluids.DIESEL.get() : FuelTypeManager.fuelTypes.keySet().stream().toList().get(new Random().nextInt(0, FuelTypeManager.fuelTypes.size() - 1)), 16000);
             return currentFuel;
@@ -136,6 +138,7 @@ public class DieselEngineScenes {
         scene.world().setKineticSpeed(util.select().position(3, 2, 3), -64f);
         scene.idle(10);
     }
+
     public static void modular(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
         scene.title("large_diesel_engine", "Setting up a Modular Diesel Engine");
@@ -168,7 +171,6 @@ public class DieselEngineScenes {
         scene.world().showSection(pipe2, Direction.DOWN);
         scene.world().showSection(pipe3, Direction.DOWN);
 
-        FuelTypeManager.tryPopulateTags();
         Supplier<FluidStack> content = () -> {
             currentFuel = new FluidStack(FuelTypeManager.fuelTypes.isEmpty() ? CDGFluids.DIESEL.get() : FuelTypeManager.fuelTypes.keySet().stream().toList().get(new Random().nextInt(0, FuelTypeManager.fuelTypes.size() - 1)), 12000);
             return currentFuel;

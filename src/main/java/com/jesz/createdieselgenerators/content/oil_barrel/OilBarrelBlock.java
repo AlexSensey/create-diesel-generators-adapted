@@ -13,6 +13,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
@@ -90,81 +91,15 @@ public class OilBarrelBlock extends Block implements IBE<OilBarrelBlockEntity>, 
 
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        ItemStack stackInHand = player.getItemInHand(hand);
-        if(stackInHand.is(Tags.Items.DYES_WHITE)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.WHITE);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_ORANGE)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.ORANGE);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_MAGENTA)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.MAGENTA);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_LIGHT_BLUE)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.LIGHT_BLUE);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_YELLOW)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.YELLOW);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_LIME)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.LIME);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_PINK)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.PINK);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_GRAY)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.GRAY);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_LIGHT_GRAY)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.LIGHT_GRAY);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_CYAN)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.CYAN);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_PURPLE)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.PURPLE);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_BLUE)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.BLUE);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_BROWN)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.BROWN);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_GREEN)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.GREEN);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_RED)){
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.RED);
-            if(r != null)
-                return r;
-        }if(stackInHand.is(Tags.Items.DYES_BLACK)) {
-            InteractionResult r = tryDye(state, level, pos, player, stackInHand, OilBarrelColor.BLACK);
-            if(r != null)
-                return r;
-        }
-        return super.use(state, level, pos, player, hand, hit);
+        ItemStack stack = player.getItemInHand(hand);
+        if (!(stack.getItem() instanceof DyeItem di))
+            return InteractionResult.PASS;
+        OilBarrelColor color = OilBarrelColor.getForDyeColor(di.getDyeColor());
 
-    }
-
-    public InteractionResult tryDye(BlockState state, Level level, BlockPos pos, Player player, ItemStack stack, OilBarrelColor color){
-        if(state.getValue(OIL_BARREL_COLOR) == color){
+        if (state.getValue(OIL_BARREL_COLOR) == color) {
             if(level.getBlockEntity(pos) instanceof OilBarrelBlockEntity be){
                 OilBarrelBlockEntity controllerBE = be.getControllerBE();
-                if(controllerBE != null){
+                if (controllerBE != null) {
                     boolean successful = false;
                     for (int x = 0; x < controllerBE.getWidth(); x++) {
                         for (int z = 0; z < controllerBE.getWidth(); z++) {
@@ -172,23 +107,23 @@ public class OilBarrelBlock extends Block implements IBE<OilBarrelBlockEntity>, 
                                     : state.getValue(AXIS) == Direction.Axis.Y ? be.getController().offset(x, 0, z).atY(pos.getY())
                                     : new BlockPos(be.getController().getX()+x, be.getController().getY()+z, pos.getZ());
                             BlockState blockState = level.getBlockState(offsetPos);
-                            if(blockState.getBlock() instanceof OilBarrelBlock && !stack.isEmpty()){
-                                if(blockState.getValue(OIL_BARREL_COLOR) == color)
+                            if (blockState.getBlock() instanceof OilBarrelBlock && !stack.isEmpty()) {
+                                if (blockState.getValue(OIL_BARREL_COLOR) == color)
                                     continue;
-                                level.setBlock(offsetPos, state.setValue(OIL_BARREL_COLOR, color), 2);
-                                if(!player.isCreative())
+                                level.setBlockAndUpdate(offsetPos, state.setValue(OIL_BARREL_COLOR, color));
+                                if (!player.isCreative())
                                     stack.shrink(1);
                                 successful = true;
                             }
                         }
                     }
-                    if(successful)
+                    if (successful)
                         return InteractionResult.SUCCESS;
                 }
             }
-        }else{
-            level.setBlock(pos, state.setValue(OIL_BARREL_COLOR, color), 2);
-            if(!player.isCreative())
+        } else {
+            level.setBlockAndUpdate(pos, state.setValue(OIL_BARREL_COLOR, color));
+            if (!player.isCreative())
                 stack.shrink(1);
             return InteractionResult.SUCCESS;
         }

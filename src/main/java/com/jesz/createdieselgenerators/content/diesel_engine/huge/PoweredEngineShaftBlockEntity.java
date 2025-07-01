@@ -45,17 +45,19 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
     public List<Pair<BlockPos, Couple<Float>>> engines = new ArrayList<>(4);
 
     public void update(BlockPos sourcePos, int direction, float stress, float speed) {
-        boolean found = false;
+        Pair<BlockPos, Couple<Float>> found = null;
         for (Pair<BlockPos, Couple<Float>> engine : engines)
             if(engine.getFirst().equals(sourcePos)){
-                found = true;
+                found = engine;
                 break;
             }
-        if (!found) {
-            List<Pair<BlockPos, Couple<Float>>> newEngines = new ArrayList<>(engines);
-            newEngines.add(Pair.of(sourcePos, Couple.create(stress, speed)));
-            engines = newEngines;
-        }
+
+        List<Pair<BlockPos, Couple<Float>>> newEngines = new ArrayList<>(engines);
+        if (found != null)
+            newEngines.remove(found);
+        newEngines.add(Pair.of(sourcePos, Couple.create(stress, speed)));
+        engines = newEngines;
+
 
         AtomicReference<Float> maxSpeed = new AtomicReference<>(0f);
 

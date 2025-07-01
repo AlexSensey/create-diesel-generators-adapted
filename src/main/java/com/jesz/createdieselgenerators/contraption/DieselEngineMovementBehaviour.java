@@ -8,18 +8,15 @@ import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.trains.entity.CarriageContraption;
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
-import com.simibubi.create.infrastructure.config.AllConfigs;
 import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -28,7 +25,7 @@ import java.util.UUID;
 
 public class DieselEngineMovementBehaviour implements MovementBehaviour {
     @OnlyIn(Dist.CLIENT)
-    static Map<Pair<UUID, BlockPos>, EngineSoundInstance> soundInstances = new HashMap<>();
+    static Map<Pair<UUID, BlockPos>, EngineSoundInstance> soundInstances;
 
     @Override
     public boolean isActive(MovementContext context) {
@@ -46,8 +43,16 @@ public class DieselEngineMovementBehaviour implements MovementBehaviour {
         if (!context.world.isClientSide)
             return;
 
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> clientTick(context));
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    protected void clientTick(MovementContext context) {
         CarriageContraption contraption = ((CarriageContraption)context.contraption);
         CarriageContraptionEntity entity = (CarriageContraptionEntity) contraption.entity;
+
+        if (soundInstances == null)
+            soundInstances = new HashMap<>();
 
         if(!CDGConfig.ENGINES_EMIT_SOUND_ON_TRAINS.get() || entity.getCarriage().train.derailed)
             return;
@@ -69,14 +74,21 @@ public class DieselEngineMovementBehaviour implements MovementBehaviour {
             return;
         }
 
+
         if (instance == null) {
-            instance = new EngineSoundInstance(CDGSoundEvents.ENGINE_NORMAL.get(), context.position);
+            instance = new EngineSoundInstance(CDGSoundEvents.ENGINE_NORMAL.get(), SoundSource.NEUTRAL, context.position, 0.6f);
             instance.setVolume(1f);
             Minecraft.getInstance().getSoundManager().play(instance);
-        }
-        Minecraft.getInstance().getChatListener().handleSystemMessage(Component.literal(String.format("%.2f", throttle)), true);
-        instance.keepAlive();
-        instance.setPitch((float) Math.min(2, Math.max(Math.min(0.14, throttle) * 2 + trainSpeed / 28, 0.1f)));
+            soundInstances.put(Pair.of(entity.getUUID(), context.localPos), instance);
+        } else if (instance.isStopped())
+            soundInstances.remove(Pair.of(entity.getUUID(), context.localPos));
+
         instance.setPosition(context.position);
+
+        if (instance.active()) {
+            instance.keepAlive();
+            float pitch = (float) Math.min(2, Math.max(Math.min(0.14, throttle) * 5 + trainSpeed / 28, 0.1f));
+            instance.setPitch(pitch);
+        }
     }
 }

@@ -46,7 +46,7 @@ public class PumpjackBearingBlockEntity extends MechanicalBearingBlockEntity {
         float angularSpeed = getAngularSpeed();
         if (sequencedAngleLimit >= 0)
             angularSpeed = (float) Mth.clamp(angularSpeed, -sequencedAngleLimit, sequencedAngleLimit);
-        return Mth.lerp(partialTicks, angle, angle + angularSpeed);
+        return Mth.lerp(partialTicks, prevAngle, angle);
     }
 
     @Override

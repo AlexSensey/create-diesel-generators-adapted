@@ -4,7 +4,7 @@
     "minecraft:oak_planks",
     "minecraft:birch_planks",
     "minecraft:acacia_planks",
-    "minecraft:spruce_slab",
+    "minecraft:spruce_planks",
     "minecraft:jungle_planks",
     "minecraft:dark_oak_planks",
 
@@ -23,8 +23,30 @@
     { "id": "biomesoplenty:magic_planks", "required":  false },
     { "id": "biomesoplenty:umbran_planks", "required":  false },
     { "id": "biomesoplenty:hellbark_planks", "required":  false },
-    { "id": "biomesoplenty:empyreal_planks", "required":  false }
+    { "id": "biomesoplenty:empyreal_planks", "required":  false },
 
+    "minecraft:oak_button",
+    "minecraft:birch_button",
+    "minecraft:acacia_button",
+    "minecraft:spruce_button",
+    "minecraft:jungle_button",
+    "minecraft:dark_oak_button",
 
+    { "id": "quark:blossom_button", "required": false },
+    { "id": "quark:azalea_button", "required": false },
+    { "id": "quark:ancient_button", "required": false },
+    { "id": "biomesoplenty:fir_button", "required":  false },
+    { "id": "biomesoplenty:pine_button", "required":  false },
+    { "id": "biomesoplenty:maple_button", "required":  false },
+    { "id": "biomesoplenty:redwood_button", "required":  false },
+    { "id": "biomesoplenty:mahogany_button", "required":  false },
+    { "id": "biomesoplenty:jacaranda_button", "required":  false },
+    { "id": "biomesoplenty:palm_button", "required":  false },
+    { "id": "biomesoplenty:willow_button", "required":  false },
+    { "id": "biomesoplenty:dead_button", "required":  false },
+    { "id": "biomesoplenty:magic_button", "required":  false },
+    { "id": "biomesoplenty:umbran_button", "required":  false },
+    { "id": "biomesoplenty:hellbark_button", "required":  false },
+    { "id": "biomesoplenty:empyreal_button", "required":  false }
   ]
 }

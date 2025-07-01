@@ -38,59 +38,44 @@ public class PumpjackCrankRenderer extends ShaftRenderer<PumpjackCrankBlockEntit
         double cos = Math.cos(v) * (be.crankSize.getValue() == 0 ? 0.8125 : 1.125);
         SuperByteBuffer crank = CachedBuffers.partial(be.crankSize.getValue() == 0 ? CDGPartialModels.PUMPJACK_CRANK_SMALL : CDGPartialModels.PUMPJACK_CRANK_LARGE, blockState);
         SuperByteBuffer rod = CachedBuffers.partial(be.crankSize.getValue() == 0 ? CDGPartialModels.PUMPJACK_CRANK_ROD_SMALL : CDGPartialModels.PUMPJACK_CRANK_ROD_LARGE, blockState);
-        if(be.bearingPos == null) {
-            if(isXAxis) {
-                crank.translate(0.5, 1.25, 0).rotateZDegrees(angle);
-            }else {
-                crank.translate(0, 1.25, 0.5).rotateYDegrees(90).rotateZDegrees(angle);
+
+        double dstY = -1000-sin-1.25 - pos.getY();
+        double dstX = pos.getX()-cos-0.5 - pos.getX();
+        double dstZ = pos.getZ()-cos-0.5 - pos.getZ();
+
+        if (be.bearingPos != null) {
+            PumpjackBearingBlockEntity bearing = be.bearing.get();
+
+            float interpolatedAngle = 0;
+            if (bearing != null)
+                interpolatedAngle = bearing.getInterpolatedAngle(partialTicks);
+            if (be.inPonderAngle != Integer.MIN_VALUE){
+                interpolatedAngle = be.inPonderAngle;
             }
 
-            double dstY = -1000-sin-1.25 - pos.getY();
-            double dstX = pos.getX()-cos-0.5 - pos.getX();
-            double dstZ = pos.getZ()-cos-0.5 - pos.getZ();
+            if (!isXAxis)
+                interpolatedAngle *= -1;
+            Vec2 crankBearingLocation = new Vec2(
+                    (float) ((be.crankBearingLocation.x) * Math.cos(interpolatedAngle/180 * Math.PI) - (be.crankBearingLocation.y) * Math.sin(interpolatedAngle/180*Math.PI))+0.5f,
+                    (float) ((be.crankBearingLocation.x) * Math.sin(interpolatedAngle/180 * Math.PI) + (be.crankBearingLocation.y) * Math.cos(interpolatedAngle/180*Math.PI))+0.5f);
+            if (isXAxis)
+                crankBearingLocation = crankBearingLocation.add(new Vec2((float) be.bearingPos.getX(), (float) be.bearingPos.getY()));
+            else
+                crankBearingLocation = crankBearingLocation.add(new Vec2((float) be.bearingPos.getZ(), (float) be.bearingPos.getY()));
 
-            if(isXAxis) {
-                rod.translate(0.5, 1.25, 0).translate(cos, sin, 0).rotateZDegrees((float) (Math.atan2(dstY, dstX)*180/Math.PI-90));
-            }else {
-                rod.translate(0, 1.25, 0.5).translate(0, sin, cos).rotateYDegrees(90).rotateZDegrees((float) (Math.atan2(dstZ, dstY)*180/Math.PI));
-            }
-            rod.light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()));
-            crank.light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()));
-            super.renderSafe(be, partialTicks, ms, buffer, light, overlay);
-            return;
+            dstY = crankBearingLocation.y-sin-1.25 - pos.getY();
+            dstX = crankBearingLocation.x-cos-0.5 - pos.getX();
+            dstZ = crankBearingLocation.x-cos-0.5 - pos.getZ();
         }
-        PumpjackBearingBlockEntity bearing = be.bearing.get();
-        float interpolatedAngle = 0;
-        if(bearing != null)
-            interpolatedAngle = bearing.getInterpolatedAngle(partialTicks);
-        if (be.inPonderAngle != Integer.MIN_VALUE){
-            interpolatedAngle = be.inPonderAngle;
-        }
-        if (!isXAxis)
-            interpolatedAngle *= -1;
-        Vec2 crankBearingLocation = new Vec2(
-                (float) ((be.crankBearingLocation.x) * Math.cos(interpolatedAngle/180 * Math.PI) - (be.crankBearingLocation.y) * Math.sin(interpolatedAngle/180*Math.PI))+0.5f,
-                (float) ((be.crankBearingLocation.x) * Math.sin(interpolatedAngle/180 * Math.PI) + (be.crankBearingLocation.y) * Math.cos(interpolatedAngle/180*Math.PI))+0.5f);
-        if(isXAxis)
-            crankBearingLocation = crankBearingLocation.add(new Vec2((float) be.bearingPos.getX(), (float) be.bearingPos.getY()));
-        else
-            crankBearingLocation = crankBearingLocation.add(new Vec2((float) be.bearingPos.getZ(), (float) be.bearingPos.getY()));
-        if(isXAxis) {
+
+        if (isXAxis) {
             crank.translate(0.5, 1.25, 0).rotateZDegrees(angle);
-        }else {
-            crank.translate(0, 1.25, 0.5).rotateYDegrees(90).rotateZDegrees(angle);
-        }
-
-
-        double dstY = crankBearingLocation.y-sin-1.25 - pos.getY();
-        double dstX = crankBearingLocation.x-cos-0.5 - pos.getX();
-        double dstZ = crankBearingLocation.x-cos-0.5 - pos.getZ();
-
-        if(isXAxis) {
             rod.translate(0.5, 1.25, 0).translate(cos, sin, 0).rotateZDegrees((float) (Math.atan2(dstY, dstX)*180/Math.PI-90));
-        }else {
+        } else {
+            crank.translate(0, 1.25, 0.5).rotateYDegrees(90).rotateZDegrees(angle);
             rod.translate(0, 1.25, 0.5).translate(0, sin, cos).rotateYDegrees(90).rotateZDegrees((float) (Math.atan2(dstZ, dstY)*180/Math.PI));
         }
+
         rod.light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()));
         crank.light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()));
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay);

@@ -35,7 +35,6 @@ import static com.jesz.createdieselgenerators.content.oil_barrel.OilBarrelBlock.
 public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBlockEntityContainer.Fluid, IHaveGoggleInformation {
 
     protected LazyOptional<IFluidHandler> fluidCapability;
-    protected boolean forceFluidLevelUpdate;
     protected FluidTank tankInventory;
     protected BlockPos controller;
     protected BlockPos lastKnownPos;
@@ -51,7 +50,6 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
         super(type, pos, state);
         tankInventory = createInventory();
         fluidCapability = LazyOptional.of(() -> tankInventory);
-        forceFluidLevelUpdate = true;
         updateConnectivity = false;
         height = 1;
         width = 1;
@@ -87,7 +85,7 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
 
         if (lastKnownPos == null)
             lastKnownPos = getBlockPos();
-        else if (!lastKnownPos.equals(worldPosition) && worldPosition != null) {
+        else if (!lastKnownPos.equals(worldPosition)) {
             onPositionChanged();
             return;
         }
@@ -111,8 +109,6 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
     public void initialize() {
         super.initialize();
         sendData();
-        if (level.isClientSide)
-            invalidateRenderBoundingBox();
     }
 
     private void onPositionChanged() {
@@ -159,7 +155,6 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
         int overflow = tankInventory.getFluidAmount() - tankInventory.getCapacity();
         if (overflow > 0)
             tankInventory.drain(overflow, IFluidHandler.FluidAction.EXECUTE);
-        forceFluidLevelUpdate = true;
     }
 
     public void removeController(boolean keepFluids) {
@@ -214,16 +209,7 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
 
     @Override
     public BlockPos getController() {
-
         return isController() ? worldPosition : controller;
-    }
-
-    @Override
-    protected AABB createRenderBoundingBox() {
-        if (isController())
-            return super.createRenderBoundingBox().expandTowards(width - 1, height - 1, width - 1);
-        else
-            return super.createRenderBoundingBox();
     }
 
     @Override
@@ -292,11 +278,8 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
 
         if (!clientPacket)
             return;
-        if (forceFluidLevelUpdate)
-            compound.putBoolean("ForceFluidLevel", true);
         if (queuedSync)
             compound.putBoolean("LazySync", true);
-        forceFluidLevelUpdate = false;
     }
 
     @Nonnull
@@ -307,11 +290,6 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
         if (cap == ForgeCapabilities.FLUID_HANDLER)
             return fluidCapability.cast();
         return super.getCapability(cap, side);
-    }
-
-    @Override
-    public void invalidate() {
-        super.invalidate();
     }
 
     public int getTotalTankSize() {

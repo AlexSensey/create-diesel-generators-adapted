@@ -10,6 +10,7 @@ import com.jesz.createdieselgenerators.content.tools.hammer.HammerItem;
 import com.jesz.createdieselgenerators.content.tools.lighter.LighterItem;
 import com.jesz.createdieselgenerators.content.tools.wire_cutters.WireCuttersItem;
 import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagItem;
+import com.simibubi.create.AllTags;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.tterrag.registrate.util.entry.ItemEntry;
 import net.minecraft.world.item.Item;
@@ -19,7 +20,7 @@ import static com.jesz.createdieselgenerators.CreateDieselGenerators.REGISTRATE;
 public class CDGItems {
 
     public static final ItemEntry<Item> KELP_HANDLE = REGISTRATE.item("kelp_handle", Item::new).register();
-    public static final ItemEntry<FurnaceBurnItem> WOOD_CHIPS = REGISTRATE.item("wood_chip", p -> new FurnaceBurnItem(p, 200)).register();
+    public static final ItemEntry<FurnaceBurnItem> WOOD_CHIPS = REGISTRATE.item("wood_chip", p -> new FurnaceBurnItem(p, 200)).tag(AllTags.forgeItemTag("dusts/wood")).register();
     public static final ItemEntry<Item> ENGINE_PISTON = REGISTRATE.item("engine_piston", Item::new).register();
     public static final ItemEntry<Item> ENGINE_SILENCER = REGISTRATE.item("engine_silencer", Item::new).register();
     public static final ItemEntry<Item> ENGINE_TURBO = REGISTRATE.item("engine_turbocharger", Item::new).register();

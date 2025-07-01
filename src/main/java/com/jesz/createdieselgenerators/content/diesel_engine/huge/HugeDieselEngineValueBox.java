@@ -16,7 +16,7 @@ public class HugeDieselEngineValueBox extends ValueBoxTransform.Sided {
 
     @Override
     protected boolean isSideActive(BlockState state, Direction side) {
-        return !state.getValue(BooleanProperty.create(side.toString())) && state.getValue(FACING).getAxis() != side.getAxis();
+        return state.getValue(FACING).getAxis() != side.getAxis();
     }
 
 

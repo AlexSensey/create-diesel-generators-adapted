@@ -6,7 +6,6 @@ import com.jesz.createdieselgenerators.content.diesel_engine.huge.HugeDieselEngi
 import com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlock;
 import com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlockEntity;
 import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlockEntity;
-import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
@@ -15,6 +14,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -60,7 +60,7 @@ public interface EngineUpgrades {
 
     @OnlyIn(Dist.CLIENT)
     default <T extends SmartBlockEntity & IEngine> EngineSoundInstance createSoundInstance(T engine, Vec3 pos) {
-        return new EngineSoundInstance(CDGSoundEvents.ENGINE_NORMAL.get(), pos);
+        return new EngineSoundInstance(CDGSoundEvents.ENGINE_NORMAL.get(), SoundSource.BLOCKS, pos, 0.2f);
     }
 
     default <T extends SmartBlockEntity & IEngine> float getPitchMultiplier(T engine) {

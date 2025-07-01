@@ -2,7 +2,7 @@
   "type": "createdieselgenerators:bulk_fermenting",
   "ingredients": [
     {
-      "tag": "forge:fermentable"
+      "tag": "createdieselgenerators:fermentable"
     },
     {
       "item": "minecraft:bone_meal"

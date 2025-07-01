@@ -124,7 +124,6 @@ public class CDGJEI implements IModPlugin {
         allCategories.forEach(c -> c.registerRecipes(registration));
         if(!CDGConfig.DIESEL_ENGINE_IN_JEI.get())
             return;
-        FuelTypeManager.tryPopulateTags();
         for(Map.Entry<Fluid, FuelType> entry : FuelTypeManager.fuelTypes.entrySet())
             if(entry.getKey().isSource(entry.getKey().defaultFluidState()))
                 registration.addRecipes(DieselEngineJeiRecipeType.DIESEL_COMBUSTION, ImmutableList.of(new DieselEngineJeiRecipeType(entry.getKey())));

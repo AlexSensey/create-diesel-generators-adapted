@@ -45,9 +45,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -243,9 +241,6 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     }
 
     static final Object RECIPE_CACHE_KEY = new Object();
-    Object getRecipeCacheKey() {
-        return RECIPE_CACHE_KEY;
-    }
 
     @Override
     public BlockPos getLastKnownPos() {
@@ -262,8 +257,6 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     public void initialize() {
         super.initialize();
         sendData();
-        if (level.isClientSide)
-            invalidateRenderBoundingBox();
     }
 
     private void onPositionChanged() {
@@ -399,14 +392,6 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     @Override
     public BlockPos getController() {
         return isController() ? worldPosition : controller;
-    }
-
-    @Override
-    protected AABB createRenderBoundingBox() {
-        if (isController())
-            return super.createRenderBoundingBox().expandTowards(width - 1, height - 1, width - 1);
-        else
-            return super.createRenderBoundingBox();
     }
 
     @Override
@@ -580,7 +565,6 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
 
-//        refreshCapability();
         BulkFermenterBlockEntity controller = getControllerBE();
 
         if (controller == null)
@@ -597,17 +581,27 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
         CreateLang.translate("gui.goggles.basin_contents")
                 .forGoggles(tooltip);
 
+        Map<ItemStack, Integer> allItems = new HashMap<>();
         for (int i = 0; i < items.getSlots(); i++) {
             ItemStack stackInSlot = items.getStackInSlot(i);
             if (stackInSlot.isEmpty())
                 continue;
+            ItemStack stackCopy = stackInSlot.copy();
+            stackCopy.setCount(1);
+            if (allItems.containsKey(stackCopy))
+                allItems.replace(stackCopy, stackCopy.getCount() + allItems.get(stackCopy));
+            else
+                allItems.put(stackCopy, stackCopy.getCount());
+            isEmpty = false;
+        }
+
+        for (Map.Entry<ItemStack, Integer> e : allItems.entrySet()) {
             CreateLang.text("")
-                    .add(Component.translatable(stackInSlot.getDescriptionId())
+                    .add(Component.translatable(e.getKey().getDescriptionId())
                             .withStyle(ChatFormatting.GRAY))
-                    .add(CreateLang.text(" x" + stackInSlot.getCount())
+                    .add(CreateLang.text(" x" + e.getValue())
                             .style(ChatFormatting.GREEN))
                     .forGoggles(tooltip, 1);
-            isEmpty = false;
         }
 
         LangBuilder mb = CreateLang.translate("generic.unit.millibuckets");

@@ -156,7 +156,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
         }
 
         if (level.isClientSide) {
-            DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> this::tickClient);
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::tickClient);
         }
     }
 
@@ -175,7 +175,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
                 Minecraft.getInstance()
                         .getSoundManager()
                         .play(soundInstance = upgrade.createSoundInstance(this, pos));
-            } else {
+            } else if (soundInstance.active()) {
                 soundInstance.keepAlive();
                 soundInstance.setPitch(upgrade.getPitchMultiplier(this) * getFuelSoundPitch());
                 soundInstance.setVolume(upgrade.getVolume(this));

@@ -63,17 +63,17 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
     }
 
     @Override
-    protected void write(CompoundTag compound, boolean clientPacket) {
-        super.write(compound, clientPacket);
-        compound.putFloat("RemainingTicks", remainingTicks);
-        compound.putString("Upgrade", upgrade.getId().toString());
+    protected void write(CompoundTag tag, boolean clientPacket) {
+        super.write(tag, clientPacket);
+        tag.putFloat("RemainingTicks", remainingTicks);
+        tag.putString("Upgrade", upgrade.getId().toString());
     }
 
     @Override
-    protected void read(CompoundTag compound, boolean clientPacket) {
-        super.read(compound, clientPacket);
-        remainingTicks = compound.getFloat("RemainingTicks");
-        upgrade = EngineUpgrades.get(new ResourceLocation(compound.getString("Upgrade")));
+    protected void read(CompoundTag tag, boolean clientPacket) {
+        super.read(tag, clientPacket);
+        remainingTicks = tag.getFloat("RemainingTicks");
+        upgrade = EngineUpgrades.get(new ResourceLocation(tag.getString("Upgrade")));
     }
 
     @Override
@@ -127,7 +127,7 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
         }
 
         if (level.isClientSide) {
-            DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> this::tickClient);
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::tickClient);
         }
     }
 
@@ -140,7 +140,7 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
                 Minecraft.getInstance()
                         .getSoundManager()
                         .play(soundInstance = upgrade.createSoundInstance(this, Vec3.atCenterOf(getBlockPos())));
-            } else {
+            } else if (soundInstance.active()) {
                 soundInstance.keepAlive();
                 soundInstance.setPitch(upgrade.getPitchMultiplier(this) * getFuelSoundPitch());
                 soundInstance.setVolume(upgrade.getVolume(this));

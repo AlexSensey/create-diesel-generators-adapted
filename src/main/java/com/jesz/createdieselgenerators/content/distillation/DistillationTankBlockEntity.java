@@ -35,6 +35,7 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class DistillationTankBlockEntity extends SmartBlockEntity implements IMultiBlockEntityContainer.Fluid, IHaveGoggleInformation {
@@ -99,7 +100,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
 
     int processingTime = -1;
     DistillationRecipe currentRecipe;
-    private void startProcessing(){
+    private void startProcessing() {
         if(currentRecipe == null)
             return;
         processingTime = (currentRecipe.getProcessingDuration());
@@ -109,26 +110,26 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
 
     @Override
     public void tick() {
-        if(isController() && isBottom()){
+        if (isController() && isBottom()) {
 
-            if(processingTime > -1 && currentRecipe != null){
+            if (processingTime > -1 && currentRecipe != null) {
                 boolean canFill = true;
                 for (int i = 0; i < currentRecipe.getFluidResults().size(); i++) {
-                    if(level.getBlockEntity(getBlockPos().above(i+1)) instanceof DistillationTankBlockEntity be){
-                        if(!isSameMultiBlock(be)) {
+                    if (level.getBlockEntity(getBlockPos().above(i+1)) instanceof DistillationTankBlockEntity be) {
+                        if (!isSameMultiBlock(be)) {
                             canFill = false;
                             break;
                         }
-                        if(be.tankInventory.getSpace() < (currentRecipe.getFluidResults().get(i).getAmount())) {
+                        if (be.tankInventory.getSpace() < (currentRecipe.getFluidResults().get(i).getAmount())) {
                             canFill = false;
                             break;
                         }
-                    }else{
+                    } else {
                         canFill = false;
                         break;
                     }
                 }
-                if(canFill)
+                if (canFill)
                     processingTime--;
 
                 if (!(tankInventory.getFluid().getAmount() >= currentRecipe.getFluidIngredients().get(0).getRequiredAmount() && currentRecipe.getRequiredHeat().testBlazeBurner(currentHeating))) {
@@ -136,16 +137,16 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
                     processingTime = -1;
                 }
             }
-            if(processingTime == 0 && currentRecipe != null){
-                if(tankInventory.getFluid().getAmount() >= currentRecipe.getFluidIngredients().get(0).getRequiredAmount()  && currentRecipe.getRequiredHeat().testBlazeBurner(currentHeating)){
+            if (processingTime == 0 && currentRecipe != null) {
+                if (tankInventory.getFluid().getAmount() >= currentRecipe.getFluidIngredients().get(0).getRequiredAmount()  && currentRecipe.getRequiredHeat().testBlazeBurner(currentHeating)) {
                     tankInventory.drain(currentRecipe.getFluidIngredients().get(0).getRequiredAmount(), IFluidHandler.FluidAction.EXECUTE);
-                    if(currentRecipe != null)
+                    if (currentRecipe != null)
                         for (int i = 0; i < currentRecipe.getFluidResults().size(); i++) {
-                            if(level.getBlockEntity(getBlockPos().above(i+1)) instanceof DistillationTankBlockEntity be){
+                            if (level.getBlockEntity(getBlockPos().above(i+1)) instanceof DistillationTankBlockEntity be) {
                                 if(!isSameMultiBlock(be))
                                     break;
                                 be.tankInventory.fill(currentRecipe.getFluidResults().get(i), IFluidHandler.FluidAction.EXECUTE);
-                            }else{
+                            } else {
                                 break;
                             }
                         }
@@ -153,7 +154,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
 
                 currentRecipe = null;
                 processingTime = -1;
-                if(!tankInventory.isEmpty() && isController() && isBottom())
+                if (!tankInventory.isEmpty() && isController() && isBottom())
                     checkForRecipes();
             }
 
@@ -169,7 +170,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
 
         if (lastKnownPos == null)
             lastKnownPos = getBlockPos();
-        else if (!lastKnownPos.equals(worldPosition) && worldPosition != null) {
+        else if (!lastKnownPos.equals(worldPosition)) {
             onPositionChanged();
             return;
         }
@@ -217,9 +218,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
                             if(r instanceof DistillationRecipe recipe){
                                 if(!recipe.getRequiredHeat().testBlazeBurner(currentHeating))
                                     return false;
-                                if(!recipe.getFluidIngredients().get(0).test(tankInventory.getFluid()))
-                                    return false;
-                                return true;
+                                return recipe.getFluidIngredients().get(0).test(tankInventory.getFluid());
                             }
                             return false;
                         })
@@ -457,7 +456,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
             return;
 
         boolean changeOfController =
-                controllerBefore == null ? controller != null : !controllerBefore.equals(controller);
+                !Objects.equals(controllerBefore, controller);
         if (changeOfController || prevSize != width || prevHeight != height) {
             if (hasLevel())
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 16);
@@ -560,12 +559,12 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
     }
 
     private boolean getBottomConnectivity() {
-        if((level.getBlockEntity(getBlockPos().below()) instanceof DistillationTankBlockEntity be))
+        if ((level.getBlockEntity(getBlockPos().below()) instanceof DistillationTankBlockEntity be))
             return !isSameMultiBlock(be);
         return true;
     }
     private boolean getTopConnectivity() {
-        if((level.getBlockEntity(getBlockPos().above()) instanceof DistillationTankBlockEntity be))
+        if ((level.getBlockEntity(getBlockPos().above()) instanceof DistillationTankBlockEntity be))
             return !isSameMultiBlock(be);
         return true;
     }
@@ -669,7 +668,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
     public boolean isBottom() {
         return !(level.getBlockEntity(getBlockPos().below()) instanceof DistillationTankBlockEntity be && isSameMultiBlock(be));
     }
-    void checkForRecipes(){
+    void checkForRecipes() {
         if(processingTime <= -1) {
             List<Recipe<?>> r = getMatchingRecipes();
             if (!r.isEmpty()) {

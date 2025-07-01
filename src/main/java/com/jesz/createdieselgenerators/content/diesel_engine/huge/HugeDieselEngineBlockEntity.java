@@ -1,7 +1,7 @@
 package com.jesz.createdieselgenerators.content.diesel_engine.huge;
 
-import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGBlocks;
+import com.jesz.createdieselgenerators.content.diesel_engine.EngineSoundInstance;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.jesz.createdieselgenerators.content.diesel_engine.IEngine;
 import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
@@ -18,9 +18,9 @@ import com.simibubi.create.foundation.utility.CreateLang;
 import net.createmod.catnip.data.Couple;
 import net.createmod.catnip.data.Pair;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -29,11 +29,15 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.minecraftforge.fml.DistExecutor;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -52,12 +56,11 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
         super(type, pos, state);
 
     }
-    int tick;
 
     @Override
     protected void write(CompoundTag tag, boolean clientPacket) {
         super.write(tag, clientPacket);
-        tag.putInt("Tick", tick);
+        tag.putFloat("RemainingTicks", remainingTicks);
         tag.putString("Upgrade", upgrade.getId().toString());
 
     }
@@ -65,7 +68,7 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
     @Override
     protected void read(CompoundTag tag, boolean clientPacket) {
         super.read(tag, clientPacket);
-        tick = tag.getInt("Tick");
+        remainingTicks = tag.getFloat("RemainingTicks");
         upgrade = EngineUpgrades.get(new ResourceLocation(tag.getString("Upgrade")));
     }
 
@@ -74,7 +77,6 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
         return super.createRenderBoundingBox().inflate(2);
     }
 
-    float oldAngle = 0;
     @Override
     public void tick() {
         super.tick();
@@ -83,10 +85,10 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
             return;
 
         if (enabled()) {
-            if (remainingTicks < 2)
+            if (remainingTicks < 2) {
                 remainingTicks += 1 / getFuelBurnRate();
-
-            tank.getPrimaryHandler().drain(1, IFluidHandler.FluidAction.EXECUTE);
+                tank.getPrimaryHandler().drain(1, IFluidHandler.FluidAction.EXECUTE);
+            }
 
             if (remainingTicks >= 0)
                 remainingTicks--;
@@ -98,25 +100,32 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
             }
 
             shaft.update(worldPosition, movementDirection.getValue() == 0 ? 1 : -1, upgrade.getCapacity(upgrade.getCapacity(getFuelCapacity(), this), this), upgrade.getSpeed(getFuelSpeed(), this));
-            if (!level.isClientSide)
-                return;
 
-            Float angle = getTargetAngle();
-            if (angle == null)
-                return;
-            angle = (float) (angle * 180 / Math.PI);
-            angle = angle < 0 ? 360 - angle : angle;
-
-            Direction facing = getBlockState().getValue(FACING);
-            float shaftR = facing == Direction.NORTH ? 180 : facing == Direction.SOUTH ? 0 : facing == Direction.EAST ? 0 : facing == Direction.WEST ? 180 : facing == Direction.DOWN ? 90 : -90;
-
-            if ((oldAngle+shaftR) % 360 > (angle+shaftR) % 360) {
-                // TODO: sounds
-            }
-            oldAngle = angle;
-
-        } else {
+            if (level.isClientSide)
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::tickClient);
+        } else
             shaft.removeGenerator(worldPosition);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    protected EngineSoundInstance soundInstance;
+    @OnlyIn(Dist.CLIENT)
+    protected void tickClient() {
+        if (enabled()) {
+            if (soundInstance == null || soundInstance.isStopped()) {
+                Minecraft.getInstance()
+                        .getSoundManager()
+                        .play(soundInstance = upgrade.createSoundInstance(this, Vec3.atCenterOf(getBlockPos())));
+            } else if (soundInstance.active()) {
+                soundInstance.keepAlive();
+                soundInstance.setPitch(upgrade.getPitchMultiplier(this) * getFuelSoundPitch() / 2);
+                soundInstance.setVolume(upgrade.getVolume(this));
+            }
+        } else {
+            if (soundInstance != null) {
+                soundInstance.fadeOut();
+                soundInstance = null;
+            }
         }
     }
 

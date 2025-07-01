@@ -79,6 +79,7 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
                     if(!player.isCreative())
                         stack.shrink(1);
                     be.upgrade = upgrade;
+                    be.sendData();
                     IWrenchable.playRotateSound(level, pos);
                 });
                 return InteractionResult.SUCCESS;
@@ -125,6 +126,7 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
                     if (!context.getPlayer().isCreative())
                         context.getPlayer().getInventory().placeItemBackInInventory(be.upgrade.getItem());
                     be.upgrade = EngineUpgrades.EMPTY;
+                    be.sendData();
                     IWrenchable.playRotateSound(context.getLevel(), context.getClickedPos());
                 }
             }

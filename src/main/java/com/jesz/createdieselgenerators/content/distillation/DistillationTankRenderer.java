@@ -85,7 +85,7 @@ public class DistillationTankRenderer extends SafeBlockEntityRenderer<Distillati
 
         float dialPivotY = 6f / 16;
         float dialPivotZ = 8f / 16;
-        float progress = Mth.clamp(be.progress, 0, 1);
+        float progress = Mth.clamp(be.currentRecipe == null ? be.progress : (be.processingTime - partialTicks) / be.currentRecipe.getProcessingDuration(), 0, 1);
 
         for (Direction d : Iterate.horizontalDirections) {
             ms.pushPose();
