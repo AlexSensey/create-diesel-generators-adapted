@@ -3,9 +3,9 @@ package com.jesz.createdieselgenerators.content.tools;
 import com.jesz.createdieselgenerators.CDGConfig;
 import com.jesz.createdieselgenerators.CDGItems;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
-import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagItem;
 import com.jesz.createdieselgenerators.world.OilChunksSavedData;
 import com.simibubi.create.AllSoundEvents;
+import com.simibubi.create.foundation.item.TooltipHelper;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateItemModelProvider;
 import net.minecraft.ChatFormatting;
@@ -17,6 +17,7 @@ import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -39,59 +40,57 @@ public class OilScannerItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
-        if(player.getY() < CDGConfig.MAX_OIL_SCANNER_LEVEL.get()) {
+        if (player.getY() < CDGConfig.MAX_OIL_SCANNER_LEVEL.get()) {
             stack.getOrCreateTag().putInt("Time", 20);
             stack.getOrCreateTag().putInt("Type", 0);
-            if(level.isClientSide)
+            if (level.isClientSide)
                 player.displayClientMessage(CreateDieselGenerators.lang("actionbar.oil_scanner.searching"), true);
 
-        }else {
+        } else {
             level.playLocalSound(player.getX(), player.getY(), player.getZ(), AllSoundEvents.DENY.getMainEvent(), SoundSource.PLAYERS, 1.2f, 1, true);
-            if(level.isClientSide)
+            if (level.isClientSide)
                 player.displayClientMessage(CreateDieselGenerators.lang("actionbar.oil_scanner.too_high_up"), true);
         }
         return InteractionResultHolder.success(stack);
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, Level level, Entity entity, int p_41407_, boolean p_41408_) {
-        if(stack.getTag() != null){
-            if(stack.getTag().getInt("Type") == 0) {
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
+        if (stack.getTag() != null) {
+            if (stack.getTag().getInt("Type") == 0) {
 
-                    if(level instanceof ServerLevel) {
+                    if (level instanceof ServerLevel sl) {
                         if (stack.getTag().getInt("Time") == 0) {
                             stack.getTag().putInt("Time", 20);
-                            ChunkPos chunkPos = new ChunkPos(new BlockPos(entity.getBlockX(), 0, entity.getBlockZ()));
+                            ChunkPos chunk = new ChunkPos(new BlockPos(entity.getBlockX(), 0, entity.getBlockZ()));
 
-                            int amount = OilChunksSavedData.getOilAmount((ServerLevel) level, chunkPos);
-
-                            OilChunksSavedData sd = OilChunksSavedData.load((ServerLevel) level);
-                            if (sd.getChunkOilAmount(new ChunkPos(chunkPos.x, chunkPos.z)) >= 0)
-                                amount = sd.getChunkOilAmount(new ChunkPos(chunkPos.x, chunkPos.z));
+                            int amount = OilChunksSavedData.getChunkOilAmount(sl, chunk);
 
                             if (amount <= 0)
                                 stack.getTag().putInt("Type", 1);
-                            else if (amount > 50000)
+                            else if (amount >= (CDGConfig.OIL_CHUNK_THRESHOLD.get() + CDGConfig.OIL_CHUNK_INFINITE_THRESHOLD.get()) / 2)
                                 stack.getTag().putInt("Type", 3);
                             else
                                 stack.getTag().putInt("Type", 2);
-                            if(entity instanceof ServerPlayer sp){
+                            if (entity instanceof ServerPlayer sp) {
                                 if (amount <= 0)
-                                    sp.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("createdieselgenerators.actionbar.oil_scanner.oil_none").withStyle(ChatFormatting.GRAY)));
-                                else if (amount > 50000)
-                                    sp.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("createdieselgenerators.actionbar.oil_scanner.oil_high").withStyle(ChatFormatting.GOLD)));
+                                    sp.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("createdieselgenerators.actionbar.oil_scanner.oil_none", TooltipHelper.makeProgressBar(3, 0)).withStyle(ChatFormatting.GRAY)));
+                                else if (amount == Integer.MAX_VALUE)
+                                    sp.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("createdieselgenerators.actionbar.oil_scanner.oil_bottomless", TooltipHelper.makeProgressBar(3, 3)).withStyle(ChatFormatting.GOLD)));
+                                else if (amount >= (CDGConfig.OIL_CHUNK_THRESHOLD.get() + CDGConfig.OIL_CHUNK_INFINITE_THRESHOLD.get()) / 2)
+                                    sp.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("createdieselgenerators.actionbar.oil_scanner.oil_high", TooltipHelper.makeProgressBar(3, 2)).withStyle(ChatFormatting.YELLOW)));
                                 else
-                                    sp.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("createdieselgenerators.actionbar.oil_scanner.oil_low").withStyle(ChatFormatting.GREEN)));
+                                    sp.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("createdieselgenerators.actionbar.oil_scanner.oil_low", TooltipHelper.makeProgressBar(3, 1)).withStyle(ChatFormatting.GREEN)));
 
                             }
 
                         }
-                        stack.getTag().putInt("Time", stack.getTag().getInt("Time")-1);
+                        stack.getTag().putInt("Time", stack.getTag().getInt("Time") - 1);
                     }else
                         level.playLocalSound(entity.getX(), entity.getY(), entity.getZ(), AllSoundEvents.SCROLL_VALUE.getMainEvent(), SoundSource.PLAYERS, 0.2f, 1, true);
             }
         }
-        super.inventoryTick(stack, level, entity, p_41407_, p_41408_);
+        super.inventoryTick(stack, level, entity, slot, selected);
     }
 
     public void registerModelOverrides() {

@@ -1,5 +1,6 @@
 package com.jesz.createdieselgenerators.content.pumpjack;
 
+import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.content.concrete.ConcreteEncasedFluidPipeBlock;
 import com.jesz.createdieselgenerators.world.OilChunksSavedData;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
@@ -10,7 +11,10 @@ import com.simibubi.create.content.fluids.pipes.GlassFluidPipeBlock;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
+import com.simibubi.create.foundation.item.TooltipHelper;
 import com.simibubi.create.foundation.utility.CreateLang;
+import net.createmod.catnip.lang.FontHelper;
+import net.createmod.catnip.lang.Lang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -53,33 +57,31 @@ public class PumpjackHoleBlockEntity extends SmartBlockEntity implements IHaveGo
     @Override
     protected void write(CompoundTag compound, boolean clientPacket) {
         super.write(compound, clientPacket);
-        tank.write(compound, false);
-        compound.putInt("StoredOilAmount", storedOilAmount);
         compound.putInt("OilAmount", oilAmount);
         compound.putBoolean("Started", started);
     }
     public int oilAmount = 0;
-    public int storedOilAmount = 0;
 
     @Override
     public boolean addToTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        if(valid)
+        if (valid)
             return false;
 
-        CreateLang.builder().add(Component.translatable("createdieselgenerators.goggle.problem_encountered")).style(ChatFormatting.GOLD).forGoggles(tooltip);
-        CreateLang.builder().add(Component.translatable("createdieselgenerators.goggle.pumpjack_invalid_pipes")).style(ChatFormatting.GRAY).forGoggles(tooltip);
-
+        Lang.builder(CreateDieselGenerators.ID).translate("hint.pumpjack_hole_no_pipe.title").style(ChatFormatting.GOLD).forGoggles(tooltip);
+        Component hint = Lang.builder(CreateDieselGenerators.ID).translate("hint.pumpjack_hole_no_pipe").component();
+        List<Component> cutComponent = TooltipHelper.cutTextComponent(hint, FontHelper.Palette.GRAY_AND_WHITE);
+        for (Component component : cutComponent)
+            CreateLang.builder().add(component).forGoggles(tooltip);
         return true;
     }
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        IHaveGoggleInformation.super.addToGoggleTooltip(tooltip, isPlayerSneaking);
-        if(!valid || !started)
+        if (!valid || !started)
             return false;
 
         CreateLang.builder().add(Component.translatable("createdieselgenerators.goggle.oil_amount")).style(ChatFormatting.GRAY).forGoggles(tooltip);
-        CreateLang.number(oilAmount).add(CreateLang.translate("generic.unit.buckets")).style(ChatFormatting.GOLD).forGoggles(tooltip);
+        CreateLang.text(String.format("%,d", oilAmount)).add(CreateLang.translate("generic.unit.millibuckets")).style(ChatFormatting.GOLD).forGoggles(tooltip);
 
         return true;
     }
@@ -87,8 +89,6 @@ public class PumpjackHoleBlockEntity extends SmartBlockEntity implements IHaveGo
     @Override
     protected void read(CompoundTag compound, boolean clientPacket) {
         super.read(compound, clientPacket);
-        tank.read(compound, false);
-        storedOilAmount = compound.getInt("StoredOilAmount");
         oilAmount = compound.getInt("OilAmount");
         started = compound.getBoolean("Started");
     }
@@ -99,39 +99,39 @@ public class PumpjackHoleBlockEntity extends SmartBlockEntity implements IHaveGo
         oilAmount = compound.getInt("OilAmount");
         started = compound.getBoolean("Started");
     }
-    byte tt = 0;
+    byte tick = 0;
     public int pipeLength = 0;
     boolean valid = false;
     @Override
     public void tick() {
         super.tick();
-        tt++;
-        if (tt >= 20) {
+        tick++;
+        if (tick >= 20) {
             int pipeLength = 0;
-            tt = 0;
-            boolean v = false;
+            tick = 0;
+            boolean valid = false;
             for (int i = 0; i < getBlockPos().getY() - level.getMinBuildHeight(); i++) {
                 pipeLength++;
                 BlockState bs = level.getBlockState(getBlockPos().below(i + 1));
                 if (bs.getBlock() instanceof PipeBlock || bs.getBlock() instanceof EncasedPipeBlock || bs.getBlock() instanceof ConcreteEncasedFluidPipeBlock) {
                     if (!(bs.getValue(BlockStateProperties.UP) && bs.getValue(BlockStateProperties.DOWN)))
                         break;
-                }else if(bs.getBlock() instanceof GlassFluidPipeBlock) {
+                } else if(bs.getBlock() instanceof GlassFluidPipeBlock) {
                     if (!(bs.getValue(AXIS) == Direction.Axis.Y))
                         break;
-                }else if(bs.is(optionalTag(ForgeRegistries.BLOCKS, new ResourceLocation("createdieselgenerators:pumpjack_pipe")))){
+                } else if(bs.is(optionalTag(ForgeRegistries.BLOCKS, new ResourceLocation("createdieselgenerators:pumpjack_pipe")))){
                     continue;
                 } else if (bs.is(optionalTag(ForgeRegistries.BLOCKS, new ResourceLocation("createdieselgenerators:oil_deposit")))) {
-                    v = true;
+                    valid = true;
                     break;
                 } else
                     break;
             }
-            if(v)
+            if (valid)
                 this.pipeLength = pipeLength;
             else
                 this.pipeLength = 0;
-            valid = v;
+            this.valid = valid;
         }
 
     }
@@ -154,45 +154,38 @@ public class PumpjackHoleBlockEntity extends SmartBlockEntity implements IHaveGo
         tank = SmartFluidTankBehaviour.single(this, 1000);
         behaviours.add(tank);
     }
+
     public void pumpjackRotation(boolean isCrankLarge) {
         List<Fluid> stackList = ForgeRegistries.FLUIDS.tags()
                 .getTag(optionalTag(ForgeRegistries.FLUIDS, new ResourceLocation("createdieselgenerators:pumpjack_output")))
                 .stream()
                 .distinct()
                 .toList();
-        if(stackList.isEmpty())
+        if (stackList.isEmpty())
             return;
 
-        if(!level.isClientSide && valid) {
+        if (!level.isClientSide && valid) {
             ChunkPos chunkPos = new ChunkPos(getBlockPos());
-            OilChunksSavedData sd = OilChunksSavedData.load((ServerLevel)level);
-            int amount = sd.getChunkOilAmount(chunkPos);
-            if(amount == -1)
-                amount = OilChunksSavedData.getOilAmount((ServerLevel) level, chunkPos);
-            oilAmount = amount;
+            oilAmount = OilChunksSavedData.getChunkOilAmount((ServerLevel) level, chunkPos);
             started = true;
 
-            if (storedOilAmount == 0 && amount != 0){
-                sd.setChunkAmount(chunkPos, amount-1);
-                oilAmount = amount -1;
-                storedOilAmount = 1000;
-            }
-            int subtractedAmount = Mth.clamp((int) (100 * Math.abs((float) headPos / (float) bearingPos)) * (isCrankLarge ? 2 : 1), 0, storedOilAmount);
-
-            if (tank.getPrimaryHandler().getFluidAmount() + subtractedAmount >= tank.getPrimaryHandler().getCapacity())
-                return;
-            storedOilAmount = storedOilAmount - subtractedAmount;
+            int subtractedAmount = Mth.clamp((int) (100 * Math.abs((float) headPos / (float) bearingPos)) * (isCrankLarge ? 2 : 1), 0, oilAmount);
 
             FluidStack oilStack = new FluidStack(stackList.get(0), subtractedAmount);
 
-            tank.getPrimaryHandler().fill(oilStack, IFluidHandler.FluidAction.EXECUTE);
-        }
-        if (level.isClientSide && oilAmount > 0) {
-            FluidFX.spawnPouringLiquid(level, worldPosition, 20, FluidFX.getFluidParticle(new FluidStack(stackList.get(0), 1000)), 0.3f, new Vec3(0.1, 1, 0.1), true);
-//            level.addParticle(FluidFX.getFluidParticle(new FluidStack(stackList.get(0), 1000)), worldPosition.getX()+0.5, worldPosition.getY()+1, worldPosition.getZ()+0.5, 0, 0.1, 0);
+            subtractedAmount = tank.getPrimaryHandler().fill(oilStack, IFluidHandler.FluidAction.EXECUTE);
+
+            if (oilAmount == Integer.MAX_VALUE)
+                return;
+
+            oilAmount -= subtractedAmount;
+            OilChunksSavedData.setChunkOilAmount((ServerLevel) level, chunkPos, oilAmount);
         }
 
+        if (level.isClientSide && oilAmount > 0)
+            FluidFX.spawnPouringLiquid(level, worldPosition, 20, FluidFX.getFluidParticle(new FluidStack(stackList.get(0), 1000)), 0.3f, new Vec3(0.1, 1, 0.1), true);
     }
+
     @Override
     public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
         if (!(cap == ForgeCapabilities.FLUID_HANDLER))

@@ -26,13 +26,13 @@ public class CDGConfig {
     public static final ForgeConfigSpec.ConfigValue<Integer> MAX_OIL_SCANNER_LEVEL;
     public static final ForgeConfigSpec.ConfigValue<Integer> MAX_OIL_BARREL_WIDTH;
 
-    public static final ForgeConfigSpec.ConfigValue<Integer> OIL_DEPOSITS_INFINITE;
+    public static final ForgeConfigSpec.ConfigValue<Integer> OIL_CHUNK_INFINITE_THRESHOLD;
+    public static final ForgeConfigSpec.ConfigValue<Integer> OIL_CHUNK_THRESHOLD;
 
     public static final ForgeConfigSpec.ConfigValue<Double> OIL_MULTIPLIER;
     public static final ForgeConfigSpec.ConfigValue<Double> HIGH_OIL_MULTIPLIER;
 
     public static final ForgeConfigSpec.ConfigValue<Double> OIL_PERCENTAGE;
-    public static final ForgeConfigSpec.ConfigValue<Double> HIGH_OIL_PERCENTAGE;
 
     public static final ForgeConfigSpec.ConfigValue<Boolean> FUEL_TOOLTIPS;
     public static final ForgeConfigSpec.ConfigValue<Boolean> DIESEL_ENGINE_IN_JEI;
@@ -44,8 +44,6 @@ public class CDGConfig {
     public static final ForgeConfigSpec.ConfigValue<Boolean> HUGE_ENGINES;
     public static final ForgeConfigSpec.ConfigValue<Boolean> ENGINES_FILLED_WITH_ITEMS;
     public static final ForgeConfigSpec.ConfigValue<Boolean> ENGINES_DISABLED_WITH_REDSTONE;
-
-    public static final ForgeConfigSpec.ConfigValue<Double> ASPHALT_DEGRADATION_SPEED_MULTIPLIER;
 
     static {
 
@@ -83,23 +81,20 @@ public class CDGConfig {
         SERVER_BUILDER.pop();
 
         SERVER_BUILDER.push("Oil Config");
-            OIL_DEPOSITS_INFINITE = SERVER_BUILDER.comment("Oil deposits bigger than this value are infinite")
-                    .define("Infinite oil deposits from", 10000);
-            OIL_MULTIPLIER = SERVER_BUILDER.comment("Normal oil chunks oil amount multiplier")
+            OIL_CHUNK_INFINITE_THRESHOLD = SERVER_BUILDER.comment()
+                    .define("Infinite oil chunk threshold", 10_000_000);
+            OIL_CHUNK_THRESHOLD = SERVER_BUILDER.comment()
+                    .define("Oil chunk threshold", 4_000_000);
+            OIL_MULTIPLIER = SERVER_BUILDER.comment()
                     .define("Normal oil chunks oil amount multiplier", 1d);
-            HIGH_OIL_MULTIPLIER = SERVER_BUILDER.comment("High oil chunks oil amount multiplier")
-                    .define("High oil chunks oil amount multiplier", 1d);
-            MAX_OIL_SCANNER_LEVEL = SERVER_BUILDER.comment("Max Oil Scanner Level")
+            HIGH_OIL_MULTIPLIER = SERVER_BUILDER.comment()
+                    .define("High oil chunks oil amount multiplier", 2d);
+            MAX_OIL_SCANNER_LEVEL = SERVER_BUILDER.comment()
                 .define("Max Oil Scanner Level", 10000);
-            OIL_PERCENTAGE = SERVER_BUILDER.comment("Normal oil chunks percentage")
-                    .defineInRange("Normal oil chunks percentage", 10d, 0d, 100d);
-            HIGH_OIL_PERCENTAGE = SERVER_BUILDER.comment("High oil chunks percentage")
-                    .defineInRange("High oil chunks percentage", 10d, 0d, 100d);
+            OIL_PERCENTAGE = SERVER_BUILDER.comment()
+                    .defineInRange("Oil chunks percentage", 0.1d, 0d, 1d);
 
         SERVER_BUILDER.pop();
-
-        ASPHALT_DEGRADATION_SPEED_MULTIPLIER = SERVER_BUILDER.comment("Asphalt Degradation Speed Multiplier")
-                .defineInRange("Asphalt Degradation Speed Multiplier", 10d, 0d, Double.MAX_VALUE);
 
         MAX_OIL_BARREL_WIDTH = SERVER_BUILDER.comment("Maximum width of Oil Barrels")
                 .define("Max Oil Barrel Width", 3);

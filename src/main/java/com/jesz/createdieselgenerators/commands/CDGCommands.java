@@ -1,17 +1,26 @@
 package com.jesz.createdieselgenerators.commands;
 
+import com.jesz.createdieselgenerators.CDGConfig;
 import com.jesz.createdieselgenerators.world.OilChunksSavedData;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.simibubi.create.AllPackets;
+import com.simibubi.create.AllSpecialTextures;
+import net.createmod.catnip.outliner.Outliner;
+import net.createmod.catnip.theme.Color;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.phys.AABB;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,17 +43,12 @@ public class CDGCommands {
             return 0;
         ChunkPos chunkPos = new ChunkPos(new BlockPos((int) source.getPosition().x, (int) source.getPosition().y, (int) source.getPosition().z));
 
-        int amount = OilChunksSavedData.getOilAmount(source.getLevel(), chunkPos);
+        int amount = OilChunksSavedData.getChunkOilAmount(source.getLevel(), chunkPos);
 
-        OilChunksSavedData sd = OilChunksSavedData.load(source.getLevel());
-        if(sd.getChunkOilAmount(chunkPos) != -1)
-            amount = sd.getChunkOilAmount(chunkPos);
-
-
-        int finalAmount = amount;
-        if (finalAmount == Integer.MAX_VALUE)
+        if (amount == Integer.MAX_VALUE)
             source.sendSuccess(() -> Component.literal("This oil chunk is infinite.").withStyle(ChatFormatting.GRAY), false);
-        source.sendSuccess(() -> Component.literal("There is ").withStyle(ChatFormatting.GRAY).append(Component.literal(finalAmount +"B").withStyle(ChatFormatting.GOLD)).append(" of Oil in this Chunk.").withStyle(ChatFormatting.GRAY), false);
+        else
+            source.sendSuccess(() -> Component.literal("There is ").withStyle(ChatFormatting.GRAY).append(Component.literal(String.format("%,1d", amount) + "mB").withStyle(ChatFormatting.GOLD)).append(" of Oil in this Chunk.").withStyle(ChatFormatting.GRAY), false);
 
         return 1;
     }
@@ -53,73 +57,70 @@ public class CDGCommands {
             return 0;
         ChunkPos chunkPos = new ChunkPos(new BlockPos((int) source.getPosition().x, (int) source.getPosition().y, (int) source.getPosition().z));
 
-        OilChunksSavedData sd = OilChunksSavedData.load(source.getLevel());
-        sd.removeChunkAmount(chunkPos);
+        OilChunksSavedData.removeChunk(source.getLevel(), chunkPos);
 
         source.sendSuccess(() -> Component.literal("Refreshed this chunks oil contents").withStyle(ChatFormatting.GRAY), false);
 
         return 1;
     }
+
     private int setOilChunk(CommandSourceStack source, CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         if(!source.hasPermission(2))
             return 0;
         ChunkPos chunkPos = new ChunkPos(new BlockPos((int) source.getPosition().x, (int) source.getPosition().y, (int) source.getPosition().z));
 
         int amount = IntegerArgumentType.getInteger(ctx, "amount");
-        OilChunksSavedData sd = OilChunksSavedData.load(source.getLevel());
-            sd.setChunkAmount(chunkPos, amount);
-        source.sendSuccess(() -> Component.literal("Set this chunk's oil deposits to  ").withStyle(ChatFormatting.GRAY).append(Component.literal(amount+"B").withStyle(ChatFormatting.GOLD)), false);
+        OilChunksSavedData.setChunkOilAmount(source.getLevel(), chunkPos, amount);
+        source.sendSuccess(() -> Component.literal("Set this chunk's oil deposits to  ").withStyle(ChatFormatting.GRAY).append(Component.literal(String.format("%,1d", amount) + "mB").withStyle(ChatFormatting.GOLD)), false);
 
         return 1;
     }
 
     private int locateOilChunk(CommandSourceStack source) throws CommandSyntaxException {
-        if(!source.hasPermission(2))
+        if (!source.hasPermission(2))
             return 0;
-        Map<ChunkPos, Integer> oilChunks = new HashMap<>();
-        for (int x = -10; x < 10; x++) {
-            for (int z = -10; z < 10; z++) {
-                ChunkPos chunkPos = new ChunkPos(new BlockPos((int) source.getPosition().x, (int) source.getPosition().y, (int) source.getPosition().z));
-                chunkPos = new ChunkPos(chunkPos.x + x, chunkPos.z + z);
 
-                OilChunksSavedData sd = OilChunksSavedData.load(source.getLevel());
-                int amount = sd.getChunkOilAmount(chunkPos);
-                if(amount == -1)
-                    amount = OilChunksSavedData.getOilAmount(source.getLevel(), chunkPos);
+        BlockPos sourcePos = BlockPos.containing(source.getPosition());
+        ChunkPos centerChunk = new ChunkPos(sourcePos);
 
-                if(amount != 0){
-                    oilChunks.put(chunkPos, amount);
-                }
-            }
-        }
-        AtomicInteger closestAmount = new AtomicInteger(0);
-        AtomicInteger closestX = new AtomicInteger(0);
-        AtomicInteger closestZ = new AtomicInteger(0);
-        AtomicReference<Float> closestDst = new AtomicReference<>(10000f);
-        oilChunks.forEach((k, v) -> {
-            float dst = (float) Math.sqrt(
-                    Math.abs(source.getPosition().x/16-k.x)*
-                    Math.abs(source.getPosition().x/16-k.x)+
-                    Math.abs(source.getPosition().z/16-k.z)*
-                    Math.abs(source.getPosition().z/16-k.z)
-            );
-            if(dst < closestDst.get()){
-                closestDst.set(dst);
-                closestX.set(k.x);
-                closestZ.set(k.z);
-                closestAmount.set(v);
+        int radius = 10;
+        int dx = 0, dz = -1;
+
+        for (int i = 0; i < (radius * 2 + 1) * (radius * 2 + 1); i++) {
+            int cx = centerChunk.x + dx;
+            int cz = centerChunk.z + dz;
+            ChunkPos currentChunk = new ChunkPos(cx, cz);
+
+            int amount = OilChunksSavedData.getChunkOilAmount(source.getLevel(), currentChunk);
+
+            if (amount != 0) {
+                int blockX = cx * 16 + 8;
+                int blockZ = cz * 16 + 8;
+                source.sendSuccess(() -> Component.literal("There is oil in chunk ")
+                        .withStyle(ChatFormatting.GRAY)
+                        .append(Component.literal(cx + " " + cz)
+                                .withStyle(ChatFormatting.GOLD)
+                                .withStyle(style -> style.withClickEvent(new ClickEvent(
+                                        ClickEvent.Action.SUGGEST_COMMAND,
+                                        "/tp @s " + blockX + " ~ " + blockZ))))
+                        .append(" with ").withStyle(ChatFormatting.GRAY)
+                        .append(Component.literal(String.format("%,1d", amount) + "mB ")
+                                .withStyle(ChatFormatting.GOLD))
+                        .append(Component.literal("of oil.").withStyle(ChatFormatting.GRAY)), false);
+                return 1;
             }
 
-        });
-        if(closestAmount.get() != 0) {
-            int finalX = closestX.get();
-            int finalZ = closestZ.get();
+            // Spiral coordinate step logic
+            if (dx == dz || (dx < 0 && dx == -dz) || (dx > 0 && dx == 1 - dz)) {
+                int temp = dx;
+                dx = -dz;
+                dz = temp;
+            }
 
-            source.sendSuccess(() -> Component.literal("There is oil in the chunk ").withStyle(ChatFormatting.GRAY).append(Component.literal( finalX + " " + finalZ).withStyle(ChatFormatting.GOLD).withStyle(
-                    a -> a.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/tp @s " + finalX*16 + " ~ " + finalZ*16)
-                    ))).append(" with ").withStyle(ChatFormatting.GRAY).append(Component.literal(closestAmount + "B ").withStyle(ChatFormatting.GOLD)).append(Component.literal("of oil.").withStyle(ChatFormatting.GRAY)), false);
-            return 1;
+            dx += Integer.signum(dx);
+            dz += Integer.signum(dz);
         }
+
         source.sendFailure(Component.literal("There is no oil chunk nearby").withStyle(ChatFormatting.RED));
         return 1;
     }

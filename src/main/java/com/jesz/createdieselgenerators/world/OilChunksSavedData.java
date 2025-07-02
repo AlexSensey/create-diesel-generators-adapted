@@ -4,17 +4,21 @@ import com.jesz.createdieselgenerators.CDGConfig;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.compat.kubejs.CDGKubeJSPlugin;
 import com.simibubi.create.AllTags;
+import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.levelgen.Noises;
+import net.minecraft.world.level.levelgen.synth.PerlinNoise;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -24,6 +28,8 @@ import java.util.*;
 public class OilChunksSavedData extends SavedData {
 
     Map<ChunkPos, Integer> chunks = new HashMap<>();
+    ServerLevel level;
+
     @Override
     public CompoundTag save(CompoundTag compound) {
         ListTag lt = new ListTag();
@@ -31,7 +37,7 @@ public class OilChunksSavedData extends SavedData {
             CompoundTag c = new CompoundTag();
             c.put("x", IntTag.valueOf(pos.x));
             c.put("z", IntTag.valueOf(pos.z));
-            c.put("Amount", IntTag.valueOf(amount));
+            c.put("Amountmb", IntTag.valueOf(amount));
             lt.add(c);
         });
 
@@ -40,75 +46,101 @@ public class OilChunksSavedData extends SavedData {
         return compound;
     }
 
-    private OilChunksSavedData() {
-
+    private OilChunksSavedData(ServerLevel level) {
+        this.level = level;
     }
 
-    private static OilChunksSavedData load(CompoundTag compound){
-        OilChunksSavedData sd = new OilChunksSavedData();
+    private static OilChunksSavedData load(ServerLevel level, CompoundTag tag) {
+        OilChunksSavedData sd = new OilChunksSavedData(level);
 
         sd.chunks = new HashMap<>();
-        NBTHelper.iterateCompoundList(compound.getList("OilChunks", Tag.TAG_COMPOUND), c -> {
-            sd.chunks.put(new ChunkPos(c.getInt("x"), c.getInt("z")), c.getInt("Amount"));
+        NBTHelper.iterateCompoundList(tag.getList("OilChunks", Tag.TAG_COMPOUND), c -> {
+            sd.chunks.put(new ChunkPos(c.getInt("x"), c.getInt("z")), c.contains("Amountmb") ? c.getInt("Amountmb") : c.getInt("Amount") * 1000);
         });
 
         return sd;
     }
 
-    public static OilChunksSavedData load(ServerLevel level){
-        return level.getDataStorage().computeIfAbsent(OilChunksSavedData::load, OilChunksSavedData::new, "cdg_oil_chunks");
+    public static OilChunksSavedData load(ServerLevel level) {
+        return level.getDataStorage().computeIfAbsent(t -> load(level, t), () -> new OilChunksSavedData(level), "cdg_oil_chunks");
     }
-    public void setChunkAmount(ChunkPos chunk, int amount){
-        if(chunks.containsKey(chunk))
+
+    public void setChunkAmount(ChunkPos chunk, int amount) {
+        if (chunks.containsKey(chunk))
             chunks.replace(chunk, amount);
         else
             chunks.put(chunk, amount);
 
         setDirty();
     }
-    public void removeChunkAmount(ChunkPos chunk){
+
+    public void removeChunk(ChunkPos chunk) {
         chunks.remove(chunk);
         setDirty();
     }
-    public int getChunkOilAmount(ChunkPos chunk){
-        if(chunks.containsKey(chunk))
-            return chunks.get(chunk) > CDGConfig.OIL_DEPOSITS_INFINITE.get() ? Integer.MAX_VALUE : chunks.get(chunk);
-        return -1;
+
+    public int getChunkOilAmount(ChunkPos chunk) {
+        if (chunks.containsKey(chunk))
+            return chunks.get(chunk) > CDGConfig.OIL_CHUNK_INFINITE_THRESHOLD.get() ? Integer.MAX_VALUE : chunks.get(chunk);
+        return getBaseOilAmount(level, chunk);
     }
 
-    public static int getOilAmount(ServerLevel level, ChunkPos pos){
-        long seed = level.getSeed();
-        List<Holder<Biome>> biomes = getBiomesInChunk(level, pos);
+    public static int getChunkOilAmount(ServerLevel level, ChunkPos chunk) {
+        return load(level).getChunkOilAmount(chunk);
+    }
 
-        if(ModList.get().isLoaded("kubejs")) {
-            int amount = CDGKubeJSPlugin.calculateOilChunks(biomes, pos, seed);
+    public static void setChunkOilAmount(ServerLevel level, ChunkPos chunk, int amount) {
+        load(level).setChunkAmount(chunk, amount);
+    }
+
+    public static void removeChunk(ServerLevel level, ChunkPos chunk) {
+        load(level).removeChunk(chunk);
+    }
+
+    public static int getBaseOilAmount(ServerLevel level, ChunkPos chunk) {
+        long seed = level.getSeed();
+        List<Holder<Biome>> biomes = getBiomesInChunk(level, chunk);
+
+        if (ModList.get().isLoaded("kubejs")) {
+            int amount = CDGKubeJSPlugin.calculateOilChunks(biomes, chunk, seed);
             if(amount != -1)
                 return amount;
         }
 
-        Random random = new Random(new Random(seed).nextLong() + (long) pos.x * pos.z);
-        int amount = Math.abs(random.nextInt());
+        RandomSource random = RandomSource.create(seed ^ (chunk.x * 0x9E3779B97F4A7C15L) ^ Long.rotateLeft(chunk.z * 0xC6BC279692B5CC83L, 31));
+
+//        double scale = 0.3;
+//        PerlinNoise noise = PerlinNoise.create(random, List.of(0, 1, 2, 3, 4));
+//        float amount = (float) (noise.getValue(chunk.x * scale, 0, chunk.z * scale) + 1) / 2;
+
+        float amount = random.nextFloat();
 
         boolean isHighInOil = false;
         boolean isDenied = false;
-        for (Holder<Biome> biome : biomes){
-            if(biome.is(AllTags.optionalTag(ForgeRegistries.BIOMES, CreateDieselGenerators.rl("oil_biomes"))))
+        for (Holder<Biome> biome : biomes) {
+            if (biome.is(AllTags.optionalTag(ForgeRegistries.BIOMES, CreateDieselGenerators.rl("oil_biomes"))))
                 isHighInOil = true;
-            if(biome.is(AllTags.optionalTag(ForgeRegistries.BIOMES, CreateDieselGenerators.rl("deny_oil_biomes"))))
+            if (biome.is(AllTags.optionalTag(ForgeRegistries.BIOMES, CreateDieselGenerators.rl("deny_oil_biomes"))))
                 isDenied = true;
         }
-        if(isDenied)
-            return 0;
-        if(isHighInOil ? (random.nextFloat(0, 100) >= CDGConfig.HIGH_OIL_PERCENTAGE.get()) : (amount % 100 >= CDGConfig.OIL_PERCENTAGE.get()))
+
+        if (isDenied)
             return 0;
 
-        int finalAmount = (int) (Mth.clamp(amount % 15000, 0, 12000)* CDGConfig.OIL_MULTIPLIER.get());
-        if(isHighInOil)
-            finalAmount =  (int) (Mth.clamp(amount % 400000, 8000, 400000)* CDGConfig.HIGH_OIL_MULTIPLIER.get());
-        if(finalAmount > CDGConfig.OIL_DEPOSITS_INFINITE.get())
+        int max = (int) (10_000_000 * CDGConfig.OIL_MULTIPLIER.get());
+        if (isHighInOil)
+            max = (int) (10_000_000 * CDGConfig.HIGH_OIL_MULTIPLIER.get());
+
+        amount = (int) (Math.pow(amount, 3) * max);
+
+        if (amount < CDGConfig.OIL_CHUNK_THRESHOLD.get())
+            return 0;
+
+        if (amount > CDGConfig.OIL_CHUNK_INFINITE_THRESHOLD.get())
             return Integer.MAX_VALUE;
-        return finalAmount;
+        return (int) amount;
     }
+
     public static List<Holder<Biome>> getBiomesInChunk(ServerLevel level, ChunkPos chunkPos){
         List<Holder<Biome>> list = new ArrayList<>();
         for (int x = 0; x < 16; x++) {
