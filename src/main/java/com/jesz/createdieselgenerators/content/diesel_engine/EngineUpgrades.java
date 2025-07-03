@@ -160,7 +160,7 @@ public interface EngineUpgrades {
 
         @Override
         public <T extends SmartBlockEntity & IEngine> float getVolume(T engine) {
-            return 0.05f;
+            return 0.02f;
         }
     }
 

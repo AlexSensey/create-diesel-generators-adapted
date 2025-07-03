@@ -23,6 +23,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class BurnerBlock extends HorizontalAxisKineticBlock implements IBE<BurnerBlockEntity> {
     public static EnumProperty<BlazeBurnerBlock.HeatLevel> HEAT_LEVEL = BlazeBurnerBlock.HEAT_LEVEL;
     public static BooleanProperty LIT = BlockStateProperties.LIT;
+
     public BurnerBlock(Properties properties) {
         super(properties);
         registerDefaultState(defaultBlockState()
@@ -35,6 +36,7 @@ public class BurnerBlock extends HorizontalAxisKineticBlock implements IBE<Burne
         builder.add(HEAT_LEVEL, LIT);
         super.createBlockStateDefinition(builder);
     }
+
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         if (state.getValue(LIT) && entity instanceof LivingEntity && !EnchantmentHelper.hasFrostWalker((LivingEntity)entity)) {
             entity.hurt(level.damageSources().inFire(), 1);

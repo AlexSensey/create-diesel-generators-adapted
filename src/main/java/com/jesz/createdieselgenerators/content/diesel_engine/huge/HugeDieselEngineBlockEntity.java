@@ -239,4 +239,14 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
     public FluidTank getTank() {
         return tank.getPrimaryHandler();
     }
+
+    @Override
+    public EngineUpgrades getUpgrade() {
+        return upgrade;
+    }
+
+    @Override
+    public void setUpgrade(EngineUpgrades upgrade) {
+        this.upgrade = upgrade;
+    }
 }

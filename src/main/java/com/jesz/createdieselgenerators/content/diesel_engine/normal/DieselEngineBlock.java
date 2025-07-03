@@ -3,7 +3,6 @@ package com.jesz.createdieselgenerators.content.diesel_engine.normal;
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGBlocks;
 import com.jesz.createdieselgenerators.CDGConfig;
-import com.jesz.createdieselgenerators.content.ICDGKinetics;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.simibubi.create.api.schematic.requirement.SpecialBlockItemRequirement;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
@@ -54,7 +53,7 @@ import java.util.List;
 import static net.minecraft.core.Direction.NORTH;
 import static net.minecraft.core.Direction.SOUTH;
 
-public class DieselEngineBlock extends DirectionalKineticBlock implements SpecialBlockItemRequirement, IBE<DieselEngineBlockEntity>, ProperWaterloggedBlock, ICDGKinetics {
+public class DieselEngineBlock extends DirectionalKineticBlock implements SpecialBlockItemRequirement, IBE<DieselEngineBlockEntity>, ProperWaterloggedBlock {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
@@ -243,21 +242,5 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
                     popResource(level, pos, be.upgrade.getItem());
             });
         super.onRemove(state, level, pos, newState, isMoving);
-    }
-
-
-    @Override
-    public float getDefaultStressCapacity() {
-        return 2048;
-    }
-
-    @Override
-    public float getDefaultStressStressImpact() {
-        return 0;
-    }
-
-    @Override
-    public float getDefaultSpeed() {
-        return 96;
     }
 }

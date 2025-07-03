@@ -2,6 +2,7 @@ package com.jesz.createdieselgenerators.ponder;
 
 import com.jesz.createdieselgenerators.CDGItems;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
+import net.createmod.ponder.api.PonderPalette;
 import net.createmod.ponder.api.element.ElementLink;
 import net.createmod.ponder.api.element.EntityElement;
 import net.createmod.ponder.api.scene.SceneBuilder;
@@ -15,6 +16,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 public class OilChunkScene {
+
     public static void scene(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
         scene.title("oil_chunk", "Finding an Oil Chunk");
@@ -26,14 +28,7 @@ public class OilChunkScene {
 
         scene.overlay().showText(50)
                 .attachKeyFrame()
-                .text("")
-                .pointAt(util.vector().topOf(1, 1, 1))
-                .placeNearTarget();
-        scene.idle(65);
-
-        scene.overlay().showText(50)
-                .attachKeyFrame()
-                .text("")
+                .text("Beneath the surface, some chunks hide Crude Oil deposits")
                 .pointAt(util.vector().topOf(1, 1, 1))
                 .placeNearTarget();
         scene.idle(65);
@@ -43,14 +38,14 @@ public class OilChunkScene {
 
         scene.overlay().showText(50)
                 .attachKeyFrame()
-                .text("")
+                .text("To find these Chunks, you'll need to use an Oil Scanner")
                 .pointAt(util.vector().topOf(1, 1, 1))
                 .placeNearTarget();
         scene.idle(65);
 
         scene.overlay().showText(50)
                 .attachKeyFrame()
-                .text("")
+                .text("Right-click the Oil Scanner to see how much oil is in the chunk")
                 .pointAt(util.vector().topOf(1, 1, 1))
                 .placeNearTarget();
         scene.idle(65);
@@ -63,7 +58,8 @@ public class OilChunkScene {
 
         scene.overlay().showText(50)
                 .attachKeyFrame()
-                .text("")
+                .colored(PonderPalette.BLUE)
+                .text("Additionally, different Biomes will have different levels of Crude Oil")
                 .pointAt(util.vector().topOf(1, 1, 1))
                 .placeNearTarget();
         scene.idle(65);
@@ -84,6 +80,13 @@ public class OilChunkScene {
         scene.idle(20);
         modifyScanner(scene, scanner, 3);
         scene.idle(60);
+
+        scene.overlay().showText(50)
+                .attachKeyFrame()
+                .text("You can extract the Crude Oil with a pumpjack")
+                .pointAt(util.vector().topOf(1, 1, 1))
+                .placeNearTarget();
+        scene.idle(65);
     }
 
     static void modifyScanner(SceneBuilder scene, ElementLink<EntityElement> scanner, int type){

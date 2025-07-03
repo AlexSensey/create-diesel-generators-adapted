@@ -1,6 +1,9 @@
 package com.jesz.createdieselgenerators.ponder;
 
 import com.jesz.createdieselgenerators.CDGFluids;
+import com.jesz.createdieselgenerators.CDGItems;
+import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
+import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlockEntity;
 import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
@@ -15,6 +18,7 @@ import net.createmod.ponder.api.scene.Selection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -29,32 +33,37 @@ public class DieselEngineScenes {
     public static void small(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
         scene.title("diesel_engine", "Setting up a Diesel Engine");
-        scene.configureBasePlate(0, 0, 3);
+        scene.configureBasePlate(0, 0, 5);
         scene.showBasePlate();
 
-        Selection tank = util.select().fromTo(4, 0, 1, 4, 1, 1);
-        BlockPos pumpPos = util.grid().at(3, 1, 1);
-        BlockPos enginePos = util.grid().at(1, 2, 1);
+        Selection tank = util.select().fromTo(4, 1, 1, 4, 2, 1);
+        BlockPos pumpPos = util.grid().at(3, 1, 2);
+        BlockPos enginePos = util.grid().at(1, 2, 2);
         Selection engine = util.select().position(enginePos);
         Selection pump = util.select().position(pumpPos);
-        Selection pipe = util.select().fromTo(1, 1, 1, 3, 1, 1);
-        Selection cogs = util.select().fromTo(3, 0, 2, 4, 0, 2);
+        Selection pipe = util.select().fromTo(1, 1, 2, 4, 1, 2);
+        Selection pumpShaft = util.select().fromTo(3, 1, 3, 5, 1, 3);
+        Selection shaft = util.select().fromTo(1, 2, 0, 1, 2, 4);
+        Selection cog = util.select().position(5, 0, 4);
+        Selection lever = util.select().fromTo(0, 1, 2, 0, 2, 2);
 
         scene.idle(15);
         ElementLink<WorldSectionElement> engineElement =
                 scene.world().showIndependentSection(engine, Direction.DOWN);
         scene.world().moveSection(engineElement, util.vector().of(0, -1, 0), 0);
         scene.idle(15);
+
         scene.overlay().showText(70)
                 .attachKeyFrame()
-                .text("Diesel Generators are a compact way of generating kinetic energy.")
-                .pointAt(util.vector().blockSurface(util.grid().at(1, 1, 1), Direction.NORTH))
+                .text("Diesel Engines are a compact way of generating kinetic energy.")
+                .pointAt(util.vector().blockSurface(util.grid().at(1, 1, 2), Direction.NORTH))
                 .placeNearTarget();
         scene.idle(80);
+
         scene.world().hideIndependentSection(engineElement, Direction.UP);
         scene.idle(15);
         scene.world().moveSection(engineElement, util.vector().of(0, 1, 0), 0);
-        scene.world().showIndependentSection(engine, Direction.DOWN);
+        scene.world().showSection(engine, Direction.DOWN);
 
         scene.world().showSection(pipe, Direction.WEST);
         scene.world().showSection(tank, Direction.NORTH);
@@ -64,29 +73,88 @@ public class DieselEngineScenes {
             currentFuel = new FluidStack(FuelTypeManager.fuelTypes.isEmpty() ? CDGFluids.DIESEL.get() : FuelTypeManager.fuelTypes.keySet().stream().toList().get(new Random().nextInt(0, FuelTypeManager.fuelTypes.size() - 1)), 16000);
             return currentFuel;
         };
-        scene.world().modifyBlockEntity(util.grid().at(4, 0, 1), FluidTankBlockEntity.class, be -> be.getTankInventory()
+        scene.world().modifyBlockEntity(util.grid().at(4, 1, 1), FluidTankBlockEntity.class, be -> be.getTankInventory()
                 .fill(content.get(), IFluidHandler.FluidAction.EXECUTE));
-        scene.world().showSection(cogs, Direction.NORTH);
+
+        scene.world().showSection(pumpShaft, Direction.NORTH);
+        scene.world().showSection(cog, Direction.NORTH);
         scene.idle(30);
-        scene.overlay().showText(55)
+
+        scene.overlay().showText(50)
                 .colored(PonderPalette.BLUE)
                 .attachKeyFrame()
-                .text("Once you give it some fuel, the engine will start generating rotational force.")
-                .pointAt(util.vector().blockSurface(util.grid().at(1, 2, 1), Direction.NORTH))
+                .text("Once you give the engine some fuel, it will start generating rotational force.")
+                .pointAt(util.vector().blockSurface(enginePos, Direction.NORTH))
                 .placeNearTarget();
+
         scene.idle(30);
 
         scene.idle(30);
-        scene.world().modifyKineticSpeed(cogs, f -> 16f);
-        scene.world().modifyKineticSpeed(pump, f -> -32f);
-        scene.effects().rotationSpeedIndicator(util.grid().at(3, 0, 2));
-        scene.world().modifyKineticSpeed(engine, f -> 96f);
+        scene.world().setKineticSpeed(cog, 16f);
+        scene.world().setKineticSpeed(pump, 32f);
+        scene.world().setKineticSpeed(pumpShaft, -32f);
         scene.effects().rotationSpeedIndicator(enginePos);
+        scene.world().setKineticSpeed(shaft, 96f);
+
+        scene.effects().rotationSpeedIndicator(enginePos);
+
         scene.idle(20);
-        scene.world().showSection(util.select().position(util.grid().at(1, 2, 0)), Direction.DOWN);
-        scene.world().showSection(util.select().position(util.grid().at(1, 2, 2)), Direction.DOWN);
-        scene.world().modifyKineticSpeed(util.select().fromTo(1, 2, 0, 1, 2, 2),f -> 96f);
+        scene.world().showSection(shaft.substract(engine), Direction.DOWN);
+        scene.idle(40);
+
+        scene.world().showSection(lever, Direction.DOWN);
+        scene.idle(40);
+
+        scene.overlay().showText(50)
+                .attachKeyFrame()
+                .text("Engines can be stopped with a redstone signal")
+                .pointAt(util.vector().blockSurface(util.grid().at(0, 2, 2), Direction.DOWN))
+                .placeNearTarget();
+
         scene.idle(60);
+
+        scene.overlay().showControls(util.vector().blockSurface(util.grid().at(0, 2, 2), Direction.DOWN), Pointing.DOWN, 20)
+                .rightClick();
+
+        scene.idle(40);
+
+        scene.world().modifyBlock(util.grid().at(0, 2, 2), b -> b.setValue(LeverBlock.POWERED, true), false);
+
+        scene.world().setKineticSpeed(shaft, 0f);
+        scene.effects().rotationSpeedIndicator(enginePos);
+
+        scene.idle(40);
+
+        scene.overlay().showControls(util.vector().blockSurface(util.grid().at(0, 2, 2), Direction.DOWN), Pointing.DOWN, 20)
+                .rightClick();
+
+        scene.idle(40);
+
+        scene.world().modifyBlock(util.grid().at(0, 2, 2), b -> b.setValue(LeverBlock.POWERED, false), false);
+
+        scene.world().setKineticSpeed(shaft, 96f);
+        scene.effects().rotationSpeedIndicator(enginePos);
+
+        scene.idle(40);
+
+        scene.overlay().showText(50)
+                .colored(PonderPalette.BLUE)
+                .attachKeyFrame()
+                .text("You can also add upgrades on diesel engines")
+                .pointAt(util.vector().blockSurface(enginePos, Direction.UP))
+                .placeNearTarget();
+
+        scene.idle(60);
+
+        scene.overlay().showControls(util.vector().blockSurface(enginePos, Direction.UP), Pointing.DOWN, 20)
+                .withItem(CDGItems.ENGINE_SILENCER.asStack())
+                .rightClick();
+
+        scene.idle(40);
+
+        scene.world().modifyBlockEntity(enginePos, DieselEngineBlockEntity.class, be -> be.setUpgrade(EngineUpgrades.SILENCER));
+
+        scene.idle(40);
     }
 
     public static void huge(SceneBuilder builder, SceneBuildingUtil util) {

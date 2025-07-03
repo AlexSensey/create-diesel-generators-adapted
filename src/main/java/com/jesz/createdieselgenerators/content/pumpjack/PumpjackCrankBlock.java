@@ -2,7 +2,6 @@ package com.jesz.createdieselgenerators.content.pumpjack;
 
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGBlocks;
-import com.jesz.createdieselgenerators.content.ICDGKinetics;
 import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock;
 import com.simibubi.create.foundation.block.IBE;
 import net.createmod.catnip.placement.IPlacementHelper;
@@ -29,8 +28,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.function.Predicate;
 
-public class PumpjackCrankBlock extends HorizontalKineticBlock implements IBE<PumpjackCrankBlockEntity>, ICDGKinetics {
+public class PumpjackCrankBlock extends HorizontalKineticBlock implements IBE<PumpjackCrankBlockEntity> {
     private static final int placementHelperId = PlacementHelpers.register(new PlacementHelper());
+
     public PumpjackCrankBlock(Properties properties) {
         super(properties);
     }
@@ -47,11 +47,13 @@ public class PumpjackCrankBlock extends HorizontalKineticBlock implements IBE<Pu
         else
             return Shapes.or(Block.box(0, 0, 0, 16, 16, 16), Block.box(0, 16, 4, 16, 22, 12));
     }
+
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
         return state.getValue(HORIZONTAL_FACING)
                 .getAxis() == face.getAxis();
     }
+
     @Override
     public Class<PumpjackCrankBlockEntity> getBlockEntityClass() {
         return PumpjackCrankBlockEntity.class;
@@ -61,6 +63,7 @@ public class PumpjackCrankBlock extends HorizontalKineticBlock implements IBE<Pu
     public BlockEntityType<? extends PumpjackCrankBlockEntity> getBlockEntityType() {
         return CDGBlockEntityTypes.PUMPJACK_CRANK.get();
     }
+
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
                                  BlockHitResult ray) {
@@ -76,20 +79,7 @@ public class PumpjackCrankBlock extends HorizontalKineticBlock implements IBE<Pu
         }
         return super.use(state, level, pos, player, hand, ray);
     }
-    @Override
-    public float getDefaultStressCapacity() {
-        return 0;
-    }
 
-    @Override
-    public float getDefaultStressStressImpact() {
-        return 16;
-    }
-
-    @Override
-    public float getDefaultSpeed() {
-        return 0;
-    }
     private static class PlacementHelper implements IPlacementHelper{
 
         @Override

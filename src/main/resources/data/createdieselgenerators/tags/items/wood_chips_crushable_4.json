@@ -7,6 +7,10 @@
     "minecraft:spruce_stairs",
     "minecraft:jungle_stairs",
     "minecraft:dark_oak_stairs",
+    "minecraft:bamboo_stairs",
+    "minecraft:cherry_stairs",
+    "minecraft:crimson_stairs",
+    "minecraft:warped_stairs",
 
     { "id": "quark:blossom_stairs", "required": false },
     { "id": "quark:azalea_stairs", "required": false },
@@ -31,6 +35,10 @@
     "minecraft:spruce_fence",
     "minecraft:jungle_fence",
     "minecraft:dark_oak_fence",
+    "minecraft:bamboo_fence",
+    "minecraft:cherry_fence",
+    "minecraft:crimson_fence",
+    "minecraft:warped_fence",
 
     { "id": "quark:blossom_fence", "required": false },
     { "id": "quark:azalea_fence", "required": false },
@@ -55,6 +63,10 @@
     "minecraft:spruce_slab",
     "minecraft:jungle_slab",
     "minecraft:dark_oak_slab",
+    "minecraft:bamboo_slab",
+    "minecraft:cherry_slab",
+    "minecraft:crimson_slab",
+    "minecraft:warped_slab",
 
     { "id": "quark:blossom_slab", "required": false },
     { "id": "quark:azalea_slab", "required": false },

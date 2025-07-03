@@ -34,6 +34,7 @@ import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.api.boiler.BoilerHeater;
+import com.simibubi.create.api.stress.BlockStressValues;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.BlockStateGen;
 import com.simibubi.create.foundation.data.CreateRegistrate;
@@ -89,6 +90,7 @@ public class CDGBlocks {
             .initialProperties(SharedProperties::copperMetal)
             .transform(pickaxeOnly())
             .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
+            .onRegister(b -> BlockStressValues.IMPACTS.register(b, () -> 4))
             .item().model((c, p) -> p.blockItem(c, "/item")).build()
             .register();
 
@@ -200,6 +202,7 @@ public class CDGBlocks {
             .properties(p -> p.mapColor(MapColor.GLOW_LICHEN))
             .transform(pickaxeOnly())
             .blockstate((c, p) -> p.horizontalBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
+            .onRegister(b -> BlockStressValues.IMPACTS.register(b, () -> 16))
             .item().model((c, p) -> p.blockItem(c, "/item")).build()
             .register();
 
@@ -368,6 +371,7 @@ public class CDGBlocks {
                     .register();
 
     public static final Map<DyeColor, BlockEntry<ConcreteEncasedFluidPipeBlock>> CONCRETE_ENCASED_FLUID_PIPES = new HashMap<>();
+
     static {
         for (DyeColor color : DyeColor.values()) {
             CONCRETE_ENCASED_FLUID_PIPES.put(color,
@@ -428,6 +432,7 @@ public class CDGBlocks {
         }
     }
     public static void register() {
+
     }
 
     private static NonNullConsumer<? super Block> movementBehaviour(MovementBehaviour movementBehaviour) {

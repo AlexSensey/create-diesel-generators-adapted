@@ -3,6 +3,7 @@ package com.jesz.createdieselgenerators.content.molds;
 import com.jesz.createdieselgenerators.CDGItems;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringRenderer;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
@@ -50,6 +51,8 @@ public class MoldItemRenderer extends CustomRenderedItemModelRenderer {
     }
     @OnlyIn(Dist.CLIENT)
     public static void renderItemsOnMold(BasinBlockEntity basin, PoseStack ms, MultiBufferSource buffer, int light, int overlay, List<ItemStack> items, float partialTicks) {
+
+        FilteringRenderer.renderOnBlockEntity(basin, partialTicks, ms, buffer, light, overlay);
         RandomSource r = RandomSource.create(basin.getBlockPos().hashCode());
 
         for(ItemStack stack : items){

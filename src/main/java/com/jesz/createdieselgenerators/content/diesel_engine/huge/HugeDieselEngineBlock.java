@@ -3,7 +3,6 @@ package com.jesz.createdieselgenerators.content.diesel_engine.huge;
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGBlocks;
 import com.jesz.createdieselgenerators.CDGConfig;
-import com.jesz.createdieselgenerators.content.ICDGKinetics;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
@@ -47,7 +46,7 @@ import java.util.function.Predicate;
 import static com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock.POWERED;
 import static com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock.AXIS;
 
-public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngineBlockEntity>, IWrenchable, ICDGKinetics {
+public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngineBlockEntity>, IWrenchable {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
 
     private static final int placementHelperId = PlacementHelpers.register(new PlacementHelper());
@@ -211,21 +210,6 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
     @Override
     public BlockEntityType<? extends HugeDieselEngineBlockEntity> getBlockEntityType() {
         return CDGBlockEntityTypes.HUGE_DIESEL_ENGINE.get();
-    }
-
-    @Override
-    public float getDefaultStressCapacity() {
-        return 2048;
-    }
-
-    @Override
-    public float getDefaultStressStressImpact() {
-        return 0;
-    }
-
-    @Override
-    public float getDefaultSpeed() {
-        return 96;
     }
 
     private static class PlacementHelper implements IPlacementHelper {

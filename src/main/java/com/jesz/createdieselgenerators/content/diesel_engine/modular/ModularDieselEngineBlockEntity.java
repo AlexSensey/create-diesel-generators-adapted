@@ -226,6 +226,16 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
     }
 
     @Override
+    public EngineUpgrades getUpgrade() {
+        return upgrade;
+    }
+
+    @Override
+    public void setUpgrade(EngineUpgrades upgrade) {
+        this.upgrade = upgrade;
+    }
+
+    @Override
     public BlockPos getController() {
         return isController() ? worldPosition : controller;
     }

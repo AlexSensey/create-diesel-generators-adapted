@@ -50,4 +50,7 @@ public interface IEngine {
     SmartBlockEntity self();
 
     FluidTank getTank();
+
+    EngineUpgrades getUpgrade();
+    void setUpgrade(EngineUpgrades upgrade);
 }

@@ -2,7 +2,6 @@ package com.jesz.createdieselgenerators.content.turret;
 
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGItems;
-import com.jesz.createdieselgenerators.content.ICDGKinetics;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel;
@@ -24,7 +23,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class ChemicalTurretBlock extends KineticBlock implements IBE<ChemicalTurretBlockEntity>, ICogWheel, ICDGKinetics {
+public class ChemicalTurretBlock extends KineticBlock implements IBE<ChemicalTurretBlockEntity>, ICogWheel {
     public ChemicalTurretBlock(Properties properties) {
         super(properties);
     }
@@ -118,20 +117,5 @@ public class ChemicalTurretBlock extends KineticBlock implements IBE<ChemicalTur
     @Override
     public BlockEntityType<? extends ChemicalTurretBlockEntity> getBlockEntityType() {
         return CDGBlockEntityTypes.CHEMICAL_TURRET.get();
-    }
-
-    @Override
-    public float getDefaultStressCapacity() {
-        return 0;
-    }
-
-    @Override
-    public float getDefaultStressStressImpact() {
-        return 4;
-    }
-
-    @Override
-    public float getDefaultSpeed() {
-        return 0;
     }
 }

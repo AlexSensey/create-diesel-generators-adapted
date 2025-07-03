@@ -3,7 +3,6 @@ package com.jesz.createdieselgenerators.content.diesel_engine.modular;
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGBlocks;
 import com.jesz.createdieselgenerators.CDGConfig;
-import com.jesz.createdieselgenerators.content.ICDGKinetics;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.api.schematic.requirement.SpecialBlockItemRequirement;
@@ -55,7 +54,7 @@ import static com.jesz.createdieselgenerators.content.diesel_engine.normal.Diese
 import static net.minecraft.core.Direction.NORTH;
 import static net.minecraft.core.Direction.SOUTH;
 
-public class ModularDieselEngineBlock extends HorizontalKineticBlock implements IBE<ModularDieselEngineBlockEntity>, SpecialBlockItemRequirement, ICDGKinetics {
+public class ModularDieselEngineBlock extends HorizontalKineticBlock implements IBE<ModularDieselEngineBlockEntity>, SpecialBlockItemRequirement {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     public static final BooleanProperty PIPE = BooleanProperty.create("pipe");
@@ -238,21 +237,6 @@ public class ModularDieselEngineBlock extends HorizontalKineticBlock implements 
         List<ItemStack> list = new ArrayList<>();
         list.add(CDGBlocks.MODULAR_DIESEL_ENGINE.asStack());
         return new ItemRequirement(ItemRequirement.ItemUseType.CONSUME, list);
-    }
-
-    @Override
-    public float getDefaultStressCapacity() {
-        return 2048;
-    }
-
-    @Override
-    public float getDefaultStressStressImpact() {
-        return 0;
-    }
-
-    @Override
-    public float getDefaultSpeed() {
-        return 96;
     }
 
     private static class PlacementHelper extends PoleHelper<Direction>{
