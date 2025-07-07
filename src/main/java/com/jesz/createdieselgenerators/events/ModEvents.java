@@ -3,6 +3,7 @@ package com.jesz.createdieselgenerators.events;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
+import com.jesz.createdieselgenerators.CDGRegistries;
 import com.jesz.createdieselgenerators.CDGSpriteShifts;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.compat.kubejs.LighterSkinsEventJS;
@@ -12,8 +13,11 @@ import com.jesz.createdieselgenerators.content.molds.MoldType;
 import com.jesz.createdieselgenerators.content.tools.lighter.LighterModel;
 import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagComponent;
 import com.jesz.createdieselgenerators.content.turret.TurretOperatorHatLayer;
+import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.AllBlockEntityTypes;
 import com.simibubi.create.api.behaviour.spouting.BlockSpoutingBehaviour;
+import com.simibubi.create.api.equipment.potatoCannon.PotatoCannonProjectileType;
+import com.simibubi.create.api.registry.CreateRegistries;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -31,6 +35,7 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.registries.DataPackRegistryEvent;
 
 import java.io.IOException;
 import java.util.Map;
@@ -38,6 +43,16 @@ import java.util.Optional;
 
 @Mod.EventBusSubscriber(modid = CreateDieselGenerators.ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModEvents {
+
+    @SubscribeEvent
+    public static void registerDataPackRegistries(DataPackRegistryEvent.NewRegistry event) {
+        event.dataPackRegistry(
+                CDGRegistries.FUEL_TYPE,
+                FuelType.CODEC,
+                FuelType.CODEC
+        );
+    }
+
     @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
     public static void onModelRegistry(ModelEvent.RegisterAdditional event){

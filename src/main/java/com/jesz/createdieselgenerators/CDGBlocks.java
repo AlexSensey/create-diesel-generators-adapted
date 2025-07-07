@@ -97,7 +97,6 @@ public class CDGBlocks {
     public static final BlockEntry<DieselEngineBlock> DIESEL_ENGINE = REGISTRATE.block("diesel_engine", DieselEngineBlock::new)
             .initialProperties(SharedProperties::softMetal)
             .properties(p -> p.mapColor(MapColor.COLOR_YELLOW))
-            .transform(displaySource(CDGDisplaySources.ENGINE_STATE))
             .transform(pickaxeOnly())
             .blockstate((c, p) ->
                     p.getVariantBuilder(c.getEntry())
@@ -120,7 +119,6 @@ public class CDGBlocks {
             .lang("Modular Diesel Engine")
             .initialProperties(SharedProperties::softMetal)
             .properties(p -> p.mapColor(MapColor.COLOR_YELLOW))
-            .transform(displaySource(CDGDisplaySources.ENGINE_STATE))
             .transform(pickaxeOnly())
             .blockstate(new ModularDieselEngineGenerator()::generate)
             .onRegister(connectedTextures(ModularDieselEngineCTBehavior::new))
@@ -132,7 +130,6 @@ public class CDGBlocks {
             .initialProperties(SharedProperties::softMetal)
             .properties(p -> p.mapColor(MapColor.COLOR_YELLOW))
             .properties(p -> p.noOcclusion())
-            .transform(displaySource(CDGDisplaySources.ENGINE_STATE))
             .transform(pickaxeOnly())
             .blockstate((c, p) -> p.directionalBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
             .item().model((c, p) -> p.blockItem(c, "/item")).build()

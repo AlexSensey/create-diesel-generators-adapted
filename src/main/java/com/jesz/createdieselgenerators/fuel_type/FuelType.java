@@ -1,59 +1,62 @@
 package com.jesz.createdieselgenerators.fuel_type;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
+import com.jesz.createdieselgenerators.content.diesel_engine.EngineTypes;
 import com.jesz.createdieselgenerators.content.diesel_engine.huge.HugeDieselEngineBlockEntity;
 import com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlockEntity;
-import net.createmod.catnip.data.Couple;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.RegistryCodecs;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.material.Fluid;
 
-public record FuelType(float normalSpeed, float normalStrength, float normalBurn, float modularSpeed, float modularStrength, float modularBurn, float hugeSpeed, float hugeStrength, float hugeBurn, float soundPitch, float burnerStrength) {
+public record FuelType(HolderSet<Fluid> fluid, PerEngineProperties normal, PerEngineProperties modular, PerEngineProperties huge, float soundPitch, float burnerStrength) {
 
-    public static FuelType fromJSON(JsonElement element) {
-        if (!element.getAsJsonObject().has("normal"))
-            throw new JsonSyntaxException("Invalid Fuel Type: missing fuel values for normal engine");
+    public static final Codec<FuelType> CODEC = RecordCodecBuilder.create(i -> i.group(
+            RegistryCodecs.homogeneousList(Registries.FLUID).fieldOf("fluid").forGetter(FuelType::fluid),
+            PerEngineProperties.CODEC.fieldOf("normal").forGetter(FuelType::normal),
+            PerEngineProperties.CODEC.fieldOf("modular").forGetter(FuelType::modular),
+            PerEngineProperties.CODEC.fieldOf("huge").forGetter(FuelType::huge),
+            Codec.FLOAT.optionalFieldOf("sound_pitch", 1f).forGetter(FuelType::soundPitch),
+            Codec.FLOAT.optionalFieldOf("burner_multiplier", 1f).forGetter(FuelType::burnerStrength)
+    ).apply(i, FuelType::new));
 
-        JsonObject normalEngineObject = element.getAsJsonObject().get("normal").getAsJsonObject();
-        JsonObject modularEngineObject = element.getAsJsonObject().has("modular") ? element.getAsJsonObject().get("modular").getAsJsonObject() : normalEngineObject;
-        JsonObject hugeEngineObject = element.getAsJsonObject().has("huge") ? element.getAsJsonObject().get("huge").getAsJsonObject() : normalEngineObject;
+    public static final FuelType EMPTY = new FuelType(null, new PerEngineProperties(0, 0, 0),
+            new PerEngineProperties(0, 0, 0),
+            new PerEngineProperties(0, 0, 0), 0, 0);
 
-        return new FuelType(
-                normalEngineObject.has("speed") ? normalEngineObject.get("speed").getAsFloat(): 16,
-                normalEngineObject.has("strength") ? normalEngineObject.get("strength").getAsFloat() : 1024,
-                normalEngineObject.has("burn_rate") ? normalEngineObject.get("burn_rate").getAsFloat() : 1,
-                modularEngineObject.has("speed") ? modularEngineObject.get("speed").getAsFloat(): 16,
-                modularEngineObject.has("strength") ? modularEngineObject.get("strength").getAsFloat() : 1024,
-                modularEngineObject.has("burn_rate") ? modularEngineObject.get("burn_rate").getAsFloat() : 1,
-                hugeEngineObject.has("speed") ? hugeEngineObject.get("speed").getAsFloat(): 16,
-                hugeEngineObject.has("strength") ? hugeEngineObject.get("strength").getAsFloat() : 1024,
-                hugeEngineObject.has("burn_rate") ? hugeEngineObject.get("burn_rate").getAsFloat() : 1,
-                element.getAsJsonObject().has("sound_pitch") ? element.getAsJsonObject().get("sound_pitch").getAsFloat() : 1,
-                element.getAsJsonObject().has("burner_multiplier") ? element.getAsJsonObject().get("burner_multiplier").getAsFloat() : 1
-        );
-    }
-
-    public float getBurnerStrength() {
-        return burnerStrength;
-    }
-
-    public Couple<Float> getGenerated(BlockEntity be) {
+    public PerEngineProperties getGenerated(BlockEntity be) {
         if(be instanceof HugeDieselEngineBlockEntity)
-            return getGeneratedHuge();
+            return huge;
         if(be instanceof ModularDieselEngineBlockEntity)
-            return getGeneratedModular();
-        return getGeneratedNormal();
+            return modular;
+        return normal;
     }
 
-    public Couple<Float> getGeneratedNormal() {return Couple.create(normalSpeed, normalStrength);}
-    public Couple<Float> getGeneratedModular() {return Couple.create(modularSpeed, modularStrength);}
-    public Couple<Float> getGeneratedHuge() {return Couple.create(hugeSpeed, hugeStrength);}
+    public static FuelType getTypeFor(HolderLookup.RegistryLookup<FuelType> registry, Fluid fluid) {
+        if (registry == null)
+            return EMPTY;
+        var type = registry.listElements()
+                .filter(r -> r.get().fluid().contains(fluid.builtInRegistryHolder()))
+                .findFirst();
+        return type.isEmpty() ? EMPTY : type.get().get();
+    }
 
-    public float getBurn(BlockEntity be) {
-        if(be instanceof HugeDieselEngineBlockEntity)
-            return hugeBurn;
-        if(be instanceof ModularDieselEngineBlockEntity)
-            return modularBurn;
-        return normalBurn;
+    public PerEngineProperties getGenerated(EngineTypes currentEngine) {
+        if(currentEngine == EngineTypes.HUGE)
+            return huge;
+        if(currentEngine == EngineTypes.MODULAR)
+            return modular;
+        return normal;
+    }
+
+    public record PerEngineProperties(float speed, float strength, float burn) {
+        public static final Codec<PerEngineProperties> CODEC = RecordCodecBuilder.create(i -> i.group(
+            Codec.FLOAT.fieldOf("speed").forGetter(PerEngineProperties::speed),
+            Codec.FLOAT.fieldOf("strength").forGetter(PerEngineProperties::strength),
+            Codec.FLOAT.fieldOf("burn_rate").forGetter(PerEngineProperties::burn)
+        ).apply(i, PerEngineProperties::new));
     }
 }

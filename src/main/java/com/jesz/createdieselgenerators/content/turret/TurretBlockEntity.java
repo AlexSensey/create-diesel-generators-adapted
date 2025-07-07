@@ -32,22 +32,27 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 public class TurretBlockEntity extends KineticBlockEntity {
-    public float horizontalRotation;
-    public float verticalRotation;
+
     public float oldHorizontalRotation;
     public float oldVerticalRotation;
-    public float targetedVerticalRotation = 0;
-    public float targetedHorizontalRotation = 0;
     public float oldTargetedVerticalRotation = 0;
     public float oldTargetedHorizontalRotation = 0;
+
+    public float horizontalRotation;
+    public float verticalRotation;
+    public float targetedVerticalRotation = 0;
+    public float targetedHorizontalRotation = 0;
+
     public Player controllingPlayer;
     public LivingEntity controllingEntity;
     public Entity targetedEntity;
     public Direction controllingEntityDirection;
     boolean removePlayer = false;
+
     public TurretBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
     }
+
     int t;
 
     @Override
@@ -56,16 +61,12 @@ public class TurretBlockEntity extends KineticBlockEntity {
             targetedEntity = null;
         if (controllingEntity != null){
             controllingEntity.setYHeadRot(-targetedHorizontalRotation+180);
-            if(controllingEntity.getRootVehicle() instanceof SeatEntity seat) {
-                if(Math.sqrt(seat.blockPosition().distSqr(worldPosition)) > 1) {
+            if (controllingEntity.getRootVehicle() instanceof SeatEntity seat) {
+                if (Math.sqrt(seat.blockPosition().distSqr(worldPosition)) > 1) {
                     ((IEntity)controllingEntity).setTurretPos(null);
                     controllingEntity = null;
                 }
-//                if(!seat.blockPosition().relative(controllingEntityDirection.getOpposite()).equals(worldPosition)) {
-//                    ((IEntity)controllingEntity).setTurretPos(null);
-//                    controllingEntity = null;
-//                }
-            }else {
+            } else {
                 ((IEntity) controllingEntity).setTurretPos(null);
                 controllingEntity = null;
             }

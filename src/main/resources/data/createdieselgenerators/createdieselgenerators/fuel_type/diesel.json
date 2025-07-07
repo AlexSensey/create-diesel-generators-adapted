@@ -1,6 +1,5 @@
 {
   "fluid": "#forge:diesel",
-  "sound_pitch": 0.9,
   "normal": {
     "speed": 96.0,
     "strength": 6144.0,
@@ -16,5 +15,6 @@
     "strength": 16384.0,
     "burn_rate": 0.05
   },
+  "sound_pitch": 0.9,
   "burner_multiplier": 0.6
 }

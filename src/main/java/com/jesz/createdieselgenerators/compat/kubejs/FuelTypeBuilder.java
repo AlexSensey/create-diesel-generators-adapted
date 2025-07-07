@@ -74,9 +74,11 @@ public class FuelTypeBuilder {
     }
 
     public FuelType build(){
-        FuelType type = new FuelType(normalSpeed, normalStrength, normalBurn,
-                modularSpeed, modularStrength, modularBurn,
-                hugeSpeed, hugeStrength, hugeBurn, soundSpeed, burnerStrength);
+
+//        FuelType type = new FuelType(normalSpeed, normalStrength, normalBurn,
+//                modularSpeed, modularStrength, modularBurn,
+//                hugeSpeed, hugeStrength, hugeBurn, soundSpeed, burnerStrength);
+        FuelType type = null;
         callback.accept(type);
         return type;
     }

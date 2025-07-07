@@ -1,20 +1,14 @@
 package com.jesz.createdieselgenerators.events;
 
-import com.jesz.createdieselgenerators.CDGBlocks;
-import com.jesz.createdieselgenerators.CDGConfig;
-import com.jesz.createdieselgenerators.CDGItems;
-import com.jesz.createdieselgenerators.CreateDieselGenerators;
+import com.jesz.createdieselgenerators.*;
 import com.jesz.createdieselgenerators.commands.CDGCommands;
 import com.jesz.createdieselgenerators.content.andesite_girder.AndesiteGirderWrenchBehaviour;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineTypes;
 import com.jesz.createdieselgenerators.content.entity_filter.EntityFilteringRenderer;
 import com.jesz.createdieselgenerators.content.entity_filter.ReverseLootTable;
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
-import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
 import com.jesz.createdieselgenerators.mixins.LootPoolAccessor;
 import com.jesz.createdieselgenerators.mixins.LootTableAccessor;
-import com.jesz.createdieselgenerators.packets.CDGPackets;
-import com.jesz.createdieselgenerators.packets.FuelTypesUpdatePacket;
 import com.simibubi.create.content.equipment.goggles.GogglesItem;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.foundation.item.TooltipHelper;
@@ -27,12 +21,12 @@ import net.createmod.catnip.lang.FontHelper;
 import net.createmod.catnip.lang.Lang;
 import net.createmod.catnip.lang.LangBuilder;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
@@ -44,7 +38,6 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
@@ -54,7 +47,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.LootTableLoadEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -64,9 +56,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.command.ConfigCommand;
 
@@ -108,15 +98,15 @@ public class ForgeEvents {
     @SubscribeEvent
     public static void playerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         Player player = event.getEntity();
-        if(player instanceof ServerPlayer sp)
-            CDGPackets.getChannel().send(PacketDistributor.PLAYER.with(() -> sp), new FuelTypesUpdatePacket(FuelTypeManager.fuelTypes));
+//        if (player instanceof ServerPlayer sp)
+//            CDGPackets.getChannel().send(PacketDistributor.PLAYER.with(() -> sp), new FuelTypesUpdatePacket(FuelTypeManager.fuelTypes));
 
     }
 
     @SubscribeEvent
     public static void addReloadListeners(AddReloadListenerEvent event){
         event.addListener(ReverseLootTable.INSTANCE);
-        event.addListener(FuelTypeManager.ReloadListener.INSTANCE);
+//        event.addListener(FuelTypeManager.ReloadListener.INSTANCE);
     }
 
     @SubscribeEvent
@@ -154,7 +144,8 @@ public class ForgeEvents {
                         itemEntity.level().playLocalSound(itemEntity.getPosition(1).x, itemEntity.getPosition(1).y, itemEntity.getPosition(1).z, SoundEvents.CANDLE_EXTINGUISH, SoundSource.BLOCKS, 1f, 1f, false);
                         return;
                     }
-                    if (FuelTypeManager.getGeneratedSpeed(fState.getType()) != 0)
+                    boolean flammable = FuelType.getTypeFor(itemEntity.level().registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fState.getType()).normal().speed() != 0;
+                    if (flammable)
                         itemEntity.level().explode(null, null, null, itemEntity.getPosition(1).x, itemEntity.getPosition(1).y, itemEntity.getPosition(1).z, 1, true, Level.ExplosionInteraction.BLOCK);
                 }
     }
@@ -173,8 +164,9 @@ public class ForgeEvents {
                         if (!level.isInWorldBounds(pos)) continue;
                         if (Math.abs(Math.sqrt(x*x+y*y+z*z)) < 2) {
                             FluidState fluidState = level.getFluidState(pos);
+                            boolean flammable = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fluidState.getType()).normal().speed() != 0;
 
-                            if (FuelTypeManager.getGeneratedSpeed(fluidState.getType()) != 0) {
+                            if (flammable) {
                                 level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
                                 if (!toExplode.containsKey(level))
                                     toExplode.put(level, new HashSet<>());
@@ -213,31 +205,32 @@ public class ForgeEvents {
             if(item instanceof BucketItem bi)
                 fluid = bi.getFluid();
 
-            if (FuelTypeManager.getGeneratedSpeed(fluid) != 0) {
-                if (Screen.hasAltDown()) {
-                    tooltip.add(1, Component.translatable("createdieselgenerators.tooltip.holdForFuelStats", Component.translatable("createdieselgenerators.tooltip.keyAlt").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.DARK_GRAY));
-                    tooltip.add(2, Component.empty());
+            FuelType type = FuelType.getTypeFor(Minecraft.getInstance().level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fluid);
 
-                    byte enginesEnabled = (byte) ((EngineTypes.NORMAL.enabled() ? 1 : 0) + (EngineTypes.MODULAR.enabled() ? 1 : 0) + (EngineTypes.HUGE.enabled() ? 1 : 0));
-                    int currentEngineIndex = (AnimationTickHolder.getTicks() % (120)) / 20;
-                    List<EngineTypes> enabledEngines = Arrays.stream(EngineTypes.values()).filter(EngineTypes::enabled).toList();
-                    EngineTypes currentEngine = enabledEngines.get(currentEngineIndex % enginesEnabled);
-                    float currentSpeed = FuelTypeManager.getGeneratedSpeed(currentEngine, fluid);
-                    float currentCapacity = FuelTypeManager.getGeneratedStress(currentEngine, fluid);
-                    float currentBurn = FuelTypeManager.getBurnRate(currentEngine, fluid);
+            if (Screen.hasAltDown() && type.normal().speed() != 0) {
 
-                    if(enginesEnabled != 1)
-                        tooltip.add(3, Component.translatable("block.createdieselgenerators."+
-                                (currentEngine == EngineTypes.MODULAR ? "large_" : currentEngine == EngineTypes.HUGE ? "huge_" : "")+"diesel_engine").withStyle(ChatFormatting.GRAY));
-                    tooltip.add(enginesEnabled != 1 ? 4 : 3, Component.translatable("createdieselgenerators.tooltip.fuelSpeed", CreateLang.number(currentSpeed).component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
-                    tooltip.add(enginesEnabled != 1 ? 5 : 4, Component.translatable("createdieselgenerators.tooltip.fuelStress", CreateLang.number(currentCapacity).component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
-                    tooltip.add(enginesEnabled != 1 ? 6 : 5, Component.translatable("createdieselgenerators.tooltip.fuelBurnRate", CreateLang.number(currentBurn).component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
-                    tooltip.add(enginesEnabled != 1 ? 7 : 6, Component.empty());
-                    tooltip.add(enginesEnabled != 1 ? 8 : 7, Component.translatable("createdieselgenerators.tooltip.burnerStrength", CreateLang.number(FuelTypeManager.getBurnerStrength(fluid) * 100).text(" %").component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
-                    tooltip.add(enginesEnabled != 1 ? 9 : 8, Component.empty());
-                } else {
-                    tooltip.add(1, Component.translatable("createdieselgenerators.tooltip.holdForFuelStats", Component.translatable("createdieselgenerators.tooltip.keyAlt").withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY));
-                }
+                tooltip.add(1, Component.translatable("createdieselgenerators.tooltip.holdForFuelStats", Component.translatable("createdieselgenerators.tooltip.keyAlt").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.DARK_GRAY));
+                tooltip.add(2, Component.empty());
+
+                byte enginesEnabled = (byte) ((EngineTypes.NORMAL.enabled() ? 1 : 0) + (EngineTypes.MODULAR.enabled() ? 1 : 0) + (EngineTypes.HUGE.enabled() ? 1 : 0));
+                int currentEngineIndex = (AnimationTickHolder.getTicks() % (120)) / 20;
+                List<EngineTypes> enabledEngines = Arrays.stream(EngineTypes.values()).filter(EngineTypes::enabled).toList();
+                EngineTypes currentEngine = enabledEngines.get(currentEngineIndex % enginesEnabled);
+                float currentSpeed = type.getGenerated(currentEngine).speed();
+                float currentCapacity = type.getGenerated(currentEngine).strength();
+                float currentBurn = type.getGenerated(currentEngine).burn();
+
+                if(enginesEnabled != 1)
+                    tooltip.add(3, Component.translatable("block.createdieselgenerators."+
+                            (currentEngine == EngineTypes.MODULAR ? "large_" : currentEngine == EngineTypes.HUGE ? "huge_" : "")+"diesel_engine").withStyle(ChatFormatting.GRAY));
+                tooltip.add(enginesEnabled != 1 ? 4 : 3, Component.translatable("createdieselgenerators.tooltip.fuelSpeed", CreateLang.number(currentSpeed).component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
+                tooltip.add(enginesEnabled != 1 ? 5 : 4, Component.translatable("createdieselgenerators.tooltip.fuelStress", CreateLang.number(currentCapacity).component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
+                tooltip.add(enginesEnabled != 1 ? 6 : 5, Component.translatable("createdieselgenerators.tooltip.fuelBurnRate", CreateLang.number(currentBurn * 20).component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
+                tooltip.add(enginesEnabled != 1 ? 7 : 6, Component.empty());
+                tooltip.add(enginesEnabled != 1 ? 8 : 7, Component.translatable("createdieselgenerators.tooltip.burnerStrength", CreateLang.number(type.burnerStrength() * 100).text(" %").component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
+                tooltip.add(enginesEnabled != 1 ? 9 : 8, Component.empty());
+            } else {
+                tooltip.add(1, Component.translatable("createdieselgenerators.tooltip.holdForFuelStats", Component.translatable("createdieselgenerators.tooltip.keyAlt").withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY));
             }
         }
 
@@ -256,21 +249,22 @@ public class ForgeEvents {
         int highestCapacity = 0;
         int highestStressCapacity = 0;
 
-        for (FuelType type : FuelTypeManager.fuelTypes.values()) {
+        for (var r : Minecraft.getInstance().level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE).listElements().toList()) {
+            FuelType type = r.get();
             if (CDGBlocks.DIESEL_ENGINE.is(bi)) {
-                highestRPM = (int) Math.max(highestRPM, type.normalSpeed());
-                highestCapacity = (int) Math.max(highestCapacity, type.normalStrength() / type.normalSpeed());
-                highestStressCapacity = (int) Math.max(highestStressCapacity, type.normalStrength());
+                highestRPM = (int) Math.max(highestRPM, type.normal().speed());
+                highestCapacity = (int) Math.max(highestCapacity, type.normal().strength() / type.normal().speed());
+                highestStressCapacity = (int) Math.max(highestStressCapacity, type.normal().strength());
             }
             else if (CDGBlocks.MODULAR_DIESEL_ENGINE.is(bi)) {
-                highestRPM = (int) Math.max(highestRPM, type.modularSpeed());
-                highestCapacity = (int) Math.max(highestCapacity, type.modularStrength() / type.modularSpeed());
-                highestStressCapacity = (int) Math.max(highestStressCapacity, type.modularStrength());
+                highestRPM = (int) Math.max(highestRPM, type.modular().speed());
+                highestCapacity = (int) Math.max(highestCapacity, type.modular().strength() / type.modular().speed());
+                highestStressCapacity = (int) Math.max(highestStressCapacity, type.modular().strength());
             }
             else if (CDGBlocks.HUGE_DIESEL_ENGINE.is(bi)) {
-                highestRPM = (int) Math.max(highestRPM, type.hugeSpeed());
-                highestCapacity = (int) Math.max(highestCapacity, type.hugeStrength() / type.hugeSpeed());
-                highestStressCapacity = (int) Math.max(highestStressCapacity, type.hugeStrength());
+                highestRPM = (int) Math.max(highestRPM, type.huge().speed());
+                highestCapacity = (int) Math.max(highestCapacity, type.huge().strength() / type.huge().speed());
+                highestStressCapacity = (int) Math.max(highestStressCapacity, type.huge().strength());
             }
         }
         boolean hasGoggles = GogglesItem.isWearingGoggles(event.getEntity());

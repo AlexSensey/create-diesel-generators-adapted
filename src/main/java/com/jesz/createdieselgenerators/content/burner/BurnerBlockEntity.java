@@ -1,6 +1,7 @@
 package com.jesz.createdieselgenerators.content.burner;
 
-import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
+import com.jesz.createdieselgenerators.CDGRegistries;
+import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.foundation.fluid.SmartFluidTank;
@@ -121,8 +122,8 @@ public class BurnerBlockEntity extends KineticBlockEntity {
 
     Fluid lastFluid;
     void onFluidStackChanged(FluidStack stack) {
-        if(lastFluid != stack.getFluid())
-            multiplier = FuelTypeManager.getBurnerStrength(tank.getFluid().getRawFluid());
+        if (lastFluid != stack.getFluid())
+            multiplier = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), tank.getFluid().getFluid()).burnerStrength();
         lastFluid = stack.getFluid();
     }
     public BlazeBurnerBlock.HeatLevel calculateHeatLevel(float heat) {

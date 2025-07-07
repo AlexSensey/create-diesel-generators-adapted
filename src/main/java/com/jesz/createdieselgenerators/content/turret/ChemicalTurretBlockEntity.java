@@ -1,8 +1,9 @@
 package com.jesz.createdieselgenerators.content.turret;
 
+import com.jesz.createdieselgenerators.CDGRegistries;
 import com.jesz.createdieselgenerators.compat.computercraft.CCProxy;
 import com.jesz.createdieselgenerators.content.tools.ChemicalSprayerProjectileEntity;
-import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
+import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.compat.computercraft.AbstractComputerBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -29,6 +30,8 @@ import java.util.Random;
 public class ChemicalTurretBlockEntity extends TurretBlockEntity {
 
     public boolean lighterUpgrade = false;
+    public boolean shootNextTick = false;
+
     public ChemicalTurretBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
     }
@@ -60,33 +63,40 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
         super.addToGoggleTooltip(tooltip, isPlayerSneaking);
         return containedFluidTooltip(tooltip, isPlayerSneaking, tank.getCapability().cast());
     }
+
     public int redstoneSignal;
+
     @Override
     public void tick() {
         super.tick();
-        if(redstoneSignal != 0)
+        if (redstoneSignal != 0 || shootNextTick) {
             shootFluids();
-        if(targetedEntity == null)
+            shootNextTick = false;
+        }
+        if (targetedEntity == null)
             return;
-        if(controllingEntity == null) {
+        if (controllingEntity == null) {
             targetedEntity = null;
             return;
         }
-        if(Math.abs(targetedHorizontalRotation - horizontalRotation)%360 <= 4 || Math.abs(targetedHorizontalRotation - horizontalRotation)%360 >= 356)
+        if (Math.abs(targetedHorizontalRotation - horizontalRotation) % 360 <= 4 || Math.abs(targetedHorizontalRotation - horizontalRotation) % 360 >= 356)
             shootFluids();
     }
+
     @Override
     protected void read(CompoundTag compound, boolean clientPacket) {
         super.read(compound, clientPacket);
         lighterUpgrade = compound.getBoolean("LighterUpgrade");
         redstoneSignal = compound.getInt("RedstoneSignal");
     }
+
     @Override
     protected void write(CompoundTag compound, boolean clientPacket) {
         super.write(compound, clientPacket);
         compound.putBoolean("LighterUpgrade", lighterUpgrade);
         compound.putInt("RedstoneSignal", redstoneSignal);
     }
+
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
         behaviours.add(computerBehaviour = CCProxy.behaviour(this));
@@ -100,10 +110,13 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
             return;
         float shootingForce = (float) Math.min(Math.abs(1 - Math.pow(1 - (getSpeed() / 256), 3)), 1);
 
-        if(!level.isClientSide && !tank.isEmpty()) {
+        if (!level.isClientSide && !tank.isEmpty()) {
             AllSoundEvents.MIXING.playOnServer(level, worldPosition, .75f, 1);
             FluidStack fluidStack = tank.getPrimaryHandler().getFluid().copy();
-            ChemicalSprayerProjectileEntity projectile = ChemicalSprayerProjectileEntity.spray(level, fluidStack, (FuelTypeManager.getGeneratedSpeed(fluidStack.getFluid()) != 0 && lighterUpgrade) || fluidStack.getFluid().isSame(Fluids.LAVA), fluidStack.getFluid().isSame(Fluids.WATER));
+
+            boolean flammable = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fluidStack.getFluid()).normal().speed() != 0;
+
+            ChemicalSprayerProjectileEntity projectile = ChemicalSprayerProjectileEntity.spray(level, fluidStack, (flammable && lighterUpgrade) || fluidStack.getFluid().isSame(Fluids.LAVA), fluidStack.getFluid().isSame(Fluids.WATER));
             projectile.setPos(Vec3.atCenterOf(worldPosition).add(0, 0.625f, 0));
             projectile.shootFromRotation(projectile, verticalRotation + new Random().nextFloat(-1, 1),
                     (float)(Math.atan2(Math.sin(horizontalRotation/180*Math.PI), -Math.cos(horizontalRotation/180*Math.PI))*180/Math.PI)
@@ -113,6 +126,7 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
                 tank.getPrimaryHandler().drain(3, IFluidHandler.FluidAction.EXECUTE);
         }
     }
+
     public static class ChemicalTurretValueBox extends ValueBoxTransform.Sided {
 
         @Override

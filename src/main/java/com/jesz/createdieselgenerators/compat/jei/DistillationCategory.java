@@ -27,10 +27,10 @@ public class DistillationCategory extends CreateRecipeCategory<DistillationRecip
 
     private final AnimatedDistillationTower distillationTower = new AnimatedDistillationTower();
     private final AnimatedBlazeBurner heater = new AnimatedBlazeBurner();
+
     public DistillationCategory(Info<DistillationRecipe> info) {
         super(info);
     }
-
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, DistillationRecipe recipe, IFocusGroup focuses) {
@@ -43,7 +43,6 @@ public class DistillationCategory extends CreateRecipeCategory<DistillationRecip
 
         int i = 1;
 
-        int size = recipe.getRollableResults().size() + recipe.getFluidResults().size();
         for (FluidStack fluidResult : recipe.getFluidResults()) {
             int yPosition = -23 * i + 150;
             addFluidSlot(builder, 130, yPosition, fluidResult);
@@ -62,7 +61,7 @@ public class DistillationCategory extends CreateRecipeCategory<DistillationRecip
                     .addItemStack(AllItems.BLAZE_CAKE.asStack());
         }
     }
-    int height = 0;
+
     @Override
     public void draw(DistillationRecipe recipe, IRecipeSlotsView iRecipeSlotsView, GuiGraphics graphics, double mouseX, double mouseY) {
         HeatCondition requiredHeat = recipe.getRequiredHeat();

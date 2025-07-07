@@ -4,7 +4,6 @@ import com.jesz.createdieselgenerators.CDGBlocks;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineSoundInstance;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.jesz.createdieselgenerators.content.diesel_engine.IEngine;
-import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.contraptions.bearing.WindmillBearingBlockEntity;
 import com.simibubi.create.content.kinetics.base.IRotate;
@@ -99,7 +98,7 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
                 return;
             }
 
-            shaft.update(worldPosition, movementDirection.getValue() == 0 ? 1 : -1, upgrade.getCapacity(upgrade.getCapacity(getFuelCapacity(), this), this), upgrade.getSpeed(getFuelSpeed(), this));
+            shaft.update(worldPosition, movementDirection.getValue() == 0 ? 1 : -1, upgrade.getCapacity(getFuelCapacity(), this), upgrade.getSpeed(getFuelSpeed(), this));
 
             if (level.isClientSide)
                 DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::tickClient);
@@ -179,9 +178,12 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
         PoweredEngineShaftBlockEntity shaft = getShaft();
         if(shaft == null)
             return false;
-        float stressBase = FuelTypeManager.getGeneratedStress(this, tank.getPrimaryHandler().getFluid().getFluid());
+        float stressBase = upgrade.getCapacity(getFuelCapacity(), this) *
+                upgrade.getSpeed(getFuelSpeed(), this);
+
         if (Mth.equal(stressBase, 0))
             return false;
+
         CreateLang.translate("gui.goggles.generator_stats")
                 .forGoggles(tooltip);
         CreateLang.translate("tooltip.capacityProvided")

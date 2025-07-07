@@ -1,8 +1,9 @@
 package com.jesz.createdieselgenerators.content.tools.lighter;
 
+import com.jesz.createdieselgenerators.CDGRegistries;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.content.tools.FueledToolItem;
-import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
+import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.AllEnchantments;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.content.equipment.armor.CapacityEnchantment;
@@ -69,15 +70,15 @@ public class LighterItem extends Item implements CapacityEnchantment.ICapacityEn
 
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int p_41407_, boolean p_41408_) {
-        if(stack.getTag() != null) {
-            CompoundTag tankCompound = stack.getTag().getCompound("Fluid");
-            FluidStack fStack = FluidStack.loadFluidStackFromNBT(tankCompound);
-            if(FuelTypeManager.getGeneratedSpeed(fStack.getFluid()) == 0 && stack.getTag().getInt("Type") == 2){
-                stack.getTag().putInt("Type", 1);
-            }
+        if (stack.getTag() == null)
+            return;
+        CompoundTag tankCompound = stack.getTag().getCompound("Fluid");
+        FluidStack fStack = FluidStack.loadFluidStackFromNBT(tankCompound);
 
+        boolean flammable = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fStack.getFluid()).normal().speed() != 0;
+        if (flammable && stack.getTag().getInt("Type") == 2){
+            stack.getTag().putInt("Type", 1);
         }
-        super.inventoryTick(stack, level, entity, p_41407_, p_41408_);
     }
 
     @Override
@@ -97,8 +98,10 @@ public class LighterItem extends Item implements CapacityEnchantment.ICapacityEn
             }
             CompoundTag tankCompound = stackInHand.getTag().getCompound("Fluid");
             FluidStack fStack = FluidStack.loadFluidStackFromNBT(tankCompound);
-            tag.putInt("Type", FuelTypeManager.getGeneratedSpeed(fStack.getFluid()) == 0 ? 1 : 2);
-            if(FuelTypeManager.getGeneratedSpeed(fStack.getFluid()) != 0 && stackInHand.getTag().getInt("Type") == 2){
+
+            boolean flammable = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fStack.getFluid()).normal().speed() != 0;
+            tag.putInt("Type", flammable ? 2 : 1);
+            if (flammable && stackInHand.getTag().getInt("Type") == 2) {
                 fStack.setAmount(fStack.getAmount()-1);
                 fStack.writeToNBT(stackInHand.getTag().getCompound("Fluid"));
             }
@@ -132,11 +135,12 @@ public class LighterItem extends Item implements CapacityEnchantment.ICapacityEn
                 }
                 CompoundTag tankCompound = itemstack.getTag().getCompound("Fluid");
                 FluidStack fStack = FluidStack.loadFluidStackFromNBT(tankCompound);
-                if(fStack.getAmount() == 0){
+                if (fStack.getAmount() == 0) {
                     itemstack.getTag().putInt("Type", 1);
                     return InteractionResult.FAIL;
                 }
-                if(FuelTypeManager.getGeneratedSpeed(fStack.getFluid()) != 0 && itemstack.getTag().getInt("Type") == 2){
+                boolean flammable = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fStack.getFluid()).normal().speed() != 0;
+                if (flammable && itemstack.getTag().getInt("Type") == 2){
                     fStack.setAmount(fStack.getAmount()-1);
                     fStack.writeToNBT(itemstack.getTag().getCompound("Fluid"));
                 }
@@ -151,16 +155,19 @@ public class LighterItem extends Item implements CapacityEnchantment.ICapacityEn
             level.gameEvent(player, GameEvent.BLOCK_CHANGE, blockpos);
             CompoundTag tankCompound = itemstack.getTag().getCompound("Fluid");
             FluidStack fStack = FluidStack.loadFluidStackFromNBT(tankCompound);
-            if(fStack.getAmount() == 0){
+            if (fStack.getAmount() == 0){
                 itemstack.getTag().putInt("Type", 1);
                 return InteractionResult.FAIL;
             }
-            if(FuelTypeManager.getGeneratedSpeed(fStack.getFluid()) != 0 && itemstack.getTag().getInt("Type") == 2){
+
+            boolean flammable = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fStack.getFluid()).normal().speed() != 0;
+
+            if (flammable && itemstack.getTag().getInt("Type") == 2){
                 fStack.setAmount(fStack.getAmount()-1);
                 fStack.writeToNBT(itemstack.getTag().getCompound("Fluid"));
             }
 
-            return InteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
     }
 

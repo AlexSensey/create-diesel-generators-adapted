@@ -2,13 +2,13 @@
   "type": "create:crushing",
   "ingredients": [
     {
-      "tag": "minecraft:wooden_fences"
+      "tag": "minecraft:signs"
     }
   ],
   "results": [
     {
       "item": "createdieselgenerators:wood_chip",
-      "count": 10
+      "count": 8
     },
     {
       "item": "createdieselgenerators:wood_chip",

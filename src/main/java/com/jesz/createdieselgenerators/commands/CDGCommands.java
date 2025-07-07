@@ -33,7 +33,9 @@ public class CDGCommands {
                 .then(Commands.literal("get").executes((command) -> getOilChunk(command.getSource())))
                 .then(Commands.literal("locate").executes((command) -> locateOilChunk(command.getSource())))
                 .then(Commands.literal("regenerate").executes((command) -> refreshOilChunk(command.getSource())))
-                .then(Commands.literal("set").then(Commands.argument("amount", IntegerArgumentType.integer(0, 100000)).executes((command) -> setOilChunk(command.getSource(), command))))
+                .then(Commands.literal("set")
+                        .then(Commands.argument("amount", IntegerArgumentType.integer(0, Integer.MAX_VALUE))
+                                .executes((command) -> setOilChunk(command.getSource(), command))))
 
                 ));
     }

@@ -18,9 +18,11 @@ public class MoldType {
     public static MoldType BAR_MOLD = new MoldType(CreateDieselGenerators.rl("bar"));
 
     ResourceLocation id;
+
     @OnlyIn(Dist.CLIENT)
     public BakedModel model;
-    public MoldType(ResourceLocation id){
+
+    public MoldType(ResourceLocation id) {
         this.id = id;
         types.add(this);
     }
@@ -28,11 +30,12 @@ public class MoldType {
     public ResourceLocation getId() {
         return id;
     }
+
     public ResourceLocation getModelId() {
         return new ResourceLocation(id.getNamespace(), "item/mold/"+id.getPath());
     }
 
-    public static MoldType findById(ResourceLocation id){
+    public static MoldType findById(ResourceLocation id) {
         for (MoldType type : types){
             if(type.id.equals(id))
                 return type;
@@ -40,5 +43,7 @@ public class MoldType {
         return null;
     }
 
-    public static void register(){}
+    public static void register() {
+
+    }
 }

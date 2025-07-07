@@ -1,6 +1,7 @@
 package com.jesz.createdieselgenerators.content.tools;
 
-import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
+import com.jesz.createdieselgenerators.CDGRegistries;
+import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.AllEnchantments;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.equipment.armor.CapacityEnchantment;
@@ -78,9 +79,10 @@ public class ChemicalSprayerItem extends Item implements CustomArmPoseItem, Capa
         if(stack.getTag()!= null) {
             FluidStack fluidStack = readFluid(stack);
             if (!fluidStack.isEmpty()) {
-                if(!level.isClientSide) {
+                if (!level.isClientSide) {
                     if (count % 2 == 0) {
-                        ChemicalSprayerProjectileEntity projectile = ChemicalSprayerProjectileEntity.spray(level, fluidStack, (FuelTypeManager.getGeneratedSpeed(fluidStack.getFluid()) != 0 && lighter) || fluidStack.getFluid().isSame(Fluids.LAVA), fluidStack.getFluid().isSame(Fluids.WATER));
+                        boolean fire = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fluidStack.getFluid()).normal().speed() != 0;
+                        ChemicalSprayerProjectileEntity projectile = ChemicalSprayerProjectileEntity.spray(level, fluidStack, (fire && lighter) || fluidStack.getFluid().isSame(Fluids.LAVA), fluidStack.getFluid().isSame(Fluids.WATER));
                         projectile.setPos(player.position().add(0, 1.5f, 0));
                         projectile.shootFromRotation(player, player.getXRot() + new Random().nextFloat(-5, 5), player.getYRot() + new Random().nextFloat(-5, 5), 0.0f, 1.0f, 1.0f);
                         level.addFreshEntity(projectile);
@@ -88,7 +90,7 @@ public class ChemicalSprayerItem extends Item implements CustomArmPoseItem, Capa
                     }
                     if (!(player instanceof Player p && p.isCreative()) && count % 25 == 0)
                         writeFluid(stack, fluidStack);
-                }else {
+                } else {
                     if (count % 2 == 0) {
                         AllSoundEvents.MIXING.playAt(level, player.blockPosition(), .75f, 1, true);
                     }

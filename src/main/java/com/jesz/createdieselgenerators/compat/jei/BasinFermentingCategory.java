@@ -64,11 +64,7 @@ public class BasinFermentingCategory extends CreateRecipeCategory<BasinRecipe> {
             i++;
         }
         for (FluidIngredient fluidIngredient : recipe.getFluidIngredients()) {
-            builder
-                    .addSlot(RecipeIngredientRole.INPUT, 17 + xOffset + (i % 3) * 19, 41 - (i / 3) * 19)
-                    .setBackground(getRenderedSlot(), -1, -1)
-                    .addIngredients(ForgeTypes.FLUID_STACK, fluidIngredient.getMatchingFluidStacks());
-//                    .addTooltipCallback(addFluidTooltip(fluidIngredient.getRequiredAmount()));
+            addFluidSlot(builder, 17 + xOffset + (i % 3) * 19, 41 - (i / 3) * 19, fluidIngredient);
             i++;
         }
 

@@ -103,15 +103,10 @@
   "createdieselgenerators.hint.pumpjack_hole_no_pipe": "This _Pumpjack_ does not appear to be connected to _bedrock_ below. Ensure the _Pipe_ reaches all the way down to the void.",
   "createdieselgenerators.goggle.oil_amount": "Oil Amount:",
 
-  "createdieselgenerators.display_source.oil_amount": "Oil Amount",
-  "createdieselgenerators.display_source.engine_status": "Engine Status",
-  "createdieselgenerators.display_source.diesel_engine": "Engine Status",
-  "createdieselgenerators.display_source.large_diesel_engine": "Engine Status",
-  "createdieselgenerators.display_source.huge_diesel_engine": "Engine Status",
-  "createdieselgenerators.display_source.speed": "SPEED : ",
-  "createdieselgenerators.display_source.stress": "STRESS : ",
-  "createdieselgenerators.display_source.idle": "IDLE",
   "createdieselgenerators.tooltip.empty": "Empty",
+  "createdieselgenerators.tooltip.crank.normal": "Normal",
+  "createdieselgenerators.tooltip.crank.large": "Large",
+
   "createdieselgenerators.generic.unit.mbps": "mB/s",
 
   "sounds.createdieselgenerators.engine_normal": "Diesel Engine Roars",

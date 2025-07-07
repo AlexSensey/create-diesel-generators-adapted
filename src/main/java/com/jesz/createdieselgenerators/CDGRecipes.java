@@ -33,7 +33,7 @@ public enum CDGRecipes implements IRecipeTypeInfo {
     WIRE_CUTTING(WireCuttingRecipe::new),
     HAMMERING(HammerRecipe::new);
 
-    private final ResourceLocation id = new ResourceLocation("createdieselgenerators");;
+    private final ResourceLocation id;
     private final RegistryObject<RecipeSerializer<?>> serializerObject;
     @Nullable
     private final RegistryObject<RecipeType<?>> typeObject;
@@ -41,13 +41,16 @@ public enum CDGRecipes implements IRecipeTypeInfo {
 
     CDGRecipes(Supplier<RecipeSerializer<?>> serializerSupplier) {
         String name = CreateLang.asId(name());
+        id = CreateDieselGenerators.rl(name);
         serializerObject = Registers.SERIALIZER_REGISTER.register(name, serializerSupplier);
         typeObject = Registers.TYPE_REGISTER.register(name, () -> RecipeType.simple(id));
         type = typeObject;
     }
+
     CDGRecipes(ProcessingRecipeBuilder.ProcessingRecipeFactory<?> processingFactory) {
         this(() -> new ProcessingRecipeSerializer<>(processingFactory));
     }
+
     public static void register(IEventBus modEventBus) {
         Registers.SERIALIZER_REGISTER.register(modEventBus);
         Registers.TYPE_REGISTER.register(modEventBus);

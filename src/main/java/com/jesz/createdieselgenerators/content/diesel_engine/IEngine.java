@@ -1,10 +1,10 @@
 package com.jesz.createdieselgenerators.content.diesel_engine;
 
 import com.jesz.createdieselgenerators.CDGConfig;
+import com.jesz.createdieselgenerators.CDGRegistries;
 import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock;
-import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
+import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
-import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 
@@ -19,7 +19,7 @@ public interface IEngine {
     default boolean validFS() {
         if (fs().isEmpty())
             return false;
-        return FuelTypeManager.isFuel(fs().getFluid());
+        return FuelType.getTypeFor(self().getLevel().registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fs().getFluid()) != FuelType.EMPTY;
     }
 
     default FluidStack fs() {
@@ -27,22 +27,22 @@ public interface IEngine {
     }
 
     default float getFuelSpeed() {
-        return FuelTypeManager.getGeneratedSpeed(self(), fs().getFluid());
+        return FuelType.getTypeFor(self().getLevel().registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fs().getFluid()).getGenerated(self()).speed();
     }
 
     default float getFuelCapacity() {
         float speed = getFuelSpeed();
         if (speed == 0)
             return speed;
-        return FuelTypeManager.getGeneratedStress(self(), fs().getFluid()) / speed;
+        return FuelType.getTypeFor(self().getLevel().registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fs().getFluid()).getGenerated(self()).strength() / speed;
     }
 
     default float getFuelBurnRate() {
-        return FuelTypeManager.getBurnRate(self(), fs().getFluid());
+        return FuelType.getTypeFor(self().getLevel().registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fs().getFluid()).getGenerated(self()).burn();
     }
 
     default float getFuelSoundPitch() {
-        return FuelTypeManager.getSoundPitch(fs().getFluid());
+        return FuelType.getTypeFor(self().getLevel().registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fs().getFluid()).soundPitch();
     }
 
     float getRemainingTicks();

@@ -1,14 +1,11 @@
 package com.jesz.createdieselgenerators.compat.jei;
 
-import com.google.common.collect.ImmutableList;
 import com.jesz.createdieselgenerators.*;
 import com.jesz.createdieselgenerators.content.bulk_fermenter.BulkFermentingRecipe;
 import com.jesz.createdieselgenerators.content.distillation.DistillationRecipe;
 import com.jesz.createdieselgenerators.content.molds.CastingRecipe;
 import com.jesz.createdieselgenerators.content.tools.hammer.HammerRecipe;
 import com.jesz.createdieselgenerators.content.tools.wire_cutters.WireCuttingRecipe;
-import com.jesz.createdieselgenerators.fuel_type.FuelType;
-import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.compat.jei.*;
@@ -31,7 +28,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.material.Fluid;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
@@ -115,29 +111,17 @@ public class CDGJEI implements IModPlugin {
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
-        registration.addRecipeCategories(new DieselEngineCategory(registration.getJeiHelpers().getGuiHelper()));
         loadCategories();
         registration.addRecipeCategories(allCategories.toArray(IRecipeCategory[]::new));
     }
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
         allCategories.forEach(c -> c.registerRecipes(registration));
-        if(!CDGConfig.DIESEL_ENGINE_IN_JEI.get())
-            return;
-        for(Map.Entry<Fluid, FuelType> entry : FuelTypeManager.fuelTypes.entrySet())
-            if(entry.getKey().isSource(entry.getKey().defaultFluidState()))
-                registration.addRecipes(DieselEngineJeiRecipeType.DIESEL_COMBUSTION, ImmutableList.of(new DieselEngineJeiRecipeType(entry.getKey())));
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         allCategories.forEach(c -> c.registerCatalysts(registration));
-        if(CDGConfig.NORMAL_ENGINES.get())
-            registration.addRecipeCatalyst(CDGBlocks.DIESEL_ENGINE.asStack(), DieselEngineJeiRecipeType.DIESEL_COMBUSTION);
-        if(CDGConfig.MODULAR_ENGINES.get())
-            registration.addRecipeCatalyst(CDGBlocks.MODULAR_DIESEL_ENGINE.asStack(), DieselEngineJeiRecipeType.DIESEL_COMBUSTION);
-        if(CDGConfig.HUGE_ENGINES.get())
-            registration.addRecipeCatalyst(CDGBlocks.HUGE_DIESEL_ENGINE.asStack(), DieselEngineJeiRecipeType.DIESEL_COMBUSTION);
     }
 
     @Override
@@ -209,45 +193,6 @@ public class CDGJEI implements IModPlugin {
 
         public CategoryBuilder<T> addTypedRecipes(Supplier<RecipeType<? extends T>> recipeType) {
             return addRecipeListConsumer(recipes -> CreateJEI.<T>consumeTypedRecipes(recipes::add, recipeType.get()));
-        }
-
-        public CategoryBuilder<T> addTypedRecipes(Supplier<RecipeType<? extends T>> recipeType, Function<Recipe<?>, T> converter) {
-            return addRecipeListConsumer(recipes -> CreateJEI.<T>consumeTypedRecipes(recipe -> recipes.add(converter.apply(recipe)), recipeType.get()));
-        }
-
-        public CategoryBuilder<T> addTypedRecipesIf(Supplier<RecipeType<? extends T>> recipeType, Predicate<Recipe<?>> pred) {
-            return addRecipeListConsumer(recipes -> CreateJEI.<T>consumeTypedRecipes(recipe -> {
-                if (pred.test(recipe)) {
-                    recipes.add(recipe);
-                }
-            }, recipeType.get()));
-        }
-
-        public CategoryBuilder<T> addTypedRecipesExcluding(Supplier<RecipeType<? extends T>> recipeType,
-                                                                     Supplier<RecipeType<? extends T>> excluded) {
-            return addRecipeListConsumer(recipes -> {
-                List<Recipe<?>> excludedRecipes = getTypedRecipes(excluded.get());
-                CreateJEI.<T>consumeTypedRecipes(recipe -> {
-                    for (Recipe<?> excludedRecipe : excludedRecipes) {
-                        if (doInputsMatch(recipe, excludedRecipe)) {
-                            return;
-                        }
-                    }
-                    recipes.add(recipe);
-                }, recipeType.get());
-            });
-        }
-
-        public CategoryBuilder<T> removeRecipes(Supplier<RecipeType<? extends T>> recipeType) {
-            return addRecipeListConsumer(recipes -> {
-                List<Recipe<?>> excludedRecipes = getTypedRecipes(recipeType.get());
-                recipes.removeIf(recipe -> {
-                    for (Recipe<?> excludedRecipe : excludedRecipes)
-                        if (doInputsMatch(recipe, excludedRecipe) && doOutputsMatch(recipe, excludedRecipe))
-                            return true;
-                    return false;
-                });
-            });
         }
 
         public CategoryBuilder<T> catalystStack(Supplier<ItemStack> supplier) {

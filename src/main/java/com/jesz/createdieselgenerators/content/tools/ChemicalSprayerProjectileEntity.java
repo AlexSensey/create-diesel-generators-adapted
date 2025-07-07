@@ -1,8 +1,8 @@
 package com.jesz.createdieselgenerators.content.tools;
 
-import com.jesz.createdieselgenerators.CDGConfig;
 import com.jesz.createdieselgenerators.CDGEntityTypes;
-import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
+import com.jesz.createdieselgenerators.CDGRegistries;
+import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.AllFluids;
 import com.simibubi.create.content.fluids.FluidFX;
 import com.simibubi.create.content.fluids.potion.PotionFluidHandler;
@@ -27,11 +27,11 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FireBlock;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
@@ -70,8 +70,8 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
             hit.getEntity().hurt(damageSources().inFire(), 2);
         } else if(cooling)
             hit.getEntity().clearFire();
-        else if(stack.getFluid().isSame(AllFluids.POTION.get())){
-            if(hit.getEntity() instanceof LivingEntity le && le.isAffectedByPotions()){
+        else if (stack.getFluid().isSame(AllFluids.POTION.get())) {
+            if (hit.getEntity() instanceof LivingEntity le && le.isAffectedByPotions()) {
                 for (MobEffectInstance effectInstance : PotionUtils.getMobEffects(PotionFluidHandler.fillBottle(new ItemStack(Items.GLASS_BOTTLE), stack))){
                     MobEffect effect = effectInstance.getEffect();
                     if (effect.isInstantenous()) {
@@ -81,8 +81,8 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
                     }
                 }
             }
-        } else if(FluidHelper.isTag(stack, Tags.Fluids.MILK)){
-            if(hit.getEntity() instanceof LivingEntity le && le.isAffectedByPotions()) {
+        } else if (FluidHelper.isTag(stack, Tags.Fluids.MILK)){
+            if (hit.getEntity() instanceof LivingEntity le && le.isAffectedByPotions()) {
                 ItemStack curativeItem = new ItemStack(Items.MILK_BUCKET);
                 le.curePotionEffects(curativeItem);
             }
@@ -124,7 +124,7 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
             stack = FluidStack.loadFluidStackFromNBT(getEntityData().get(DATA).getCompound("FluidStack"));
             fire = getEntityData().get(DATA).getBoolean("Fire");
             cooling = getEntityData().get(DATA).getBoolean("Cooling");
-            if (stack != null && !stack.isEmpty())
+            if (stack != null && !stack.isEmpty() && !fire)
                 level().addParticle(FluidFX.getFluidParticle(stack), position().x+random.nextDouble()-0.5, position().y+0.3, position().z+random.nextDouble()-0.5, getDeltaMovement().x, getDeltaMovement().y - 0.1, getDeltaMovement().z);
             if (t >= 1) {
                 if (fire) {
@@ -137,8 +137,12 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
         }
         setDeltaMovement(getDeltaMovement().add(0, -0.015, 0));
 
-        if(fire) {
-            if (FuelTypeManager.getGeneratedSpeed(level().getFluidState(new BlockPos((int) getPosition(1).x, (int) getPosition(1).y, (int) getPosition(1).z)).getType()) != 0 && CDGConfig.COMBUSTIBLES_BLOW_UP.get())
+        if (fire) {
+
+            Fluid fluid = level().getFluidState(BlockPos.containing(position())).getType();
+            boolean flammable = FuelType.getTypeFor(level().registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fluid).normal().speed() != 0;
+
+            if (flammable)
                 level().explode(null, getX(), getY(), getZ(), 3, Level.ExplosionInteraction.BLOCK);
             else if (level().getFluidState(new BlockPos((int) getPosition(1).x, (int) getPosition(1).y, (int) getPosition(1).z)).is(Fluids.FLOWING_WATER) || level().getFluidState(new BlockPos((int) getPosition(1).x, (int) getPosition(1).y, (int) getPosition(1).z)).is(Fluids.WATER)) {
                 fire = false;

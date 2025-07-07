@@ -35,9 +35,9 @@ public class PumpjackHeadMovementBehaviour implements MovementBehaviour {
 
     @Override
     public boolean isActive(MovementContext context) {
-        if(!(context.contraption instanceof BearingContraption))
+        if (!(context.contraption instanceof BearingContraption))
             return false;
-        if(((BearingContraption) context.contraption).getFacing().getAxis() == Direction.Axis.Y || context.state.getValue(PumpjackBearingBBlock.FACING).getAxis() != ((BearingContraption) context.contraption).getFacing().getClockWise().getAxis())
+        if (((BearingContraption) context.contraption).getFacing().getAxis() == Direction.Axis.Y || context.state.getValue(PumpjackBearingBBlock.FACING).getAxis() != ((BearingContraption) context.contraption).getFacing().getClockWise().getAxis())
             return false;
         return context.world.getBlockEntity(context.contraption.anchor.relative(((BearingContraption) context.contraption).getFacing().getOpposite())) instanceof PumpjackBearingBlockEntity;
     }
@@ -46,15 +46,15 @@ public class PumpjackHeadMovementBehaviour implements MovementBehaviour {
     @Override
     public void renderInContraption(MovementContext context, VirtualRenderWorld renderWorld, ContraptionMatrices matrices, MultiBufferSource buffer) {
         BlockPos hole = NbtUtils.readBlockPos(context.data.getCompound("HolePos"));
-        if(!(context.world.getBlockEntity(hole) instanceof PumpjackHoleBlockEntity))
+        if (!(context.world.getBlockEntity(hole) instanceof PumpjackHoleBlockEntity))
             return;
         PumpjackBearingBlockEntity bearing = null;
         if (context.world.getBlockEntity(context.contraption.anchor.relative(((BearingContraption) context.contraption).getFacing().getOpposite())) instanceof PumpjackBearingBlockEntity be)
             bearing = be;
-        if(bearing == null)
+        if (bearing == null)
             return;
         SuperByteBuffer cover = CachedBuffers.partial(PUMPJACK_ROPE, context.state);
-        if(((BearingContraption) context.contraption).getFacing().getOpposite().getAxis() == Direction.Axis.X){
+        if (((BearingContraption) context.contraption).getFacing().getOpposite().getAxis() == Direction.Axis.X) {
             double zDst = context.position.z - hole.getZ()-0.5f;
             double yDst = context.position.y - hole.getY()-0.8f;
             float distanceFromHole = (float) Math.sqrt(zDst*zDst + yDst*yDst);
@@ -85,7 +85,7 @@ public class PumpjackHeadMovementBehaviour implements MovementBehaviour {
         PumpjackBearingBlockEntity bearing = null;
         if (context.world.getBlockEntity(context.contraption.anchor.relative(((BearingContraption) context.contraption).getFacing().getOpposite())) instanceof PumpjackBearingBlockEntity be)
             bearing = be;
-        if(bearing == null)
+        if (bearing == null)
             return;
         headPos = new BlockPos(
                 context.contraption.anchor.getX() + context.localPos.getX(),
@@ -99,10 +99,10 @@ public class PumpjackHeadMovementBehaviour implements MovementBehaviour {
                 holePos = holePos.below();
         }
 
-        if(context.world.getBlockEntity(holePos) instanceof PumpjackHoleBlockEntity holeBE && bearing.crankSpeed >= 8) {
+        if (context.world.getBlockEntity(holePos) instanceof PumpjackHoleBlockEntity holeBE && bearing.crankSpeed >= 8) {
             holeBE.headPos = bearing.getBlockState().getValue(FACING).getAxis() == Direction.Axis.X ? context.localPos.getZ() : context.localPos.getX();
             holeBE.bearingPos = bearing.getBlockState().getValue(FACING).getAxis() == Direction.Axis.X ? bearing.bearingBPos.getZ() : bearing.bearingBPos.getX();
-            if((bearing.crankAngle+180) % 360 < (context.data.getFloat("OldCrankAngle")+180) % 360)
+            if ((bearing.crankAngle + 270) % 360 < (context.data.getFloat("OldCrankAngle") + 270) % 360)
                 holeBE.pumpjackRotation(bearing.isLarge);
         }
         context.data.putFloat("OldCrankAngle", bearing.crankAngle);

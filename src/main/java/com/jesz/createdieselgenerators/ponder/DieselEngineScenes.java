@@ -4,7 +4,6 @@ import com.jesz.createdieselgenerators.CDGFluids;
 import com.jesz.createdieselgenerators.CDGItems;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlockEntity;
-import com.jesz.createdieselgenerators.fuel_type.FuelTypeManager;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
@@ -17,13 +16,10 @@ import net.createmod.ponder.api.scene.SceneBuildingUtil;
 import net.createmod.ponder.api.scene.Selection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.LeverBlock;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import java.util.Random;
 import java.util.function.Supplier;
 
 import static com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlock.PIPE;
@@ -69,10 +65,12 @@ public class DieselEngineScenes {
         scene.world().showSection(tank, Direction.NORTH);
         scene.idle(30);
 
-        Supplier<FluidStack> content = () -> {
-            currentFuel = new FluidStack(FuelTypeManager.fuelTypes.isEmpty() ? CDGFluids.DIESEL.get() : FuelTypeManager.fuelTypes.keySet().stream().toList().get(new Random().nextInt(0, FuelTypeManager.fuelTypes.size() - 1)), 16000);
-            return currentFuel;
-        };
+//        Supplier<FluidStack> content = () -> {
+//            currentFuel = new FluidStack(FuelTypeManager.fuelTypes.isEmpty() ? CDGFluids.DIESEL.get() : FuelTypeManager.fuelTypes.keySet().stream().toList().get(new Random().nextInt(0, FuelTypeManager.fuelTypes.size() - 1)), 16000);
+//            return currentFuel;
+//        };
+        Supplier<FluidStack> content = () -> new FluidStack(CDGFluids.DIESEL.get(), 16000);
+
         scene.world().modifyBlockEntity(util.grid().at(4, 1, 1), FluidTankBlockEntity.class, be -> be.getTankInventory()
                 .fill(content.get(), IFluidHandler.FluidAction.EXECUTE));
 
@@ -184,10 +182,11 @@ public class DieselEngineScenes {
         scene.world().showSection(pipes, Direction.DOWN);
         scene.idle(15);
 
-        Supplier<FluidStack> content = () -> {
-            currentFuel = new FluidStack(FuelTypeManager.fuelTypes.isEmpty() ? CDGFluids.DIESEL.get() : FuelTypeManager.fuelTypes.keySet().stream().toList().get(new Random().nextInt(0, FuelTypeManager.fuelTypes.size() - 1)), 16000);
-            return currentFuel;
-        };
+//        Supplier<FluidStack> content = () -> {
+//            currentFuel = new FluidStack(FuelTypeManager.fuelTypes.isEmpty() ? CDGFluids.DIESEL.get() : FuelTypeManager.fuelTypes.keySet().stream().toList().get(new Random().nextInt(0, FuelTypeManager.fuelTypes.size() - 1)), 16000);
+//            return currentFuel;
+//        };
+        Supplier<FluidStack> content = () -> new FluidStack(CDGFluids.DIESEL.get(), 16000);
         scene.world().modifyBlockEntity(util.grid().at(4, 1, 3), FluidTankBlockEntity.class, be -> be.getTankInventory()
                 .fill(content.get(), IFluidHandler.FluidAction.EXECUTE));
         scene.idle(15);
@@ -239,10 +238,12 @@ public class DieselEngineScenes {
         scene.world().showSection(pipe2, Direction.DOWN);
         scene.world().showSection(pipe3, Direction.DOWN);
 
-        Supplier<FluidStack> content = () -> {
-            currentFuel = new FluidStack(FuelTypeManager.fuelTypes.isEmpty() ? CDGFluids.DIESEL.get() : FuelTypeManager.fuelTypes.keySet().stream().toList().get(new Random().nextInt(0, FuelTypeManager.fuelTypes.size() - 1)), 12000);
-            return currentFuel;
-        };
+//        Supplier<FluidStack> content = () -> {
+//            currentFuel = new FluidStack(FuelTypeManager.fuelTypes.isEmpty() ? CDGFluids.DIESEL.get() : FuelTypeManager.fuelTypes.keySet().stream().toList().get(new Random().nextInt(0, FuelTypeManager.fuelTypes.size() - 1)), 12000);
+//            return currentFuel;
+//        };
+        Supplier<FluidStack> content = () -> new FluidStack(CDGFluids.DIESEL.get(), 16000);
+
         scene.world().modifyBlockEntity(util.grid().at(4, 1, 3), FluidTankBlockEntity.class, be -> be.getTankInventory()
                 .fill(content.get(), IFluidHandler.FluidAction.EXECUTE));
 

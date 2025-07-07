@@ -30,14 +30,16 @@ public class AnimatedDieselEngineElement extends AnimatedKinetics {
         matrixStack.mulPose(Axis.XP.rotationDegrees(-15.5f));
         matrixStack.mulPose(Axis.YP.rotationDegrees(22.5f + 90));
         int scale = 25;
-        if(currentEngine == EngineTypes.HUGE)
+        if (currentEngine == EngineTypes.HUGE)
             scale = 17;
+
         blockElement(shaft(Direction.Axis.X)).atLocal(0, currentEngine == EngineTypes.HUGE ? -1.25 : 0, 0)
                 .rotateBlock(-getCurrentAngle() * 6, 0, 0)
                 .scale(scale)
                 .render(graphics);
         int angle = (int) (getCurrentAngle() * 18 % 360)/36;
-        if(currentEngine == EngineTypes.HUGE) {
+
+        if (currentEngine == EngineTypes.HUGE) {
             blockElement(CDGPartialModels.ENGINE_PISTON_CONNECTOR).atLocal(0, -1.25, 0)
                     .rotateBlock(-getCurrentAngle() * 6, 0, 0)
                     .scale(scale)
@@ -49,7 +51,7 @@ public class AnimatedDieselEngineElement extends AnimatedKinetics {
                     .scale(scale)
                     .render(graphics);
         }
-        if(currentEngine == EngineTypes.NORMAL){
+        if (currentEngine == EngineTypes.NORMAL) {
             blockElement(angle == 10? CDGPartialModels.ENGINE_PISTONS_0 :
                     angle == 9 ? CDGPartialModels.ENGINE_PISTONS_1 :
                     angle == 8 ? CDGPartialModels.ENGINE_PISTONS_2 :
@@ -63,7 +65,7 @@ public class AnimatedDieselEngineElement extends AnimatedKinetics {
                 .rotateBlock(0, 90, 0)
                 .scale(scale)
                 .render(graphics);
-        }else if(currentEngine == EngineTypes.MODULAR){
+        } else if(currentEngine == EngineTypes.MODULAR) {
             blockElement(angle == 10? CDGPartialModels.MODULAR_ENGINE_PISTONS_0 :
                     angle == 9 ? CDGPartialModels.MODULAR_ENGINE_PISTONS_1 :
                     angle == 8 ? CDGPartialModels.MODULAR_ENGINE_PISTONS_2 :

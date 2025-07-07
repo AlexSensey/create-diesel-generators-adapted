@@ -14,8 +14,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public enum CDGPackets {
-    UPDATE_FUEL_TYPES(FuelTypesUpdatePacket.class, FuelTypesUpdatePacket::new, NetworkDirection.PLAY_TO_CLIENT),
     ENTITY_FILTER_SCREEN(EntityFilterScreenPacket.class, EntityFilterScreenPacket::new, NetworkDirection.PLAY_TO_SERVER);
+
     public static final ResourceLocation CHANNEL_NAME = CreateDieselGenerators.rl("main");
     public static final int NETWORK_VERSION = 3;
     public static final String NETWORK_VERSION_STR = String.valueOf(NETWORK_VERSION);

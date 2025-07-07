@@ -2,13 +2,19 @@
   "type": "create:crushing",
   "ingredients": [
     {
-      "tag": "minecraft:wooden_fences"
+      "type": "forge:difference",
+      "base": {
+        "tag": "minecraft:logs"
+      },
+      "subtracted": {
+        "item": "createdieselgenerators:chip_wood_beam"
+      }
     }
   ],
   "results": [
     {
       "item": "createdieselgenerators:wood_chip",
-      "count": 10
+      "count": 31
     },
     {
       "item": "createdieselgenerators:wood_chip",

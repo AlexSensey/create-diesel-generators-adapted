@@ -2,13 +2,13 @@
   "type": "create:crushing",
   "ingredients": [
     {
-      "tag": "minecraft:wooden_fences"
+      "tag": "forge:chests/wooden"
     }
   ],
   "results": [
     {
       "item": "createdieselgenerators:wood_chip",
-      "count": 10
+      "count": 63
     },
     {
       "item": "createdieselgenerators:wood_chip",

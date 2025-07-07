@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.gui.AllIcons;
+import net.createmod.catnip.lang.Lang;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -130,7 +131,7 @@ public class PumpjackCrankBlockEntity extends KineticBlockEntity {
 
         @Override
         public String getTranslationKey() {
-            return "tooltip.capacityProvided."+ (icon == AllIcons.I_CLEAR ? "low" : "high");
+            return "createdieselgenerators.tooltip.crank." + Lang.asId(name());
         }
     }
 }

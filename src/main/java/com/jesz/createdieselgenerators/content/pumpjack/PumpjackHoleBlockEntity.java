@@ -3,6 +3,7 @@ package com.jesz.createdieselgenerators.content.pumpjack;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.content.concrete.ConcreteEncasedFluidPipeBlock;
 import com.jesz.createdieselgenerators.world.OilChunksSavedData;
+import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.api.equipment.goggles.IHaveHoveringInformation;
 import com.simibubi.create.content.fluids.FluidFX;
@@ -16,6 +17,7 @@ import com.simibubi.create.foundation.utility.CreateLang;
 import net.createmod.catnip.lang.FontHelper;
 import net.createmod.catnip.lang.Lang;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -79,6 +81,10 @@ public class PumpjackHoleBlockEntity extends SmartBlockEntity implements IHaveGo
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         if (!valid || !started)
             return false;
+        if (oilAmount == Integer.MAX_VALUE) {
+            TooltipHelper.addHint(tooltip, "hint.hose_pulley");
+            return true;
+        }
 
         CreateLang.builder().add(Component.translatable("createdieselgenerators.goggle.oil_amount")).style(ChatFormatting.GRAY).forGoggles(tooltip);
         CreateLang.text(String.format("%,d", oilAmount)).add(CreateLang.translate("generic.unit.millibuckets")).style(ChatFormatting.GOLD).forGoggles(tooltip);
