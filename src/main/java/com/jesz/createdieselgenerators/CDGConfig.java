@@ -29,10 +29,9 @@ public class CDGConfig {
     public static final ForgeConfigSpec.ConfigValue<Integer> OIL_CHUNK_INFINITE_THRESHOLD;
     public static final ForgeConfigSpec.ConfigValue<Integer> OIL_CHUNK_THRESHOLD;
 
+    public static final ForgeConfigSpec.ConfigValue<Double> OIL_CHUNK_SCALE;
     public static final ForgeConfigSpec.ConfigValue<Double> OIL_MULTIPLIER;
     public static final ForgeConfigSpec.ConfigValue<Double> HIGH_OIL_MULTIPLIER;
-
-    public static final ForgeConfigSpec.ConfigValue<Double> OIL_PERCENTAGE;
 
     public static final ForgeConfigSpec.ConfigValue<Boolean> FUEL_TOOLTIPS;
     public static final ForgeConfigSpec.ConfigValue<Boolean> DIESEL_ENGINE_IN_JEI;
@@ -89,10 +88,10 @@ public class CDGConfig {
                     .define("Normal oil chunks oil amount multiplier", 1d);
             HIGH_OIL_MULTIPLIER = SERVER_BUILDER.comment()
                     .define("High oil chunks oil amount multiplier", 2d);
+            OIL_CHUNK_SCALE = SERVER_BUILDER.comment()
+                    .define("Oil chunk map scale", 1.0d);
             MAX_OIL_SCANNER_LEVEL = SERVER_BUILDER.comment()
                 .define("Max Oil Scanner Level", 10000);
-            OIL_PERCENTAGE = SERVER_BUILDER.comment()
-                    .defineInRange("Oil chunks percentage", 0.1d, 0d, 1d);
 
         SERVER_BUILDER.pop();
 

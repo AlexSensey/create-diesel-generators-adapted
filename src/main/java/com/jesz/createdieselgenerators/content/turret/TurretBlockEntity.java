@@ -57,9 +57,11 @@ public class TurretBlockEntity extends KineticBlockEntity {
 
     @Override
     public void tick() {
-        if(controllingEntity == null )
+        super.tick();
+
+        if (controllingEntity == null)
             targetedEntity = null;
-        if (controllingEntity != null){
+        if (controllingEntity != null) {
             controllingEntity.setYHeadRot(-targetedHorizontalRotation+180);
             if (controllingEntity.getRootVehicle() instanceof SeatEntity seat) {
                 if (Math.sqrt(seat.blockPosition().distSqr(worldPosition)) > 1) {
@@ -70,8 +72,8 @@ public class TurretBlockEntity extends KineticBlockEntity {
                 ((IEntity) controllingEntity).setTurretPos(null);
                 controllingEntity = null;
             }
-        }else {
-            if(t==0)
+        } else {
+            if (t==0)
                 for(Direction direction : Direction.Plane.HORIZONTAL){
                     List<SeatEntity> list = level.getEntitiesOfClass(SeatEntity.class, new AABB(getBlockPos().relative(direction)));
                     if(!list.isEmpty()){
@@ -89,22 +91,18 @@ public class TurretBlockEntity extends KineticBlockEntity {
                     }
                 }
         }
-        super.tick();
-        if(controllingEntity != null && controllingPlayer == null && targetedEntity != null){
-            AABB aabb = new AABB(worldPosition.getX() - (controllingEntityDirection == Direction.WEST ? -3 : 33), worldPosition.getY() - 3.6, worldPosition.getZ() - (controllingEntityDirection == Direction.NORTH ? -3 : 33),
-                    worldPosition.getX() + (controllingEntityDirection == Direction.EAST ? -3 : 33), worldPosition.getY() + 2, worldPosition.getZ() + (controllingEntityDirection == Direction.SOUTH ? -3 : 33));
+
+        if (controllingEntity != null && controllingPlayer == null && targetedEntity != null) {
+            AABB aabb = getTargetBB();
 
             targetedHorizontalRotation = (float) (Math.atan2(targetedEntity.getX() - worldPosition.getX() - 0.5f, targetedEntity.getZ() - worldPosition.getZ() - 0.5f) * 180 / Math.PI) + 180;
-            targetedVerticalRotation = (float) Mth.clamp(Math.atan2(targetedEntity.getY() - worldPosition.getY() - 0.5f, Math.sqrt(
-                    (targetedEntity.getZ() - worldPosition.getZ() - 0.5f) * (targetedEntity.getZ() - worldPosition.getZ() - 0.5f) +
-                            (targetedEntity.getX() - worldPosition.getX() - 0.5f) * (targetedEntity.getX() - worldPosition.getX() - 0.5f)
-            )) * -180 / Math.PI -3, -50, 11);
+            targetedVerticalRotation = calculatePitch(targetedEntity.position().add(0, 0.5, 0));
 
-            if (!aabb.contains(targetedEntity.position()) || targetedEntity.isRemoved() || targetedEntity.getPosition(1).distanceTo(Vec3.atCenterOf(worldPosition)) > 44 || targetedEntity.getPosition(1).distanceTo(Vec3.atCenterOf(worldPosition)) < 3
-                    || targetedEntity.getY() < worldPosition.getY() - 3 || targetedEntity.getY() > worldPosition.getY() + 3)
+            if (!aabb.contains(targetedEntity.position()) || targetedEntity.isRemoved() || !isWithinRange(targetedEntity.position().add(0, 0.5, 0)) || targetedEntity.position().distanceTo(Vec3.atCenterOf(worldPosition)) < 1)
                 targetedEntity = null;
 
         }
+
         t++;
         if (t >= 40) {
             t = 0;
@@ -113,23 +111,103 @@ public class TurretBlockEntity extends KineticBlockEntity {
 
         oldHorizontalRotation = horizontalRotation;
         oldVerticalRotation = verticalRotation;
-        horizontalRotation = AngleHelper.angleLerp(0.1f, horizontalRotation, targetedHorizontalRotation);
-        verticalRotation = AngleHelper.angleLerp(0.1f, verticalRotation, targetedVerticalRotation);
-        if(oldTargetedHorizontalRotation != targetedHorizontalRotation || oldTargetedVerticalRotation != targetedVerticalRotation)
+        horizontalRotation = AngleHelper.angleLerp(controllingEntity == null || controllingPlayer != null ? 0.2f : 0.7f, horizontalRotation, targetedHorizontalRotation);
+        verticalRotation = AngleHelper.angleLerp(controllingEntity == null || controllingPlayer != null ? 0.2f : 0.7f, verticalRotation, targetedVerticalRotation);
+        if (oldTargetedHorizontalRotation != targetedHorizontalRotation || oldTargetedVerticalRotation != targetedVerticalRotation)
             sendData();
         oldTargetedHorizontalRotation = targetedHorizontalRotation;
         oldTargetedVerticalRotation = targetedVerticalRotation;
-        if(controllingPlayer == null)
+
+        if (controllingPlayer == null)
             return;
-        if(Math.sqrt(controllingPlayer.distanceToSqr(Vec3.atCenterOf(worldPosition))) > 3 || controllingPlayer.isCrouching())
+
+        if (Math.sqrt(controllingPlayer.distanceToSqr(Vec3.atCenterOf(worldPosition))) > 3 || controllingPlayer.isCrouching())
             removePlayer();
-        if(removePlayer || controllingPlayer.isRemoved()){
+
+        if (removePlayer || controllingPlayer.isRemoved()) {
             controllingPlayer = null;
             removePlayer = false;
             return;
         }
         targetedVerticalRotation = Mth.clamp(controllingPlayer.xRotO, -50, 1);
         targetedHorizontalRotation = -controllingPlayer.yHeadRotO+180;
+    }
+
+    float cachedPitch = 0;
+    public float calculatePitch(Vec3 targetPos) {
+        Vec3 start = Vec3.atCenterOf(worldPosition).add(0, 0.625f, 0);
+
+        float initialVelocity = getShootingForce();
+
+        double dx = targetPos.x - start.x;
+        double dz = targetPos.z - start.z;
+        double dY = targetPos.y - start.y;
+        double horizontalDist = Math.sqrt(dx * dx + dz * dz);
+
+        float closestPitch = 0;
+        float closestDistance = 9999;
+
+        if (simulate(cachedPitch, initialVelocity, horizontalDist, dY) < 1)
+            return cachedPitch;
+
+        for (float pitch = -50; pitch <= 10; pitch += 1f) {
+            float distance = simulate(pitch, initialVelocity, horizontalDist, dY);
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestPitch = pitch;
+            }
+        }
+
+        cachedPitch = closestPitch;
+        return closestPitch;
+    }
+
+    public float getShootingForce() {
+        float speed = Math.abs(getSpeed());
+        return (float) Math.log(speed) * 0.3f + 0.2f;
+    }
+
+    public float simulate(float pitch, float initialVelocity, double horizontalDist, double dY) {
+        double pX = 0;
+        double pY = 0;
+
+        double vX = Math.cos(Math.toRadians(-pitch)) * initialVelocity;
+        double vY = Math.sin(Math.toRadians(-pitch)) * initialVelocity;
+
+        float closestDistance = 9999;
+
+        for (int t = 0; t < 200; t++) {
+            vY -= 0.015;
+
+            pX += vX;
+            pY += vY;
+
+            vX *= 0.95;
+            vY *= 0.95;
+
+            if (pY < dY && vY < 0)
+                break;
+
+            float distance = (float) Math.sqrt(((horizontalDist - pX) * (horizontalDist - pX)) + (dY - pY) * (dY - pY));
+
+            if (distance < closestDistance) {
+                closestDistance = distance;
+            }
+        }
+
+        return closestDistance;
+    }
+
+    public boolean isWithinRange(Vec3 targetPos) {
+        float shootingForce = (float) Math.min(Math.abs(1 - Math.pow(1 - (getSpeed() / 256), 3)), 1);
+        Vec3 turretPos = Vec3.atCenterOf(worldPosition).add(0, 0.625f, 0);
+
+        double dx = targetPos.x - turretPos.x;
+        double dz = targetPos.z - turretPos.z;
+        double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
+
+
+        return horizontalDistance < 22;
     }
 
     @Override
@@ -140,32 +218,17 @@ public class TurretBlockEntity extends KineticBlockEntity {
     }
 
     public void updateTargetedEntity(){
-        AABB aabb = new AABB(worldPosition.getX() - (controllingEntityDirection == Direction.WEST ? -3 : 33), worldPosition.getY() - 3.6, worldPosition.getZ() - (controllingEntityDirection == Direction.NORTH ? -3 : 33),
-                worldPosition.getX() + (controllingEntityDirection == Direction.EAST ? -3 : 33), worldPosition.getY() + 2, worldPosition.getZ() + (controllingEntityDirection == Direction.SOUTH ? -3 : 33));
-//        level.getNearestEntity(level.getEntitiesOfClass(LivingEntity.class, aabb), TargetingConditions.forNonCombat(), controllingEntity, controllingEntity.getX(), controllingEntity.getEyeY(), controllingEntity.getZ());
+        AABB aabb = getTargetBB();
         List<Entity> entities = level.getEntities(null, aabb).stream().filter(e -> {
 
-            if (!(e instanceof LivingEntity))
+            if (!(e instanceof LivingEntity entity))
                 return false;
 
-            if (!TargetingConditions.forCombat().test(controllingEntity, (LivingEntity) e))
-                return false;
-            if (e.isRemoved() || e.getPosition(1).distanceTo(Vec3.atCenterOf(worldPosition)) > 44 || e.getPosition(1).distanceTo(Vec3.atCenterOf(worldPosition)) < 2
-                    || e.getY() < worldPosition.getY() - 3 || e.getY() > worldPosition.getY() + 3)
-                return false;
-            if(filtering.getFilter().getItem() instanceof SpawnEggItem egg)
-                if(egg.getType(null) != e.getType())
-                    return false;
-            if(filtering.getFilter().getItem() instanceof EntityFilterItem) {
-                if (!EntityFilterItem.test(filtering.getFilter(), e))
-                    return false;
-            }else if(e instanceof Player)
-                return false;
-            return e.getPosition(1).distanceTo(Vec3.atCenterOf(worldPosition)) > 3;
+            return isValidTarget(entity);
         }).sorted((entity, t1) -> {
-            if(entity == targetedEntity)
+            if (entity == targetedEntity)
                 return 1;
-            if(t1 == targetedEntity)
+            if (t1 == targetedEntity)
                 return 0;
             return (int) t1.position().distanceTo(Vec3.atCenterOf(worldPosition));
         }).toList();
@@ -173,6 +236,26 @@ public class TurretBlockEntity extends KineticBlockEntity {
             targetedEntity = null;
         else
             targetedEntity = entities.get(0);
+    }
+
+    public boolean isValidTarget(LivingEntity entity) {
+        if (!TargetingConditions.forCombat().test(controllingEntity, entity))
+            return false;
+        if (entity.isRemoved() || !isWithinRange(entity.position()) || entity.position().distanceTo(Vec3.atCenterOf(worldPosition)) < 2)
+            return false;
+        if (filtering.getFilter().getItem() instanceof SpawnEggItem egg)
+            if(egg.getType(null) != entity.getType())
+                return false;
+        if (filtering.getFilter().getItem() instanceof EntityFilterItem) {
+            if (!EntityFilterItem.test(filtering.getFilter(), entity))
+                return false;
+        } else if (entity instanceof Player)
+            return false;
+        return true;
+    }
+    public AABB getTargetBB() {
+        return new AABB(worldPosition.getX() - (controllingEntityDirection == Direction.WEST ? -1.5 : 33), worldPosition.getY() - 5, worldPosition.getZ() - (controllingEntityDirection == Direction.NORTH ? -1.5 : 33),
+                worldPosition.getX() + (controllingEntityDirection == Direction.EAST ? -1.5 : 33), worldPosition.getY() + 10, worldPosition.getZ() + (controllingEntityDirection == Direction.SOUTH ? -1.5 : 33));
     }
 
     @Override

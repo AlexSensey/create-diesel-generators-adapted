@@ -33,7 +33,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.Level;
@@ -67,12 +66,14 @@ import static net.minecraft.ChatFormatting.GRAY;
 
 @Mod.EventBusSubscriber(modid = CreateDieselGenerators.ID)
 public class ForgeEvents {
+
     @SubscribeEvent
     public static void onCommandRegister(RegisterCommandsEvent event){
         new CDGCommands(event.getDispatcher());
 
         ConfigCommand.register(event.getDispatcher());
     }
+
     @SubscribeEvent
     public static void loadLootTable(LootTableLoadEvent event){
         LootTable table = event.getTable();
@@ -97,16 +98,12 @@ public class ForgeEvents {
 
     @SubscribeEvent
     public static void playerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        Player player = event.getEntity();
-//        if (player instanceof ServerPlayer sp)
-//            CDGPackets.getChannel().send(PacketDistributor.PLAYER.with(() -> sp), new FuelTypesUpdatePacket(FuelTypeManager.fuelTypes));
 
     }
 
     @SubscribeEvent
     public static void addReloadListeners(AddReloadListenerEvent event){
         event.addListener(ReverseLootTable.INSTANCE);
-//        event.addListener(FuelTypeManager.ReloadListener.INSTANCE);
     }
 
     @SubscribeEvent

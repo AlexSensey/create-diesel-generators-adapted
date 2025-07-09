@@ -4,11 +4,9 @@ import com.jesz.createdieselgenerators.CDGConfig;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.compat.kubejs.CDGKubeJSPlugin;
 import com.simibubi.create.AllTags;
-import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
@@ -17,13 +15,15 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.levelgen.Noises;
 import net.minecraft.world.level.levelgen.synth.PerlinNoise;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class OilChunksSavedData extends SavedData {
 
@@ -100,20 +100,15 @@ public class OilChunksSavedData extends SavedData {
     public static int getBaseOilAmount(ServerLevel level, ChunkPos chunk) {
         long seed = level.getSeed();
         List<Holder<Biome>> biomes = getBiomesInChunk(level, chunk);
-
         if (ModList.get().isLoaded("kubejs")) {
             int amount = CDGKubeJSPlugin.calculateOilChunks(biomes, chunk, seed);
             if(amount != -1)
                 return amount;
         }
 
-        RandomSource random = RandomSource.create(seed ^ (chunk.x * 0x9E3779B97F4A7C15L) ^ Long.rotateLeft(chunk.z * 0xC6BC279692B5CC83L, 31));
-
-//        double scale = 0.3;
-//        PerlinNoise noise = PerlinNoise.create(random, List.of(0, 1, 2, 3, 4));
-//        float amount = (float) (noise.getValue(chunk.x * scale, 0, chunk.z * scale) + 1) / 2;
-
-        float amount = random.nextFloat();
+        double scale = CDGConfig.OIL_CHUNK_SCALE.get();
+        PerlinNoise noise = PerlinNoise.create(RandomSource.create(seed), List.of(-2, -1, 0, 1));
+        float amount = (float) (noise.getValue(chunk.x * scale, 0, chunk.z * scale) + 1) / 1.6f;
 
         boolean isHighInOil = false;
         boolean isDenied = false;
@@ -127,11 +122,13 @@ public class OilChunksSavedData extends SavedData {
         if (isDenied)
             return 0;
 
-        int max = (int) (10_000_000 * CDGConfig.OIL_MULTIPLIER.get());
+        int max = (int) (7_000_000 * CDGConfig.OIL_MULTIPLIER.get());
         if (isHighInOil)
-            max = (int) (10_000_000 * CDGConfig.HIGH_OIL_MULTIPLIER.get());
+            max = (int) (7_000_000 * CDGConfig.HIGH_OIL_MULTIPLIER.get());
 
-        amount = (int) (Math.pow(amount, 3) * max);
+        amount = (float) Math.pow(amount, 2);
+        amount *= max;
+
 
         if (amount < CDGConfig.OIL_CHUNK_THRESHOLD.get())
             return 0;

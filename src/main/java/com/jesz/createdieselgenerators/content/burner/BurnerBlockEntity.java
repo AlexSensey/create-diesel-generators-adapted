@@ -27,7 +27,7 @@ import java.util.List;
 
 public class BurnerBlockEntity extends KineticBlockEntity {
     public float heat = -1;
-    SmartFluidTank tank = new SmartFluidTank(100, this::onFluidStackChanged);
+    SmartFluidTank tank = new SmartFluidTank(100, f -> {});
 
     public float valveState = 0.2f;
     public float prevValveState;
@@ -43,11 +43,10 @@ public class BurnerBlockEntity extends KineticBlockEntity {
         prevValveState = valveState;
         valveState = Mth.clamp(valveState + getSpeed() / 5000, 0, 1);
 
-        float multiplier = 0;
         boolean containsValidFuel = !tank.getFluid().isEmpty();
-        if(containsValidFuel)
-            multiplier = this.multiplier;
-        if(multiplier == 0)
+        if (containsValidFuel)
+            multiplier = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), tank.getFluid().getFluid()).burnerStrength();
+        if (multiplier == 0)
             containsValidFuel = false;
 
         if (valveState == 0 || !containsValidFuel) {
@@ -60,7 +59,7 @@ public class BurnerBlockEntity extends KineticBlockEntity {
                 ignitionTries = 0;
             }
         }
-        if(containsValidFuel && valveState != 0){
+        if (containsValidFuel && valveState != 0){
             heat = (valveState + 1) * multiplier;
             if(level.isClientSide)
                 return;
@@ -78,9 +77,9 @@ public class BurnerBlockEntity extends KineticBlockEntity {
                 setChanged();
             }
         }
-        if(level.isClientSide)
+        if (level.isClientSide)
             return;
-        if(getBlockState().getValue(BurnerBlock.HEAT_LEVEL) != calculateHeatLevel(heat)) {
+        if (getBlockState().getValue(BurnerBlock.HEAT_LEVEL) != calculateHeatLevel(heat)) {
             level.setBlockAndUpdate(worldPosition, getBlockState().setValue(BurnerBlock.HEAT_LEVEL, calculateHeatLevel(heat)).setValue(BurnerBlock.LIT, heat > 0));
             notifyUpdate();
         }
@@ -88,17 +87,18 @@ public class BurnerBlockEntity extends KineticBlockEntity {
     }
     int x = 0;
     int y = 0;
+
     @Override
     public void tickAudio() {
         super.tickAudio();
         if (valveState == 0 || heat == -1)
             return;
         RandomSource random = RandomSource.create();
-        if(tick % 100 == 0)
+        if (tick % 100 == 0)
             level.playLocalSound(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), SoundEvents.FIRE_AMBIENT, SoundSource.BLOCKS, 0.3f, 1f, true);
 
         x = (x + 1) % 4;
-        if(x == 3)
+        if (x == 3)
             y = (y + 1) % 4;
 
         if (!(x == 0 || x == 3 || y == 0 || y == 3))
@@ -120,12 +120,6 @@ public class BurnerBlockEntity extends KineticBlockEntity {
 
     }
 
-    Fluid lastFluid;
-    void onFluidStackChanged(FluidStack stack) {
-        if (lastFluid != stack.getFluid())
-            multiplier = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), tank.getFluid().getFluid()).burnerStrength();
-        lastFluid = stack.getFluid();
-    }
     public BlazeBurnerBlock.HeatLevel calculateHeatLevel(float heat) {
         if(heat >= 1.8)
             return BlazeBurnerBlock.HeatLevel.SEETHING;
@@ -158,7 +152,7 @@ public class BurnerBlockEntity extends KineticBlockEntity {
 
     @Override
     public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if(cap == ForgeCapabilities.FLUID_HANDLER)
+        if (cap == ForgeCapabilities.FLUID_HANDLER)
             return LazyOptional.of(() -> tank).cast();
         return super.getCapability(cap, side);
     }

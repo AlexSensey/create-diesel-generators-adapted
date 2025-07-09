@@ -138,9 +138,6 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
             BlockState sState = level.getBlockState(worldPosition.relative(getBlockState().getValue(FACING), 2));
             if (anyShaftAt instanceof PoweredEngineShaftBlockEntity ps)
                 target = new WeakReference<>(shaft = ps);
-            else if(sState.getBlock() instanceof ShaftBlock)
-                if(sState.getValue(AXIS) != getBlockState().getValue(FACING).getAxis())
-                    level.setBlock(worldPosition.relative(getBlockState().getValue(FACING), 2), PoweredEngineShaftBlock.getEquivalent(level.getBlockState(worldPosition.relative(getBlockState().getValue(FACING), 2))), 3);
         }
         return shaft;
     }

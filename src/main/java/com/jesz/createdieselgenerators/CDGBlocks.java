@@ -269,7 +269,6 @@ public class CDGBlocks {
 
     public static final BlockEntry<RotatedPillarBlock> CHIP_WOOD_BLOCK = REGISTRATE.block("chip_wood_block", RotatedPillarBlock::new)
             .initialProperties(() -> Blocks.OAK_PLANKS)
-            .properties(p -> p)
             .tag(AllTags.optionalTag(ForgeRegistries.BLOCKS, new ResourceLocation("planks")))
             .transform(axeOnly())
             .blockstate((c, p) -> p.axisBlock(c.getEntry(), p.modLoc("block/chip_wood_block_side"), p.modLoc("block/chip_wood_block")))

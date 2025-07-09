@@ -65,30 +65,38 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
 
     @Override
     protected void onHitEntity(EntityHitResult hit) {
+        Entity owner = getOwner();
+
         if (fire) {
             hit.getEntity().setSecondsOnFire((hit.getEntity().getRemainingFireTicks() / 20) + 10);
             hit.getEntity().hurt(damageSources().inFire(), 2);
-        } else if(cooling)
+        } else if(cooling) {
             hit.getEntity().clearFire();
+            if (hit.getEntity().getType() == EntityType.ENDERMAN)
+                hit.getEntity().hurt(damageSources().generic(), 0.5f);
+        }
         else if (stack.getFluid().isSame(AllFluids.POTION.get())) {
             if (hit.getEntity() instanceof LivingEntity le && le.isAffectedByPotions()) {
                 for (MobEffectInstance effectInstance : PotionUtils.getMobEffects(PotionFluidHandler.fillBottle(new ItemStack(Items.GLASS_BOTTLE), stack))){
                     MobEffect effect = effectInstance.getEffect();
+
                     if (effect.isInstantenous()) {
-                        effect.applyInstantenousEffect(null, null, le, effectInstance.getAmplifier(), 0.5d);
+                        effect.applyInstantenousEffect(owner, owner, le, effectInstance.getAmplifier(), 0.5d);
                     } else {
-                        le.addEffect(new MobEffectInstance(effectInstance));
+                        le.addEffect(new MobEffectInstance(effectInstance), owner);
                     }
                 }
             }
-        } else if (FluidHelper.isTag(stack, Tags.Fluids.MILK)){
+        } else if (FluidHelper.isTag(stack, Tags.Fluids.MILK)) {
             if (hit.getEntity() instanceof LivingEntity le && le.isAffectedByPotions()) {
                 ItemStack curativeItem = new ItemStack(Items.MILK_BUCKET);
                 le.curePotionEffects(curativeItem);
             }
-        } else
+        } else {
+            if (owner instanceof LivingEntity)
+                ((LivingEntity) owner).setLastHurtMob(hit.getEntity());
             hit.getEntity().hurt(damageSources().generic(), 0.5f);
-
+        }
         super.onHitEntity(hit);
         remove(RemovalReason.DISCARDED);
     }
@@ -165,18 +173,18 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
             }
 
             this.checkInsideBlocks();
-            Vec3 vec3 = this.getDeltaMovement();
-            double d0 = this.getX() + vec3.x;
-            double d1 = this.getY() + vec3.y;
-            double d2 = this.getZ() + vec3.z;
             ProjectileUtil.rotateTowardsMovement(this, 0.2F);
-            float f = this.getInertia();
+
+            Vec3 deltaMovement = this.getDeltaMovement();
+            double pX = this.getX() + deltaMovement.x;
+            double pY = this.getY() + deltaMovement.y;
+            double pZ = this.getZ() + deltaMovement.z;
+            this.setPos(pX, pY, pZ);
+
+            float inertia = this.getInertia();
             if (this.isInWater())
-                f = 0.8F;
-
-
-            this.setDeltaMovement(vec3.add(this.xPower, this.yPower, this.zPower).scale(f));
-            this.setPos(d0, d1, d2);
+                inertia = 0.8F;
+            this.setDeltaMovement(deltaMovement.scale(inertia));
         } else {
             this.discard();
         }
@@ -190,7 +198,7 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
     protected void onHitBlock(BlockHitResult hit) {
         super.onHitBlock(hit);
         BlockPos pos = new BlockPos((int) Math.floor(getPosition(1).x), (int) Math.floor(getPosition(1).y), (int) Math.floor(getPosition(1).z));
-        if(cooling) {
+        if (cooling) {
             if (level().getBlockState(pos).getBlock() instanceof FireBlock) {
                 level().setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
                 level().playLocalSound(position().x, position().y, position().z, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5f, 2, true);
@@ -203,7 +211,7 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
                 }
             }
         }
-        if(fire && level().getBlockState(pos).getBlock() instanceof AirBlock && BlockHelper.hasBlockSolidSide(level().getBlockState(pos.below()), level(), pos.below(), Direction.UP))
+        if (fire && level().getBlockState(pos).getBlock() instanceof AirBlock && BlockHelper.hasBlockSolidSide(level().getBlockState(pos.below()), level(), pos.below(), Direction.UP))
             level().setBlock(pos, FireBlock.getState(level(), pos), 3);
         remove(RemovalReason.DISCARDED);
     }

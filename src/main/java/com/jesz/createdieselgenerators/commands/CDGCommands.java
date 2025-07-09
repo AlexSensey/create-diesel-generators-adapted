@@ -34,6 +34,7 @@ public class CDGCommands {
                 .then(Commands.literal("locate").executes((command) -> locateOilChunk(command.getSource())))
                 .then(Commands.literal("regenerate").executes((command) -> refreshOilChunk(command.getSource())))
                 .then(Commands.literal("set")
+                        .then(Commands.literal("infinity").executes((command) -> setOilChunkInfinite(command.getSource(), command)))
                         .then(Commands.argument("amount", IntegerArgumentType.integer(0, Integer.MAX_VALUE))
                                 .executes((command) -> setOilChunk(command.getSource(), command))))
 
@@ -54,6 +55,7 @@ public class CDGCommands {
 
         return 1;
     }
+
     private int refreshOilChunk(CommandSourceStack source) throws CommandSyntaxException {
         if(!source.hasPermission(2))
             return 0;
@@ -73,7 +75,18 @@ public class CDGCommands {
 
         int amount = IntegerArgumentType.getInteger(ctx, "amount");
         OilChunksSavedData.setChunkOilAmount(source.getLevel(), chunkPos, amount);
-        source.sendSuccess(() -> Component.literal("Set this chunk's oil deposits to  ").withStyle(ChatFormatting.GRAY).append(Component.literal(String.format("%,1d", amount) + "mB").withStyle(ChatFormatting.GOLD)), false);
+        source.sendSuccess(() -> Component.literal("Set this chunk's oil deposits to ").withStyle(ChatFormatting.GRAY).append(Component.literal(String.format("%,1d", amount) + "mB").withStyle(ChatFormatting.GOLD)), false);
+
+        return 1;
+    }
+
+    private int setOilChunkInfinite(CommandSourceStack source, CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        if(!source.hasPermission(2))
+            return 0;
+        ChunkPos chunkPos = new ChunkPos(new BlockPos((int) source.getPosition().x, (int) source.getPosition().y, (int) source.getPosition().z));
+
+        OilChunksSavedData.setChunkOilAmount(source.getLevel(), chunkPos, Integer.MAX_VALUE);
+        source.sendSuccess(() -> Component.literal("This chunk is now infinite").withStyle(ChatFormatting.GRAY), false);
 
         return 1;
     }

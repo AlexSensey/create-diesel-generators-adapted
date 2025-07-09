@@ -15,6 +15,7 @@
     "LootPoolAccessor",
     "LootTableAccessor",
     "MechanicalPressBlockEntityMixin",
+    "ShaftBlockMixin",
     "UseOnContextInvoker"
   ],
   "client": [

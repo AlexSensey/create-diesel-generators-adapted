@@ -79,8 +79,9 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
             targetedEntity = null;
             return;
         }
-        if (Math.abs(targetedHorizontalRotation - horizontalRotation) % 360 <= 4 || Math.abs(targetedHorizontalRotation - horizontalRotation) % 360 >= 356)
-            shootFluids();
+        if (Math.abs(targetedHorizontalRotation - horizontalRotation) % 360 <= 2 || Math.abs(targetedHorizontalRotation - horizontalRotation) % 360 >= 358)
+            if (Math.abs(targetedVerticalRotation - verticalRotation) <= 2)
+                shootFluids();
     }
 
     @Override
@@ -106,9 +107,9 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
     }
 
     public void shootFluids() {
-        if(getSpeed() == 0)
+        if (getSpeed() == 0)
             return;
-        float shootingForce = (float) Math.min(Math.abs(1 - Math.pow(1 - (getSpeed() / 256), 3)), 1);
+        float shootingForce = getShootingForce();
 
         if (!level.isClientSide && !tank.isEmpty()) {
             AllSoundEvents.MIXING.playOnServer(level, worldPosition, .75f, 1);
@@ -118,11 +119,19 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
 
             ChemicalSprayerProjectileEntity projectile = ChemicalSprayerProjectileEntity.spray(level, fluidStack, (flammable && lighterUpgrade) || fluidStack.getFluid().isSame(Fluids.LAVA), fluidStack.getFluid().isSame(Fluids.WATER));
             projectile.setPos(Vec3.atCenterOf(worldPosition).add(0, 0.625f, 0));
-            projectile.shootFromRotation(projectile, verticalRotation + new Random().nextFloat(-1, 1),
-                    (float)(Math.atan2(Math.sin(horizontalRotation/180*Math.PI), -Math.cos(horizontalRotation/180*Math.PI))*180/Math.PI)
-                            + new Random().nextFloat(-1, 1), 0.0f, 0.2f+shootingForce, 0);
+
+            Vec3 directionVector = new Vec3(
+                    - Math.sin(Math.toRadians(horizontalRotation)) * Math.cos(Math.toRadians(-verticalRotation)),
+                    Math.sin(Math.toRadians(-verticalRotation)),
+                    - Math.cos(Math.toRadians(horizontalRotation)) * Math.cos(Math.toRadians(-verticalRotation))
+            );
+            projectile.shoot(directionVector.x, directionVector.y, directionVector.z,
+                    shootingForce, 5);
+
+            projectile.setOwner(controllingPlayer != null ? controllingPlayer : controllingEntity);
+
             level.addFreshEntity(projectile);
-            if(t == 1)
+            if (t == 1)
                 tank.getPrimaryHandler().drain(3, IFluidHandler.FluidAction.EXECUTE);
         }
     }

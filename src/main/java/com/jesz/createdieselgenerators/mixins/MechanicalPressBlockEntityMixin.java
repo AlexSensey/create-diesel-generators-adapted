@@ -13,9 +13,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MechanicalPressBlockEntityMixin {
     @Inject(method = "matchStaticFilters", at = @At("RETURN"), remap = false, cancellable = true)
     public <C extends Container> void matchStaticFilters(Recipe<C> recipe, CallbackInfoReturnable<Boolean> cir){
-        if(cir.getReturnValue())
+        if (cir.getReturnValue())
             return;
-        if(recipe.getType() == CDGRecipes.COMPRESSION_MOLDING.getType())
+        if (recipe.getType() == CDGRecipes.COMPRESSION_MOLDING.getType())
             cir.setReturnValue(true);
     }
 }
