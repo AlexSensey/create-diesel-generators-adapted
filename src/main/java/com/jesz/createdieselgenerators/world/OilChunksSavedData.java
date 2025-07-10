@@ -140,11 +140,11 @@ public class OilChunksSavedData extends SavedData {
 
     public static List<Holder<Biome>> getBiomesInChunk(ServerLevel level, ChunkPos chunkPos){
         List<Holder<Biome>> list = new ArrayList<>();
-        for (int x = 0; x < 16; x++) {
-            for (int y = level.getMinBuildHeight(); y < level.getMaxBuildHeight(); y++) {
-                for (int z = 0; z < 16; z++) {
-                    Holder<Biome> biome = level.getBiome(new BlockPos((chunkPos.x*16)+x, y, (chunkPos.z*16)+z));
-                    if(!list.contains(biome))
+        for (int x = chunkPos.getMinBlockX(); x <= chunkPos.getMaxBlockX(); x++) {
+            for (int y = 60; y < 110; y++) {
+                for (int z = chunkPos.getMinBlockZ(); z <= chunkPos.getMaxBlockZ(); z++) {
+                    Holder<Biome> biome = level.getBiome(new BlockPos(x, y, z));
+                    if (!list.contains(biome))
                         list.add(biome);
                 }
             }

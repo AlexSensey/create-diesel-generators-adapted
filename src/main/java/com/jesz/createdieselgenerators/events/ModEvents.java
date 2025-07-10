@@ -49,7 +49,7 @@ public class ModEvents {
         event.dataPackRegistry(
                 CDGRegistries.FUEL_TYPE,
                 FuelType.CODEC,
-                FuelType.CODEC
+                FuelType.NCODEC
         );
     }
 

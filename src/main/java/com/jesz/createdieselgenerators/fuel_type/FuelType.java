@@ -23,6 +23,17 @@ public record FuelType(HolderSet<Fluid> fluid, PerEngineProperties normal, PerEn
             Codec.FLOAT.optionalFieldOf("burner_multiplier", 1f).forGetter(FuelType::burnerStrength)
     ).apply(i, FuelType::new));
 
+    // Since the client doesn't have the tags when it joins a server and receives fuel types, this different codec is needed to not cause an error when joining a server.
+    // this codec sends all the fluids, instead of sometimes sending just the tag.
+    public static final Codec<FuelType> NCODEC = RecordCodecBuilder.create(i -> i.group(
+            RegistryCodecs.homogeneousList(Registries.FLUID).fieldOf("fluid").forGetter(type -> HolderSet.direct(type.fluid.stream().toList())),
+            PerEngineProperties.CODEC.fieldOf("normal").forGetter(FuelType::normal),
+            PerEngineProperties.CODEC.fieldOf("modular").forGetter(FuelType::modular),
+            PerEngineProperties.CODEC.fieldOf("huge").forGetter(FuelType::huge),
+            Codec.FLOAT.optionalFieldOf("sound_pitch", 1f).forGetter(FuelType::soundPitch),
+            Codec.FLOAT.optionalFieldOf("burner_multiplier", 1f).forGetter(FuelType::burnerStrength)
+    ).apply(i, FuelType::new));
+
     public static final FuelType EMPTY = new FuelType(null, new PerEngineProperties(0, 0, 0),
             new PerEngineProperties(0, 0, 0),
             new PerEngineProperties(0, 0, 0), 0, 0);

@@ -85,7 +85,7 @@ public class CDGConfig {
             OIL_CHUNK_THRESHOLD = SERVER_BUILDER.comment()
                     .define("Oil chunk threshold", 4_000_000);
             OIL_MULTIPLIER = SERVER_BUILDER.comment()
-                    .define("Normal oil chunks oil amount multiplier", 1d);
+                    .define("Normal oil chunks oil amount multiplier", 1.3d);
             HIGH_OIL_MULTIPLIER = SERVER_BUILDER.comment()
                     .define("High oil chunks oil amount multiplier", 2d);
             OIL_CHUNK_SCALE = SERVER_BUILDER.comment()

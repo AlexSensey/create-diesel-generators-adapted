@@ -47,13 +47,13 @@ public class NoShaftBearingInstance<B extends KineticBlockEntity & IBearingBlock
 
     @Override
     public void beginFrame(DynamicVisual.Context ctx) {
-
-        float interpolatedAngle = blockEntity.getInterpolatedAngle(AnimationTickHolder.getPartialTicks() - 1);
+        float interpolatedAngle = blockEntity.getInterpolatedAngle(ctx.partialTick());
         Quaternionf rot = rotationAxis.rotationDegrees(interpolatedAngle);
 
         rot.mul(blockOrientation);
 
-        topInstance.rotation(rot);
+        topInstance.rotation(rot)
+                .setChanged();
     }
 
     @Override

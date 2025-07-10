@@ -17,7 +17,12 @@ import dev.engine_room.flywheel.lib.transform.TransformStack;
 import dev.engine_room.flywheel.lib.visual.SimpleDynamicVisual;
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.render.CachedBuffers;
+import net.createmod.catnip.render.SuperByteBuffer;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec2;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,60 +55,55 @@ public class PumpjackCrankInstance extends KineticBlockEntityVisual<PumpjackCran
                 .rotateToFace(Direction.UP, blockEntity.getBlockState().getValue(HORIZONTAL_FACING).getOpposite())
                 .setChanged();
     }
+
     @Override
     public void beginFrame(DynamicVisual.Context ctx) {
-        float partialTicks = AnimationTickHolder.getPartialTicks()*0;
-        float angle = AngleHelper.angleLerp(partialTicks, blockEntity.prevAngle, blockEntity.angle);
-        PoseStack ms = new PoseStack();
-        TransformStack<PoseTransformStack> msr = TransformStack.of(ms);
+        float partialTicks = ctx.partialTick();
 
-        msr.translate(getVisualPosition());
+        BlockState blockState = blockEntity.getBlockState();
+        BlockPos pos = blockEntity.getBlockPos();
+        float angle = AngleHelper.angleLerp(partialTicks, blockEntity.prevAngle, blockEntity.angle);
+
         boolean isXAxis = blockState.getValue(HORIZONTAL_FACING).getAxis() == Direction.Axis.X;
         double v = ((isXAxis ? angle : -angle) + 90) / 180 * Math.PI;
 
         double sin = Math.sin(v) * (blockEntity.crankSize.getValue() == 0 ? 0.8125 : 1.125);
         double cos = Math.cos(v) * (blockEntity.crankSize.getValue() == 0 ? 0.8125 : 1.125);
-        if(blockEntity.bearingPos == null) {
-            if(isXAxis) {
-                msr.translate(0.5, 1.25, 0).rotateZDegrees(angle);
-            }else {
-                msr.translate(0, 1.25, 0.5).rotateYDegrees(90).rotateZDegrees(angle);
-            }
-            (blockEntity.crankSize.getValue() == 0 ? crank : large_crank).setTransform(ms);
-            (blockEntity.crankSize.getValue() == 0 ? large_crank : crank).setZeroTransform();
 
-            double dstY = -1000-sin-1.25 - pos.getY();
-            double dstX = pos.getX()-cos-0.5 - pos.getX();
-            double dstZ = pos.getZ()-cos-0.5 - pos.getZ();
-            ms = new PoseStack();
-            msr = TransformStack.of(ms);
-            msr.translate(getVisualPosition());
-            if(isXAxis) {
-                msr.translate(0.5, 1.25, 0).translate(cos, sin, 0).rotateZDegrees((float) (Math.atan2(dstY, dstX)*180/Math.PI-90));
-            }else {
-                msr.translate(0, 1.25, 0.5).translate(0, sin, cos).rotateYDegrees(90).rotateZDegrees((float) (Math.atan2(dstZ, dstY)*180/Math.PI));
+        double dstY = -1000-sin-1.25 - pos.getY();
+        double dstX = pos.getX()-cos-0.5 - pos.getX();
+        double dstZ = pos.getZ()-cos-0.5 - pos.getZ();
+
+        PoseStack ms = new PoseStack();
+        TransformStack<PoseTransformStack> msr = TransformStack.of(ms);
+
+        msr.translate(getVisualPosition());
+
+        if (blockEntity.bearingPos != null) {
+            PumpjackBearingBlockEntity bearing = blockEntity.bearing.get();
+
+            float interpolatedAngle = 0;
+            if (bearing != null)
+                interpolatedAngle = bearing.getInterpolatedAngle(partialTicks);
+            if (blockEntity.inPonderAngle != Integer.MIN_VALUE){
+                interpolatedAngle = blockEntity.inPonderAngle;
             }
-            (blockEntity.crankSize.getValue() == 0 ? crank_rod : large_crank_rod).setTransform(ms);
-            (blockEntity.crankSize.getValue() == 0 ? large_crank_rod : crank_rod).setZeroTransform();
-            crank.setChanged();
-            crank_rod.setChanged();
-            large_crank_rod.setChanged();
-            large_crank.setChanged();
-            return;
+
+            if (!isXAxis)
+                interpolatedAngle *= -1;
+            Vec2 crankBearingLocation = new Vec2(
+                    (float) ((blockEntity.crankBearingLocation.x) * Math.cos(interpolatedAngle/180 * Math.PI) - (blockEntity.crankBearingLocation.y) * Math.sin(interpolatedAngle/180*Math.PI))+0.5f,
+                    (float) ((blockEntity.crankBearingLocation.x) * Math.sin(interpolatedAngle/180 * Math.PI) + (blockEntity.crankBearingLocation.y) * Math.cos(interpolatedAngle/180*Math.PI))+0.5f);
+            if (isXAxis)
+                crankBearingLocation = crankBearingLocation.add(new Vec2((float) blockEntity.bearingPos.getX(), (float) blockEntity.bearingPos.getY()));
+            else
+                crankBearingLocation = crankBearingLocation.add(new Vec2((float) blockEntity.bearingPos.getZ(), (float) blockEntity.bearingPos.getY()));
+
+            dstY = crankBearingLocation.y-sin-1.25 - pos.getY();
+            dstX = crankBearingLocation.x-cos-0.5 - pos.getX();
+            dstZ = crankBearingLocation.x-cos-0.5 - pos.getZ();
         }
-        PumpjackBearingBlockEntity bearing = blockEntity.bearing.get();
-        float interpolatedAngle = 0;
-        if(bearing != null)
-            interpolatedAngle = bearing.getInterpolatedAngle(partialTicks);
-        if(!isXAxis)
-            interpolatedAngle *= -1;
-        Vec2 crankBearingLocation = new Vec2(
-                (float) ((blockEntity.crankBearingLocation.x) * Math.cos(interpolatedAngle/180 * Math.PI) - (blockEntity.crankBearingLocation.y) * Math.sin(interpolatedAngle/180*Math.PI))+0.5f,
-                (float) ((blockEntity.crankBearingLocation.x) * Math.sin(interpolatedAngle/180 * Math.PI) + (blockEntity.crankBearingLocation.y) * Math.cos(interpolatedAngle/180*Math.PI))+0.5f);
-        if(isXAxis)
-            crankBearingLocation = crankBearingLocation.add(new Vec2((float) blockEntity.bearingPos.getX(), (float) blockEntity.bearingPos.getY()));
-        else
-            crankBearingLocation = crankBearingLocation.add(new Vec2((float) blockEntity.bearingPos.getZ(), (float) blockEntity.bearingPos.getY()));
+
         if(isXAxis) {
             msr.translate(0.5, 1.25, 0).rotateZDegrees(angle);
         }else {
@@ -112,13 +112,10 @@ public class PumpjackCrankInstance extends KineticBlockEntityVisual<PumpjackCran
         (blockEntity.crankSize.getValue() == 0 ? crank : large_crank).setTransform(ms);
         (blockEntity.crankSize.getValue() == 0 ? large_crank : crank).setZeroTransform();
 
+
         ms = new PoseStack();
         msr = TransformStack.of(ms);
         msr.translate(getVisualPosition());
-
-        double dstY = crankBearingLocation.y-sin-1.25 - pos.getY();
-        double dstX = crankBearingLocation.x-cos-0.5 - pos.getX();
-        double dstZ = crankBearingLocation.x-cos-0.5 - pos.getZ();
 
         if(isXAxis) {
             msr.translate(0.5, 1.25, 0).translate(cos, sin, 0).rotateZDegrees((float) (Math.atan2(dstY, dstX)*180/Math.PI-90));
