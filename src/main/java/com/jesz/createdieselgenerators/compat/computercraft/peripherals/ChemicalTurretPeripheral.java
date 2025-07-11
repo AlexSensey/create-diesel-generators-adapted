@@ -26,13 +26,16 @@ public class ChemicalTurretPeripheral extends SyncedPeripheral<ChemicalTurretBlo
     @LuaFunction
     public final void setHorizontalRotation(int v) {
         blockEntity.targetedHorizontalRotation = v;
+        blockEntity.sync = true;
     }
     @LuaFunction
     public final void setVerticalRotation(int v) {
         blockEntity.targetedVerticalRotation = Mth.clamp(v, -50, 11);
+        blockEntity.sync = true;
     }
     @LuaFunction
     public final void spray() {
         blockEntity.shootNextTick = true;
+        blockEntity.sync = true;
     }
 }

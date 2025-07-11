@@ -47,6 +47,7 @@ public class TurretBlockEntity extends KineticBlockEntity {
     public LivingEntity controllingEntity;
     public Entity targetedEntity;
     public Direction controllingEntityDirection;
+    public boolean sync;
     boolean removePlayer = false;
 
     public TurretBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
@@ -108,6 +109,10 @@ public class TurretBlockEntity extends KineticBlockEntity {
             t = 0;
             updateTargetedEntity();
         }
+        if (t % 8 == 0 && sync) {
+            sendData();
+            sync = false;
+        }
 
         oldHorizontalRotation = horizontalRotation;
         oldVerticalRotation = verticalRotation;
@@ -132,6 +137,7 @@ public class TurretBlockEntity extends KineticBlockEntity {
         targetedVerticalRotation = Mth.clamp(controllingPlayer.xRotO, -50, 1);
         targetedHorizontalRotation = -controllingPlayer.yHeadRotO+180;
     }
+
 
     float cachedPitch = 0;
     public float calculatePitch(Vec3 targetPos) {

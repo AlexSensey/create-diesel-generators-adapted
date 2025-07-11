@@ -226,7 +226,7 @@ public class ForgeEvents {
                 tooltip.add(enginesEnabled != 1 ? 7 : 6, Component.empty());
                 tooltip.add(enginesEnabled != 1 ? 8 : 7, Component.translatable("createdieselgenerators.tooltip.burnerStrength", CreateLang.number(type.burnerStrength() * 100).text(" %").component().withStyle(FontHelper.Palette.STANDARD_CREATE.primary())).withStyle(ChatFormatting.DARK_GRAY));
                 tooltip.add(enginesEnabled != 1 ? 9 : 8, Component.empty());
-            } else {
+            } else if (type.normal().speed() != 0) {
                 tooltip.add(1, Component.translatable("createdieselgenerators.tooltip.holdForFuelStats", Component.translatable("createdieselgenerators.tooltip.keyAlt").withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY));
             }
         }

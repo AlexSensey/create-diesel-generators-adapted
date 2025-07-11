@@ -1,7 +1,9 @@
 package com.jesz.createdieselgenerators.compat.kubejs;
 
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
+import net.minecraft.core.HolderSet;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class FuelTypeBuilder {
@@ -15,70 +17,75 @@ public class FuelTypeBuilder {
 
     float burnerStrength;
 
-    int normalBurn;
-    int modularBurn;
-    int hugeBurn;
-    int soundSpeed;
+    float normalBurn;
+    float modularBurn;
+    float hugeBurn;
+    float pitch;
     Consumer<FuelType> callback;
     public FuelTypeBuilder(Consumer<FuelType> callback) {
         this.callback = callback;
     }
 
-    public FuelTypeBuilder normalSpeed(float speed){
+    public FuelTypeBuilder normalSpeed(float speed) {
         normalSpeed = speed;
         return this;
     }
-    public FuelTypeBuilder modularSpeed(float speed){
+
+    public FuelTypeBuilder modularSpeed(float speed) {
         modularSpeed = speed;
         return this;
     }
-    public FuelTypeBuilder hugeSpeed(float speed){
+
+    public FuelTypeBuilder hugeSpeed(float speed) {
         hugeSpeed = speed;
         return this;
     }
 
-    public FuelTypeBuilder normalStrength(float strength){
+    public FuelTypeBuilder normalStrength(float strength) {
         normalStrength = strength;
         return this;
     }
-    public FuelTypeBuilder modularStrength(float strength){
+
+    public FuelTypeBuilder modularStrength(float strength) {
         modularStrength = strength;
         return this;
     }
-    public FuelTypeBuilder hugeStrength(float strength){
+
+    public FuelTypeBuilder hugeStrength(float strength) {
         hugeStrength = strength;
         return this;
     }
 
-    public FuelTypeBuilder normalBurn(int burn){
+    public FuelTypeBuilder normalBurn(float burn) {
         normalBurn = burn;
         return this;
     }
-    public FuelTypeBuilder modularBurn(int burn){
+
+    public FuelTypeBuilder modularBurn(float burn) {
         modularBurn = burn;
         return this;
     }
-    public FuelTypeBuilder hugeBurn(int burn){
+
+    public FuelTypeBuilder hugeBurn(float burn) {
         hugeBurn = burn;
         return this;
     }
 
-    public FuelTypeBuilder soundSpeed(int soundSpeed){
-        this.soundSpeed = soundSpeed;
+    public FuelTypeBuilder soundPitch(float pitch) {
+        this.pitch = pitch;
         return this;
     }
 
-    public FuelTypeBuilder burnerStrength(float burnerStrength){
+    public FuelTypeBuilder burnerStrength(float burnerStrength) {
         this.burnerStrength = burnerStrength;
         return this;
     }
 
-    public FuelType build(){
+    public FuelType build() {
 
-//        FuelType type = new FuelType(normalSpeed, normalStrength, normalBurn,
-//                modularSpeed, modularStrength, modularBurn,
-//                hugeSpeed, hugeStrength, hugeBurn, soundSpeed, burnerStrength);
-        FuelType type = null;
+        FuelType type = new FuelType(HolderSet.direct(List.of()), new FuelType.PerEngineProperties(normalSpeed, normalStrength, normalBurn)
+                , new FuelType.PerEngineProperties(modularSpeed, modularStrength, modularBurn)
+                , new FuelType.PerEngineProperties(hugeSpeed, hugeStrength, hugeBurn), pitch, burnerStrength);
         callback.accept(type);
         return type;
     }

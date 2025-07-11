@@ -71,29 +71,29 @@ public class BasinLidBlockEntity extends BasinOperatingBlockEntity {
             }
             progress = 0;
         }
-        if ((!this.level.isClientSide && (this.currentRecipe == null || this.processingTime == -1)) || getBlockState().getValue(OPEN) || !getBlockState().getValue(ON_A_BASIN)) {
+        if ((!level.isClientSide && (currentRecipe == null || processingTime == -1)) || getBlockState().getValue(OPEN) || !getBlockState().getValue(ON_A_BASIN)) {
             this.running = false;
             this.processingTime = -1;
             this.basinChecker.scheduleUpdate();
         }
-        if(running)
+        if (running)
             steamInside = true;
-        if (this.running && this.level != null) {
-            if (!this.level.isClientSide && this.processingTime <= 0) {
+        if (running && level != null) {
+            if (!level.isClientSide && this.processingTime <= 0) {
                 this.processingTime = -1;
                 this.applyBasinRecipe();
                 this.sendData();
             }
-            if(!this.level.isClientSide && processingTime % 20 == 0 && new Random().nextInt() % 4 == 0){
+            if (!level.isClientSide && processingTime % 20 == 0 && new Random().nextInt() % 4 == 0)
                 level.playSound(null, worldPosition, SoundEvents.BUBBLE_COLUMN_UPWARDS_AMBIENT,
                         SoundSource.BLOCKS, .15f, speed < 65 ? .75f : 1.5f);
-
-            }
 
             if (processingTime == 1)
                 level.playSound(null, worldPosition, SoundEvents.BREWING_STAND_BREW,
                         SoundSource.BLOCKS, .15f, speed < 65 ? .75f : 1.5f);
-            if (this.processingTime > 0) --this.processingTime;
+
+            if (processingTime > 0)
+                processingTime--;
         }
     }
     @Override
@@ -146,9 +146,9 @@ public class BasinLidBlockEntity extends BasinOperatingBlockEntity {
 
 
 
-    private static final Object BasinFermentingRecipesKey = new Object();
+    private static final Object basinFermentingRecipesKey = new Object();
     @Override
     protected Object getRecipeCacheKey() {
-        return BasinFermentingRecipesKey;
+        return basinFermentingRecipesKey;
     }
 }

@@ -157,7 +157,7 @@ public class ModularDieselEngineBlock extends HorizontalKineticBlock implements 
                 return;
 
             if (!context.getPlayer().isCreative())
-                context.getPlayer().getInventory().placeItemBackInInventory(be.upgrade.getItem());
+                context.getPlayer().getInventory().placeItemBackInInventory(controller.upgrade.getItem());
 
             controller.upgrade = EngineUpgrades.EMPTY;
             controller.sendData();

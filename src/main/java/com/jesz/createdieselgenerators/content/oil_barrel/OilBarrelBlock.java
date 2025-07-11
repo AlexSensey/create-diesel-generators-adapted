@@ -127,7 +127,7 @@ public class OilBarrelBlock extends Block implements IBE<OilBarrelBlockEntity>, 
                 stack.shrink(1);
             return InteractionResult.SUCCESS;
         }
-        return null;
+        return InteractionResult.PASS;
     }
 
     @Override

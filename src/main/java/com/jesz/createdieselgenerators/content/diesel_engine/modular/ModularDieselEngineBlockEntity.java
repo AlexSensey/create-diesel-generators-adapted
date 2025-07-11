@@ -1,8 +1,11 @@
 package com.jesz.createdieselgenerators.content.diesel_engine.modular;
 
+import com.jesz.createdieselgenerators.CDGBlocks;
+import com.jesz.createdieselgenerators.CDGConfig;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineSoundInstance;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.jesz.createdieselgenerators.content.diesel_engine.IEngine;
+import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock;
 import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.content.contraptions.bearing.WindmillBearingBlockEntity;
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
@@ -146,13 +149,13 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
 
         reActivateSource = true;
         if (enabled()) {
-            if (remainingTicks < 2) {
-                remainingTicks += 1 / getFuelBurnRate();
-                tankInventory.drain(1, IFluidHandler.FluidAction.EXECUTE);
+            if (remainingTicks < length + 1) {
+                remainingTicks += length / getFuelBurnRate();
+                tankInventory.drain(length, IFluidHandler.FluidAction.EXECUTE);
             }
 
             if (remainingTicks >= 0)
-                remainingTicks--;
+                remainingTicks -= length;
         }
 
         if (level.isClientSide) {
@@ -361,7 +364,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
 
     @Override
     public int getMaxLength(Direction.Axis longAxis, int width) {
-        return 8;
+        return 21;
     }
 
     @Override
@@ -387,6 +390,21 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
     @Override
     public void setWidth(int width) {
 
+    }
+
+    @Override
+    public boolean enabled() {
+        if (!IEngine.super.enabled())
+            return false;
+        if (!CDGConfig.ENGINES_DISABLED_WITH_REDSTONE.get())
+            return true;
+        for (int i = 1; i < length; i++) {
+            BlockState state = level.getBlockState(getBlockPos().relative(getMainConnectionAxis(), i));
+            if (CDGBlocks.MODULAR_DIESEL_ENGINE.has(state))
+                if (state.getValue(DieselEngineBlock.POWERED))
+                    return false;
+        }
+        return true;
     }
 }
 

@@ -260,7 +260,7 @@ public class CDGBlocks {
             .properties(p -> p.isRedstoneConductor((p1, p2, p3) -> true))
             .transform(pickaxeOnly())
             .tag(AllTags.AllBlockTags.COPYCAT_ALLOW.tag)
-            .blockstate((c, p) -> BlockStateGen.axisBlock(c, p, bs -> p.models().getExistingFile(p.modLoc("block/oil_barrel" + (bs.getValue(OilBarrelBlock.AXIS).isVertical() ? "" : bs.getValue(OilBarrelBlock.AXIS) == Direction.Axis.Z ? "_sideways_clockwise" : "_sideways")))))
+            .blockstate((c, p) -> BlockStateGen.simpleBlock(c, p, bs -> p.models().getExistingFile(p.modLoc("block/oil_barrel" + (bs.getValue(OilBarrelBlock.AXIS).isVertical() ? "" : bs.getValue(OilBarrelBlock.AXIS) == Direction.Axis.Z ? "_sideways_clockwise" : "_sideways")))))
             .onRegister(CreateRegistrate.connectedTextures(OilBarrelCTBehavior::new))
             .transform(mountedFluidStorage(CDGMountedStorageTypes.OIL_BARREL))
             .item(MultiBlockContainerBlockItem::new)
