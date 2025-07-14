@@ -97,6 +97,7 @@ public class PumpjackScene {
         scene.overlay().showText(50)
                 .attachKeyFrame()
                 .text("Don't forget to glue the contraption!")
+                .colored(PonderPalette.RED)
                 .pointAt(util.vector().topOf(4, 5, 4))
                 .placeNearTarget();
         scene.idle(65);
@@ -112,14 +113,14 @@ public class PumpjackScene {
         scene.idle(40);
 
         scene.world().showSection(util.select().position(4,2, 8), Direction.WEST);
-        scene.idle(15);
+        scene.idle(40);
 
         scene.overlay().showText(50)
                 .attachKeyFrame()
-                .text("To power the Pumpjack, you need to use a Pumpjack Crank.")
+                .text("To power the Pumpjack, you'll need to use a Pumpjack Crank.")
                 .pointAt(util.vector().topOf(4, 2, 8))
                 .placeNearTarget();
-        scene.idle(65);
+        scene.idle(70);
 
         scene.overlay().chaseBoundingBoxOutline(PonderPalette.RED, util.select().fromTo(4, 3, 8, 4, 4, 8), new AABB(4, 5, 9, 5, 3, 8), 35);
         scene.idle(45);
@@ -137,7 +138,8 @@ public class PumpjackScene {
 
         scene.overlay().showText(50)
                 .attachKeyFrame()
-                .text("To extract Crude Oil from the chunk, will need to excavate a hole below the pumpjack head ...")
+                .text("To start extracting Crude Oil from the chunk, you'll need to excavate a hole below the pumpjack head")
+                .colored(PonderPalette.BLUE)
                 .pointAt(util.vector().topOf(4, 1, 0))
                 .placeNearTarget();
         scene.idle(65);
@@ -147,7 +149,7 @@ public class PumpjackScene {
 
         scene.overlay().showText(50)
                 .attachKeyFrame()
-                .text("... and place a straight, vertical pipe going all the way to bedrock ...")
+                .text("Place a straight, vertical pipe going all the way to bedrock ...")
                 .pointAt(util.vector().topOf(4, 1, 0))
                 .placeNearTarget();
         scene.idle(65);
@@ -171,6 +173,7 @@ public class PumpjackScene {
         scene.overlay().showText(50)
                 .attachKeyFrame()
                 .text("Once you assemble the contraption ...")
+                .colored(PonderPalette.BLUE)
                 .pointAt(util.vector().topOf(4, 5, 4))
                 .placeNearTarget();
         scene.idle(65);

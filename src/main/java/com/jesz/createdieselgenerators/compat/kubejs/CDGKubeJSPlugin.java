@@ -26,7 +26,6 @@ public class CDGKubeJSPlugin extends KubeJSPlugin {
     public static EventGroup GROUP = EventGroup.of("CDGEvents");
     public static EventHandler MOLDS = GROUP.startup("molds", () -> MoldEventJS.class);
     public static EventHandler OIL_CHUNKS = GROUP.server("oilAmount", () -> GetChunkOilAmountEventJS.class);
-    public static EventHandler FUEL_TYPES = GROUP.server("fuelTypes", () -> FuelTypesEventJS.class);
     public static EventHandler LIGHTER_SKINS = GROUP.client("lighterSkins", () -> LighterSkinsEventJS.class);
 
     static {
@@ -91,19 +90,6 @@ public class CDGKubeJSPlugin extends KubeJSPlugin {
     }
 
     @Override
-    public void generateDataJsons(DataJsonGenerator generator) {
-        FuelTypesEventJS event = new FuelTypesEventJS();
-        FuelTypesEventJS.addedTypes.clear();
-        FUEL_TYPES.post(event);
-
-        AtomicInteger i = new AtomicInteger();
-        FuelTypesEventJS.addedTypes.forEach((s, type) -> {
-            generator.json(new ResourceLocation("createdieselgenerators", "createdieselgenerators/createdieselgenerators/fuel_type/t" + i), generateFuelType(s, type));
-            i.getAndIncrement();
-        });
-    }
-
-    @Override
     public void generateLang(LangEventJS event) {
         MoldEventJS.addedMolds.forEach((rl, name) -> {
             event.add("mold." + rl.getNamespace() + "." + rl.getPath(), name);
@@ -125,34 +111,6 @@ public class CDGKubeJSPlugin extends KubeJSPlugin {
         JsonObject texturesObject = new JsonObject();
         texturesObject.add("layer0", new JsonPrimitive("kubejs:item/lighter/"+id+state.getSuffix()));
         object.add("textures", texturesObject);
-        return object;
-    }
-
-    JsonElement generateFuelType(String s, FuelType type) {
-        JsonObject object = new JsonObject();
-        JsonObject normalObject = new JsonObject();
-        JsonObject modularObject = new JsonObject();
-        JsonObject hugeObject = new JsonObject();
-        object.addProperty("fluid", s);
-
-        normalObject.addProperty("speed", type.normal().speed());
-        normalObject.addProperty("strength", type.normal().strength());
-        normalObject.addProperty("burn_rate", type.normal().burn());
-
-        modularObject.addProperty("speed", type.modular().speed());
-        modularObject.addProperty("strength", type.modular().strength());
-        modularObject.addProperty("burn_rate", type.modular().burn());
-
-        hugeObject.addProperty("speed", type.huge().speed());
-        hugeObject.addProperty("strength", type.huge().strength());
-        hugeObject.addProperty("burn_rate", type.huge().burn());
-
-        object.add("normal", normalObject);
-        object.add("modular", modularObject);
-        object.add("huge", hugeObject);
-
-        object.addProperty("sound_pitch", type.soundPitch());
-        object.addProperty("burner_multiplier", type.burnerStrength());
         return object;
     }
 }

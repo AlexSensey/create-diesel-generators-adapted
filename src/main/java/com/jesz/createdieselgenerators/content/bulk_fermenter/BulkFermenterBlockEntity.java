@@ -125,7 +125,6 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
         if(currentRecipe == null)
             return;
         processingTime = (currentRecipe.getProcessingDuration());
-        processingTime = (int) (processingTime * Math.cbrt(width * width * height));
         sendData();
     }
     @Override
@@ -176,7 +175,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
                        }
                        processingTime = -1;
                    } else {
-                       processingTime--;
+                       processingTime = (int) Math.max(0, processingTime - Math.sqrt(width * height));
                    }
                 }
             }
@@ -228,7 +227,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
                 })
                 .filter(r -> {
                     BulkFermentingRecipe recipe = (BulkFermentingRecipe)r;
-                    LazyOptional<IItemHandler> itemCap = itemCapability;
+                    LazyOptional<IItemHandler> itemCap = getCapability(ForgeCapabilities.ITEM_HANDLER);
                     LazyOptional<IFluidHandler> fluidCap = fluidCapability;
                     if (!itemCap.isPresent())
                         return false;

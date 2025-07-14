@@ -9,6 +9,7 @@ import net.createmod.ponder.api.scene.Selection;
 import net.minecraft.core.Direction;
 
 public class BurnerScenes {
+
     public static void scene(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
         scene.title("burner", "Setting up a Burner");
@@ -33,7 +34,7 @@ public class BurnerScenes {
 
         scene.overlay().showText(70)
                 .attachKeyFrame()
-                .text("Burners can provide Heat to item processed in a Basin")
+                .text("Burners can provide Heat to items processed in a Basin")
                 .pointAt(util.vector().blockSurface(util.grid().at(2, 1, 1), Direction.NORTH))
                 .placeNearTarget();
         scene.idle(80);

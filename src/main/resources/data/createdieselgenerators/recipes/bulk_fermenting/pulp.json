@@ -2,8 +2,16 @@
   "type": "createdieselgenerators:bulk_fermenting",
   "ingredients": [
     {
-      "tag": "create:pulpifiable",
-      "count": 4
+      "tag": "create:pulpifiable"
+    },
+    {
+      "tag": "create:pulpifiable"
+    },
+    {
+      "tag": "create:pulpifiable"
+    },
+    {
+      "tag": "create:pulpifiable"
     },
     {
       "fluid": "minecraft:water",

@@ -2,8 +2,10 @@ package com.jesz.createdieselgenerators.ponder;
 
 import com.jesz.createdieselgenerators.CDGFluids;
 import com.jesz.createdieselgenerators.CDGItems;
+import com.jesz.createdieselgenerators.CDGRegistries;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlockEntity;
+import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
@@ -14,9 +16,14 @@ import net.createmod.ponder.api.element.WorldSectionElement;
 import net.createmod.ponder.api.scene.SceneBuilder;
 import net.createmod.ponder.api.scene.SceneBuildingUtil;
 import net.createmod.ponder.api.scene.Selection;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.LeverBlock;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
@@ -65,11 +72,8 @@ public class DieselEngineScenes {
         scene.world().showSection(tank, Direction.NORTH);
         scene.idle(30);
 
-//        Supplier<FluidStack> content = () -> {
-//            currentFuel = new FluidStack(FuelTypeManager.fuelTypes.isEmpty() ? CDGFluids.DIESEL.get() : FuelTypeManager.fuelTypes.keySet().stream().toList().get(new Random().nextInt(0, FuelTypeManager.fuelTypes.size() - 1)), 16000);
-//            return currentFuel;
-//        };
-        Supplier<FluidStack> content = () -> new FluidStack(CDGFluids.DIESEL.get(), 16000);
+
+        Supplier<FluidStack> content = DieselEngineScenes::randomFuel;
 
         scene.world().modifyBlockEntity(util.grid().at(4, 1, 1), FluidTankBlockEntity.class, be -> be.getTankInventory()
                 .fill(content.get(), IFluidHandler.FluidAction.EXECUTE));
@@ -182,11 +186,8 @@ public class DieselEngineScenes {
         scene.world().showSection(pipes, Direction.DOWN);
         scene.idle(15);
 
-//        Supplier<FluidStack> content = () -> {
-//            currentFuel = new FluidStack(FuelTypeManager.fuelTypes.isEmpty() ? CDGFluids.DIESEL.get() : FuelTypeManager.fuelTypes.keySet().stream().toList().get(new Random().nextInt(0, FuelTypeManager.fuelTypes.size() - 1)), 16000);
-//            return currentFuel;
-//        };
-        Supplier<FluidStack> content = () -> new FluidStack(CDGFluids.DIESEL.get(), 16000);
+        Supplier<FluidStack> content = DieselEngineScenes::randomFuel;
+
         scene.world().modifyBlockEntity(util.grid().at(4, 1, 3), FluidTankBlockEntity.class, be -> be.getTankInventory()
                 .fill(content.get(), IFluidHandler.FluidAction.EXECUTE));
         scene.idle(15);
@@ -238,11 +239,7 @@ public class DieselEngineScenes {
         scene.world().showSection(pipe2, Direction.DOWN);
         scene.world().showSection(pipe3, Direction.DOWN);
 
-//        Supplier<FluidStack> content = () -> {
-//            currentFuel = new FluidStack(FuelTypeManager.fuelTypes.isEmpty() ? CDGFluids.DIESEL.get() : FuelTypeManager.fuelTypes.keySet().stream().toList().get(new Random().nextInt(0, FuelTypeManager.fuelTypes.size() - 1)), 12000);
-//            return currentFuel;
-//        };
-        Supplier<FluidStack> content = () -> new FluidStack(CDGFluids.DIESEL.get(), 16000);
+        Supplier<FluidStack> content = DieselEngineScenes::randomFuel;
 
         scene.world().modifyBlockEntity(util.grid().at(4, 1, 3), FluidTankBlockEntity.class, be -> be.getTankInventory()
                 .fill(content.get(), IFluidHandler.FluidAction.EXECUTE));
@@ -300,5 +297,23 @@ public class DieselEngineScenes {
                 .pointAt(util.vector().blockSurface(util.grid().at(1, 1, 1), Direction.NORTH))
                 .placeNearTarget();
         scene.idle(60);
+    }
+
+    public static FluidStack randomFuel() {
+        if (Minecraft.getInstance().level != null) {
+            Registry<FuelType> registry = Minecraft.getInstance().level.registryAccess().registryOrThrow(CDGRegistries.FUEL_TYPE);
+            Holder<FuelType> randomType = registry.getRandom(RandomSource.create()).orElse(null);
+            if (randomType == null || randomType.get().fluid().size() == 0)
+                currentFuel = new FluidStack(CDGFluids.DIESEL.get(), 16000);
+            else {
+                Holder<Fluid> randomFluid = randomType.get().fluid().getRandomElement(RandomSource.create()).orElse(null);
+                if (randomFluid == null)
+                    currentFuel = new FluidStack(CDGFluids.DIESEL.get(), 16000);
+                else
+                    currentFuel = new FluidStack(randomFluid.get(), 16000);
+            }
+        } else
+            currentFuel = new FluidStack(CDGFluids.DIESEL.get(), 16000);
+        return currentFuel;
     }
 }

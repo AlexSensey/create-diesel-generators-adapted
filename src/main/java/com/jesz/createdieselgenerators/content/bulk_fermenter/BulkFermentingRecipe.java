@@ -54,18 +54,18 @@ public class BulkFermentingRecipe extends ProcessingRecipe<SmartInventory> {
     public boolean test(IItemHandler container){
         if(container == null)
             return false;
-        for(Ingredient ingredient : getIngredients()){
+        for (Ingredient ingredient : getIngredients()) {
             boolean valid = false;
             for (int i = 0; i < container.getSlots(); i++) {
                 ItemStack stack = container.getStackInSlot(i);
-                if(!ingredient.test(stack))
+                if (!ingredient.test(stack))
                     continue;
                 ItemStack[] items = ingredient.getItems();
-                if(items.length == 0 || items[0].getCount() > stack.getCount())
+                if (items.length == 0 || items[0].getCount() > stack.getCount())
                     continue;
                 valid = true;
             }
-            if(!valid)
+            if (!valid)
                 return false;
         }
         return true;
@@ -89,13 +89,15 @@ public class BulkFermentingRecipe extends ProcessingRecipe<SmartInventory> {
     }
 
     public void remove(BulkFermenterBlockEntity.BulkFermenterFluidHandler container){
-        if(container == null)
+        if (container == null)
             return;
         for (FluidIngredient ingredient : getFluidIngredients()){
             for (int i = 0; i < container.getTanks(); i++) {
                 FluidStack fluidInTank = container.getFluidInTank(i);
                 if (ingredient.test(fluidInTank) && ingredient.getRequiredAmount() <= fluidInTank.getAmount()) {
-                    container.tanks.get(i).drain(ingredient.getRequiredAmount(), IFluidHandler.FluidAction.EXECUTE);
+                    FluidStack toDrain = fluidInTank.copy();
+                    toDrain.setAmount(ingredient.getRequiredAmount());
+                    container.drain(toDrain, IFluidHandler.FluidAction.EXECUTE);
                     break;
                 }
             }

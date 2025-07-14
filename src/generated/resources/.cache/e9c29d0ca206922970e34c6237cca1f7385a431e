@@ -1,4 +1,4 @@
-// 1.20.1	2025-07-11T23:43:30.3564536	Registrate Provider for createdieselgenerators [Recipes, Advancements, Loot Tables, Tags (blocks), Tags (items), Tags (fluids), Tags (entity_types), Blockstates, Item models, Lang (en_us/en_ud)]
+// 1.20.1	2025-07-15T00:25:58.3638475	Registrate Provider for createdieselgenerators [Recipes, Advancements, Loot Tables, Tags (blocks), Tags (items), Tags (fluids), Tags (entity_types), Blockstates, Item models, Lang (en_us/en_ud)]
 515c47692d269b683b2f71229a92f9dda098148f assets/createdieselgenerators/blockstates/andesite_girder.json
 c04c217c8303f8e9da156ff8fd1e03579667db9f assets/createdieselgenerators/blockstates/andesite_girder_encased_shaft.json
 c30a00b0f2722bc05d96cdcd9b1418a8eeda6fdd assets/createdieselgenerators/blockstates/asphalt_block.json
@@ -63,8 +63,8 @@ c9583193ce370c2d338f8300dd35a08de1174e74 assets/createdieselgenerators/blockstat
 cf38db33d42cfa06ccc89b53b6ed8ef05d06e356 assets/createdieselgenerators/blockstates/white_concrete_encased_fluid_pipe.json
 36119964183cbbf22c9c0e63b37fc5ffb3ea618b assets/createdieselgenerators/blockstates/yellow_cement.json
 c7a73129fc436da16afaeb04bd907e1ff3cc9dbf assets/createdieselgenerators/blockstates/yellow_concrete_encased_fluid_pipe.json
-57964740b3e1e04d4636c8bd16a6004af2427822 assets/createdieselgenerators/lang/en_ud.json
-7cd83f77f26d48eb94f62f100546bb673078a3d6 assets/createdieselgenerators/lang/en_us.json
+21892487739cb8a05d2d54f6bb364798dd4a5fc7 assets/createdieselgenerators/lang/en_ud.json
+42e3b37bff8a82468f98af0c7f3b78dbde4a5d59 assets/createdieselgenerators/lang/en_us.json
 997203a32a2e62db78f3624d060fad2ad06a9132 assets/createdieselgenerators/models/block/asphalt_block.json
 4d907dc0faf4c118976f6fba52c0f995ab060ef2 assets/createdieselgenerators/models/block/asphalt_slab.json
 d30e1a719495f71720c975064c9f0fe84b783550 assets/createdieselgenerators/models/block/asphalt_slab_top.json
