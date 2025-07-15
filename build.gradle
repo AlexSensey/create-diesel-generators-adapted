@@ -1,205 +1,156 @@
 plugins {
-    id 'eclipse'
+    id 'java-library'
     id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '5.1.+'
-    id 'org.spongepowered.mixin' version '0.7.+'
-
+    id 'net.neoforged.moddev' version '2.0.89'
+    id 'idea'
 }
 
-version = '1.20.1-1.3.3'
-group = 'com.jesz.createdieselgenerators'
-archivesBaseName = 'createdieselgenerators'
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+version = mod_version
+group = mod_group_id
 
-println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
-minecraft {
+repositories {
+    mavenLocal()
+}
 
-    mappings channel: 'official', version: '1.20.1'
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
 
     runs {
         client {
-            workingDirectory project.file('run')
+            client()
 
-            property 'forge.logging.markers', 'REGISTRIES'
-
-            property 'forge.logging.console.level', 'debug'
-
-            property 'forge.enabledGameTestNamespaces', 'createdieselgenerators'
-
-            arg '-mixin.config=createdieselgenerators.mixins.json'
-            arg '-mixin.config=create.mixins.json'
-            mods {
-                createdieselgenerators {
-                    source sourceSets.main
-                }
-            }
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         server {
-            workingDirectory project.file('run')
+            server()
 
-            property 'forge.logging.markers', 'REGISTRIES'
-
-            property 'forge.logging.console.level', 'debug'
-
-            property 'forge.enabledGameTestNamespaces', 'createdieselgenerators'
-
-            arg '-mixin.config=createdieselgenerators.mixins.json'
-            arg '-mixin.config=create.mixins.json'
-            mods {
-                createdieselgenerators {
-                    source sourceSets.main
-                }
-            }
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         gameTestServer {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'REGISTRIES'
-
-            property 'forge.logging.console.level', 'debug'
-
-            property 'forge.enabledGameTestNamespaces', 'createdieselgenerators'
-
-            arg '-mixin.config=createdieselgenerators.mixins.json'
-            arg '-mixin.config=create.mixins.json'
-            mods {
-                createdieselgenerators {
-                    source sourceSets.main
-                }
-            }
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         data {
-            workingDirectory project.file('run')
+            data()
 
-            arg '-mixin.config=createdieselgenerators.mixins.json'
-            arg '-mixin.config=create.mixins.json'
-            property 'forge.logging.markers', 'REGISTRIES'
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
 
-            property 'forge.logging.console.level', 'debug'
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
 
-            args '--mod', 'createdieselgenerators', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-
-            mods {
-                createdieselgenerators {
-                    source sourceSets.main
-                }
-            }
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
         }
     }
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
 repositories {
-    maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
-    maven { url = "https://maven.tterrag.com" } // Registrate
+    maven { url = "https://maven.createmod.net" } // Ponder, Flywheel
+    maven { url = "https://mvn.devos.one/snapshots" } // Registrate
+    maven { url = "https://maven.blamejared.com" } // JEI, Vazkii's Mods
+    maven { url = "https://maven.squiddev.cc" } // CC: Tweaked
+    maven { url = "https://www.cursemaven.com" }
     maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // ForgeConfigAPIPort
-
-    maven {
-        url = "https://cursemaven.com"
-    }
-    maven {
-        name = "squiddev"
-        url = "https://squiddev.cc/maven/"
-    }
-    maven {
-        url = "https://maven.theillusivec4.top/"
-    }
-
-    maven {
-        // location of the maven that hosts JEI files since January 2023
-        // location of the maven for Vazkii's mods
-        name = "Jared's maven"
-        url = "https://maven.blamejared.com/"
-    }
-
-    maven {
-        // Shedaniel's maven (Architectury API)
-        url = "https://maven.architectury.dev"
-        content {
-            includeGroup "dev.architectury"
-        }
-    }
-
-    maven {
-        // saps.dev Maven (KubeJS and Rhino)
-        url = "https://maven.saps.dev/minecraft"
-        content {
-            includeGroup "dev.latvian.mods"
-        }
-    }
-
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.20.1-47.1.30'
-
-    implementation(fg.deobf("com.simibubi.create:create-1.20.1:6.0.6-150:slim") { transitive = false })
-    compileOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-api-1.20.1:1.0.4"))
-    runtimeOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-1.20.1:1.0.4"))
-    implementation (fg.deobf("net.createmod.ponder:Ponder-Forge-1.20.1:1.0.80"))
-    implementation fg.deobf("com.tterrag.registrate:Registrate:MC1.20-1.3.3")
-
-    implementation fg.deobf("mezz.jei:jei-1.20.1-forge:15.19.0.85")
-
-    compileOnly("cc.tweaked:cc-tweaked-1.20.1-core-api:1.105.0")
-    compileOnly fg.deobf("cc.tweaked:cc-tweaked-1.20.1-forge-api:1.105.0")
-    runtimeOnly fg.deobf("cc.tweaked:cc-tweaked-1.20.1-forge:1.105.0")
-//    runtimeOnly fg.deobf("curse.maven:every-compat-628539:4980517")
-    implementation fg.deobf("curse.maven:selene-499980:4980621")
-    implementation fg.deobf("curse.maven:createaddition-439890:6256349")
-
-    implementation fg.deobf("dev.latvian.mods:kubejs-forge:2001.6.5-build.17")
-
-    implementation fg.deobf("dev.latvian.mods:rhino-forge:1902.2.3-build.284")
-    implementation fg.deobf("dev.architectury:architectury-forge:6.6.92")
-
-    implementation fg.deobf("curse.maven:observable-509575:5643037")
-    implementation fg.deobf("curse.maven:kotlin-for-forge-351264:5402061")
-    implementation fg.deobf("curse.maven:architectury-api-419699:5137938")
-
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    testAnnotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
+    implementation("net.createmod.ponder:Ponder-NeoForge-${minecraft_version}:${ponder_version}")
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
+    runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
+    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
+    implementation("curse.maven:createaddition-439890:6445614")
+    implementation("curse.maven:kubejs-238086:5810100")
+    implementation("curse.maven:rhino-416294:6184623")
+    implementation("curse.maven:architectury-api-419699:5786327")
+    implementation("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
+    compileOnly("cc.tweaked:cc-tweaked-${minecraft_version}-core-api:${cc_tweaked_version}")
+    compileOnly("cc.tweaked:cc-tweaked-${minecraft_version}-forge-api:${cc_tweaked_version}")
+    implementation("curse.maven:selene-499980:6612980")
+    annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
 }
 
-jar {
-    manifest {
-        attributes([
-                "Specification-Title"     : "createdieselgenerators",
-                "Specification-Vendor"    : "createdieselgenerators",
-                "Specification-Version"   : "1",
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : project.jar.archiveVersion,
-                "Implementation-Vendor"   : "createdieselgenerators",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                'MixinConfigs': 'createdieselgenerators.mixins.json'
-        ])
-    }
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
 }
 
-jar.finalizedBy('reobfJar')
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
 
-mixin {
-    add sourceSets.main, 'createdieselgenerators.refmap.json'
-}
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
-            artifact jar
+        register('mavenJava', MavenPublication) {
+            from components.java
         }
     }
     repositories {
         maven {
-            url "file://${project.projectDir}/mcmodsrepo"
+            url "file://${project.projectDir}/repo"
         }
     }
 }
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+}
+
+jar {
+    manifest.attributes([
+            "MixinConfigs": "electroenergetics.mixins.json",
+    ])
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
 }

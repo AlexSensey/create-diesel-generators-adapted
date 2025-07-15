@@ -2,21 +2,7 @@
   "type": "create:crushing",
   "ingredients": [
     {
-      "type": "forge:difference",
-      "base": [
-        {
-          "tag": "minecraft:wooden_slabs"
-        },
-        {
-          "item": "minecraft:bamboo_mosaic_slab"
-        },
-        {
-          "item": "createdieselgenerators:chip_wood_block"
-        }
-      ],
-      "subtracted": {
-        "item": "createdieselgenerators:chip_wood_slab"
-      }
+      "tag": "createdieselgenerators:wood_chips_crushable_4"
     }
   ],
   "results": [

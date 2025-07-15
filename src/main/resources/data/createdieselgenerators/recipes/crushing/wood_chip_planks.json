@@ -2,18 +2,7 @@
   "type": "create:crushing",
   "ingredients": [
     {
-      "type": "forge:difference",
-      "base": [
-        {
-          "tag": "minecraft:planks"
-        },
-        {
-          "item": "minecraft:bamboo_mosaic"
-        }
-      ],
-      "subtracted": {
-        "item": "createdieselgenerators:chip_wood_block"
-      }
+      "tag": "createdieselgenerators:wood_chips_crushable_8"
     }
   ],
   "results": [

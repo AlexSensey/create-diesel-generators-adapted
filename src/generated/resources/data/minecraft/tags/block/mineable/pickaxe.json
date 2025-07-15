@@ -1,0 +1,8 @@
+{
+  "values": [
+    "electroenergetics:connector",
+    "electroenergetics:creative_battery",
+    "electroenergetics:bulb",
+    "electroenergetics:cut_off_switch"
+  ]
+}

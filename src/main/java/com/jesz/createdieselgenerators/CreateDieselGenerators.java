@@ -13,22 +13,17 @@ import com.simibubi.create.foundation.item.ItemDescription;
 import com.simibubi.create.foundation.item.KineticStats;
 import com.simibubi.create.foundation.item.TooltipModifier;
 import net.createmod.catnip.lang.FontHelper;
+import net.createmod.catnip.platform.CatnipServices;
 import net.createmod.ponder.foundation.PonderIndex;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 import static com.jesz.createdieselgenerators.CreateDieselGenerators.ID;
 
@@ -40,10 +35,8 @@ public class CreateDieselGenerators
             .setTooltipModifierFactory(item ->
                     new ItemDescription.Modifier(item, FontHelper.Palette.STANDARD_CREATE)
                             .andThen(TooltipModifier.mapNull(KineticStats.create(item)))
-            );;
-    public CreateDieselGenerators() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
+            );
+    public CreateDieselGenerators(IEventBus modEventBus, ModContainer container) {
 
         CDGItems.register();
         CDGBlocks.register();
@@ -56,40 +49,38 @@ public class CreateDieselGenerators
         MoldType.register();
         CDGMountedStorageTypes.register();
         CDGCreativeTab.register(modEventBus);
-
+        CDGPackets.register();
 
         if(ModList.get().isLoaded("moonlight"))
             EveryCompatCompat.init();
         Mods.COMPUTERCRAFT.executeIfInstalled(() -> CCProxy::register);
 
-
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> onClient(modEventBus, forgeEventBus));
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, CDGConfig.SERVER_SPEC, ID + "-server.toml");
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, CDGConfig.COMMON_SPEC, ID + "-common.toml");
-        CDGPackets.registerPackets();
-        MinecraftForge.EVENT_BUS.register(this);
+        CatnipServices.PLATFORM.executeOnClientOnly(() -> () -> onClient(modEventBus, container));
+        container.registerConfig(ModConfig.Type.SERVER, CDGConfig.SERVER_SPEC, ID + "-server.toml");
+        container.registerConfig(ModConfig.Type.COMMON, CDGConfig.COMMON_SPEC, ID + "-common.toml");
 
         REGISTRATE.registerEventListeners(modEventBus);
         modEventBus.addListener(EventPriority.LOWEST, CDGDatagen::gatherData);
 
     }
 
-    public static void onClient(IEventBus modEventBus, IEventBus forgeEventBus) {
+    public static void onClient(IEventBus modEventBus, ModContainer container) {
         CDGPartialModels.init();
         CDGSpriteShifts.init();
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CDGConfig.CLIENT_SPEC, ID + "-client.toml");
+        container.registerConfig(ModConfig.Type.CLIENT, CDGConfig.CLIENT_SPEC, ID + "-client.toml");
         modEventBus.addListener(CreateDieselGenerators::clientInit);
         modEventBus.addListener(LighterModel::onModelBake);
 
     }
+
     public static void clientInit(final FMLClientSetupEvent event) {
-        ItemBlockRenderTypes.setRenderLayer(CDGFluids.ETHANOL.get(), RenderType.translucent());
-        ItemBlockRenderTypes.setRenderLayer(CDGFluids.ETHANOL.getSource(), RenderType.translucent());
+//        ItemBlockRenderTypes.setRenderLayer(CDGFluids.ETHANOL.get(), RenderType.translucent());
+//        ItemBlockRenderTypes.setRenderLayer(CDGFluids.ETHANOL.getSource(), RenderType.translucent());
         PonderIndex.addPlugin(new CDGPonderPlugin());
     }
 
     public static ResourceLocation rl(String path){
-        return new ResourceLocation(ID, path);
+        return ResourceLocation.fromNamespaceAndPath(ID, path);
     }
 
     public static Component lang(String path, Object... args) {

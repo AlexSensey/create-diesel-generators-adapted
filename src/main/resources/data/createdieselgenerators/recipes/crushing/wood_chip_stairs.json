@@ -2,21 +2,7 @@
   "type": "create:crushing",
   "ingredients": [
     {
-      "type": "forge:difference",
-      "base": [
-        {
-          "tag": "minecraft:wooden_stairs"
-        },
-        {
-          "item": "minecraft:bamboo_mosaic_stairs"
-        },
-        {
-          "item": "createdieselgenerators:chip_wood_beam"
-        }
-      ],
-      "subtracted": {
-        "item": "createdieselgenerators:chip_wood_stairs"
-      }
+      "tag": "minecraft:wooden_stairs"
     }
   ],
   "results": [
