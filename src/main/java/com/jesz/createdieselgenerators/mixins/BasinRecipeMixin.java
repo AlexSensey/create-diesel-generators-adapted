@@ -22,22 +22,22 @@ public class BasinRecipeMixin {
         if(recipe instanceof CompressionMoldingRecipe moldingRecipe){
             IItemHandler availableItems = basin.getCapability(ForgeCapabilities.ITEM_HANDLER)
                     .orElse(null);
-            if(availableItems == null) {
+            if (availableItems == null) {
                 cir.setReturnValue(false);
                 return;
             }
             ItemStack moldStack = null;
             for (int i = 0; i < availableItems.getSlots(); i++) {
                 ItemStack stack = availableItems.getStackInSlot(i);
-                if(CDGItems.MOLD.isIn(stack))
+                if (CDGItems.MOLD.isIn(stack))
                     moldStack = stack;
             }
-            if(moldStack == null){
+            if (moldStack == null){
                 cir.setReturnValue(false);
                 return;
             }
             MoldType type = MoldItem.getMold(moldStack);
-            if(moldingRecipe.moldType != type)
+            if (moldingRecipe.moldType != type)
                 cir.setReturnValue(false);
         }
     }

@@ -89,6 +89,7 @@
   "createdieselgenerators.actionbar.oil_scanner.too_high_up": "You Are too high up to Check for Oil Deposits!",
   "createdieselgenerators.actionbar.turret.stopped_controlling": "Stopped controlling: %1$s",
   "createdieselgenerators.actionbar.turret.too_far_away": "You are too far away!",
+  "createdieselgenerators.actionbar.distillation_controller.not_enough": "Not enough Distillation Controllers!",
 
   "createdieselgenerators.recipe.basin_fermenting": "Basin Processing",
   "createdieselgenerators.recipe.diesel_combustion": "Diesel Engine Combustion",

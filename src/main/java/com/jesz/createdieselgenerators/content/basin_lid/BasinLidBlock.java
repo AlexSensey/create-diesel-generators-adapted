@@ -53,16 +53,16 @@ public class BasinLidBlock extends Block implements ProperWaterloggedBlock, IBE<
     }
     @Override
     public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
-        if(!pState.getValue(OPEN))
+        if (!pState.getValue(OPEN))
             return Shapes.or(Block.box(0,0,0,16,2,16),
                     Block.box(5,2,5,11,4,11));
-        if(pState.getValue(FACING) == Direction.SOUTH)
+        if (pState.getValue(FACING) == Direction.SOUTH)
             return Shapes.or(Block.box(0, 0, 14, 16, 16, 16),
                     Block.box(5, 5, 16, 11, 11, 18));
-        if(pState.getValue(FACING) == Direction.WEST)
+        if (pState.getValue(FACING) == Direction.WEST)
             return Shapes.or(Block.box(0, 0, 0, 2, 16, 16),
                     Block.box(-2, 5, 5, 0, 11, 11));
-        if(pState.getValue(FACING) == Direction.NORTH)
+        if (pState.getValue(FACING) == Direction.NORTH)
             return Shapes.or(Block.box(0, 0, 0, 16, 16, 2),
                     Block.box(5, 5, -2, 11, 11, 0));
         return Shapes.or(Block.box(14, 0, 0, 16, 16, 16),
@@ -74,7 +74,7 @@ public class BasinLidBlock extends Block implements ProperWaterloggedBlock, IBE<
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState p_60569_, boolean p_60570_) {
         super.onPlace(state, level, pos, p_60569_, p_60570_);
 
-        if(level.getBlockEntity(pos.below()) instanceof BasinBlockEntity)
+        if (level.getBlockEntity(pos.below()) instanceof BasinBlockEntity)
             level.setBlock(pos, state.setValue(ON_A_BASIN, true), 2);
         else
             level.setBlock(pos, state.setValue(ON_A_BASIN, false), 2);
@@ -83,17 +83,17 @@ public class BasinLidBlock extends Block implements ProperWaterloggedBlock, IBE<
     @Override
     public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos p_57551_, boolean p_57552_) {
         boolean flag = level.hasNeighborSignal(pos);
-        if(level.getBlockEntity(pos.below()) instanceof BasinBlockEntity)
+        if (level.getBlockEntity(pos.below()) instanceof BasinBlockEntity)
             state = state.setValue(ON_A_BASIN, true);
         else
             state = state.setValue(ON_A_BASIN, false);
         if (flag != state.getValue(POWERED)) {
-            if(flag != state.getValue(OPEN)) {
+            if (flag != state.getValue(OPEN)) {
                 level.levelEvent(null, flag ? 1037 : 1036, pos, 0);
                 level.playSound(null, pos, flag ? BlockSetType.IRON.trapdoorOpen() : BlockSetType.IRON.trapdoorClose(), SoundSource.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
             }
             level.setBlock(pos, state.setValue(POWERED, flag).setValue(OPEN, flag), 2);
-            if(flag && level.getBlockEntity(pos) instanceof BasinLidBlockEntity a && a.steamInside) {
+            if (flag && level.getBlockEntity(pos) instanceof BasinLidBlockEntity a && a.steamInside) {
                 level.playSound(null, pos, AllSoundEvents.STEAM.getMainEvent(), SoundSource.BLOCKS, 1.1f, 0.3f);
                 a.steamInside = false;
 
@@ -101,7 +101,7 @@ public class BasinLidBlock extends Block implements ProperWaterloggedBlock, IBE<
                     ((ServerLevel)level).sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, pos.getX()+0.5f + new Random().nextDouble(-0.3, 0.3), pos.getY(), pos.getZ()+0.5f + new Random().nextDouble(-0.3, 0.3), 0, 0, 1, 0, 0.01);
                 }
             }
-        }else {
+        } else {
             level.setBlock(pos, state, 2);
         }
 
@@ -111,7 +111,7 @@ public class BasinLidBlock extends Block implements ProperWaterloggedBlock, IBE<
     public InteractionResult use( BlockState state, Level level, BlockPos pos,
                                  Player player, InteractionHand hand, BlockHitResult hit) {
         boolean currentState = state.getValue(OPEN);
-        if(!currentState && level.getBlockEntity(pos) instanceof BasinLidBlockEntity a && a.steamInside) {
+        if (!currentState && level.getBlockEntity(pos) instanceof BasinLidBlockEntity a && a.steamInside) {
             for (int i = 0; i < 3 ; i++) {
                 if(level instanceof ServerLevel sl) {
                     sl.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, pos.getX() + 0.5f + new Random().nextDouble(-0.3, 0.3), pos.getY(), pos.getZ() + 0.5f + new Random().nextDouble(-0.3, 0.3), 0, 0, 1, 0, 0.01);
@@ -120,7 +120,7 @@ public class BasinLidBlock extends Block implements ProperWaterloggedBlock, IBE<
                 }
             }
         }
-        if(!level.isClientSide() && hand == InteractionHand.MAIN_HAND) {
+        if (!level.isClientSide() && hand == InteractionHand.MAIN_HAND) {
             LogUtils.getLogger().debug(level + "");
             level.setBlock(pos, state.setValue(OPEN, !currentState), 3);
             level.levelEvent(null, currentState ? 1037:1036, pos, 0);

@@ -6,11 +6,16 @@ import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.AllSpecialTextures;
 import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
+import com.simibubi.create.foundation.item.TooltipHelper;
 import net.createmod.catnip.math.VecHelper;
 import net.createmod.catnip.outliner.Outliner;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
@@ -54,6 +59,13 @@ public class DistillationControllerItem extends Item {
             }
         }
 
+        if (!context.getPlayer().isCreative() && width * width * height > itemInHand.getCount()) {
+            if (context.getPlayer() instanceof ServerPlayer sp)
+                sp.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("createdieselgenerators.actionbar.distillation_controller.not_enough").withStyle(ChatFormatting.RED)));
+
+            return InteractionResult.FAIL;
+        }
+
         for (BlockPos pos : positions) {
             context.getLevel().setBlock(pos, CDGBlocks.DISTILLATION_TANK.getDefaultState(), 3);
             if (context.getLevel().isClientSide) {
@@ -66,8 +78,10 @@ public class DistillationControllerItem extends Item {
             }
         }
         AllSoundEvents.WRENCH_ROTATE.playAt(context.getLevel(), controllerPos.getX() + (double) width / 2, controllerPos.getY() + (double) height / 2, controllerPos.getZ() + (double) width / 2, 2f, 1f, false);
-        if (!context.getPlayer().isCreative())
+
+        if (!context.getPlayer().isCreative() && !context.getLevel().isClientSide) {
             itemInHand.shrink(positions.size());
+        }
 
         if (context.getLevel().getBlockEntity(controllerPos) instanceof DistillationTankBlockEntity be) {
             be.updateConnectivity();

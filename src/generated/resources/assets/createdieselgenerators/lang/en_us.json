@@ -63,6 +63,7 @@
   "block.createdieselgenerators.white_concrete_encased_fluid_pipe": "White Concrete Encased Fluid Pipe",
   "block.createdieselgenerators.yellow_cement": "Yellow Cement",
   "block.createdieselgenerators.yellow_concrete_encased_fluid_pipe": "Yellow Concrete Encased Fluid Pipe",
+  "createdieselgenerators.actionbar.distillation_controller.not_enough": "Not enough Distillation Controllers!",
   "createdieselgenerators.actionbar.oil_scanner.oil_bottomless": "%1$s Bottomless Supply",
   "createdieselgenerators.actionbar.oil_scanner.oil_high": "%1$s Loads of Oil",
   "createdieselgenerators.actionbar.oil_scanner.oil_low": "%1$s A bit of Oil",

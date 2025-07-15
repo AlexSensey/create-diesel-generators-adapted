@@ -28,6 +28,6 @@ public class BasinLidRenderer extends SafeBlockEntityRenderer<BasinLidBlockEntit
                 .rotateYDegrees(-facing.toYRot()+180)
                 .translate(0.5625f, -0.375, 1.0625)
                 .uncenter()
-                .rotateZDegrees( be.progress*-90+90).renderInto(ms, bufferSource.getBuffer(RenderType.solid()));
+                .rotateZDegrees(be.progress*-90+90).renderInto(ms, bufferSource.getBuffer(RenderType.solid()));
     }
 }
