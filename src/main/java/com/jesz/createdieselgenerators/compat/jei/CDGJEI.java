@@ -18,6 +18,8 @@ import com.simibubi.create.infrastructure.config.CRecipes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
+import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.registration.*;
 import net.createmod.catnip.config.ConfigBase;
@@ -26,6 +28,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.ItemLike;
 
@@ -37,6 +41,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static com.simibubi.create.compat.jei.CreateJEI.*;
+import static mezz.jei.api.recipe.RecipeType.createRecipeHolderType;
 
 @JeiPlugin
 @ParametersAreNonnullByDefault
@@ -126,10 +131,19 @@ public class CDGJEI implements IModPlugin {
 
     @Override
     public void registerItemSubtypes(ISubtypeRegistration registration) {
-        registration.registerSubtypeInterpreter(CDGItems.MOLD.get(), (stack, uidContext) -> {
-            if (!stack.hasTag() || !stack.getOrCreateTag().contains("Mold"))
-                return "";
-            return "createdieselgenerators:mold:" + stack.getTag().getString("Mold");
+        registration.registerSubtypeInterpreter(CDGItems.MOLD.get(), new ISubtypeInterpreter<>() {
+            @Override
+            public Object getSubtypeData(ItemStack stack, UidContext context) {
+                return stack.get(CDGDataComponents.MOLD_TYPE);
+            }
+
+            @Override
+            public String getLegacyStringSubtypeInfo(ItemStack stack, UidContext context) {
+                ResourceLocation mold = stack.get(CDGDataComponents.MOLD_TYPE);
+                if (mold == null)
+                    return "";
+                return "createdieselgenerators:mold:" + mold.toString();
+            }
         });
     }
 
@@ -145,54 +159,28 @@ public class CDGJEI implements IModPlugin {
         private IDrawable background;
         private IDrawable icon;
 
-        private final List<Consumer<List<T>>> recipeListConsumers = new ArrayList<>();
+        private final List<Consumer<List<RecipeHolder<T>>>> recipeListConsumers = new ArrayList<>();
         private final List<Supplier<? extends ItemStack>> catalysts = new ArrayList<>();
 
         public CategoryBuilder(Class<? extends T> recipeClass) {
             this.recipeClass = recipeClass;
         }
 
-        public CategoryBuilder<T> enableIf(Predicate<CRecipes> predicate) {
-            this.predicate = predicate;
-            return this;
-        }
-
-        public CategoryBuilder<T> enableWhen(Function<CRecipes, ConfigBase.ConfigBool> configValue) {
-            predicate = c -> configValue.apply(c).get();
-            return this;
-        }
-
-        public CategoryBuilder<T> addRecipeListConsumer(Consumer<List<T>> consumer) {
+        public CategoryBuilder<T> addRecipeListConsumer(Consumer<List<RecipeHolder<T>>> consumer) {
             recipeListConsumers.add(consumer);
             return this;
-        }
-
-        public CategoryBuilder<T> addRecipes(Supplier<Collection<? extends T>> collection) {
-            return addRecipeListConsumer(recipes -> recipes.addAll(collection.get()));
-        }
-
-        public CategoryBuilder<T> addAllRecipesIf(Predicate<Recipe<?>> pred) {
-            return addRecipeListConsumer(recipes -> consumeAllRecipes(recipe -> {
-                if (pred.test(recipe)) {
-                    recipes.add((T) recipe);
-                }
-            }));
-        }
-
-        public CategoryBuilder<T> addAllRecipesIf(Predicate<Recipe<?>> pred, Function<Recipe<?>, T> converter) {
-            return addRecipeListConsumer(recipes -> consumeAllRecipes(recipe -> {
-                if (pred.test(recipe)) {
-                    recipes.add(converter.apply(recipe));
-                }
-            }));
         }
 
         public CategoryBuilder<T> addTypedRecipes(IRecipeTypeInfo recipeTypeEntry) {
             return addTypedRecipes(recipeTypeEntry::getType);
         }
 
-        public CategoryBuilder<T> addTypedRecipes(Supplier<RecipeType<? extends T>> recipeType) {
-            return addRecipeListConsumer(recipes -> CreateJEI.<T>consumeTypedRecipes(recipes::add, recipeType.get()));
+        public <I extends RecipeInput, R extends Recipe<I>> CategoryBuilder<T> addTypedRecipes(Supplier<RecipeType<R>> recipeType) {
+            return addRecipeListConsumer(recipes -> CreateJEI.<T>consumeTypedRecipes(recipe -> {
+                if (recipeClass.isInstance(recipe.value()))
+                    //noinspection unchecked - checked by if statement above
+                    recipes.add((RecipeHolder<T>) recipe);
+            }, recipeType.get()));
         }
 
         public CategoryBuilder<T> catalystStack(Supplier<ItemStack> supplier) {
@@ -231,21 +219,24 @@ public class CDGJEI implements IModPlugin {
         }
 
         public CreateRecipeCategory<T> build(String name, CreateRecipeCategory.Factory<T> factory) {
-            Supplier<List<T>> recipesSupplier;
-            if (predicate.test(AllConfigs.server().recipes)) {
-                recipesSupplier = () -> {
-                    List<T> recipes = new ArrayList<>();
-                    for (Consumer<List<T>> consumer : recipeListConsumers)
-                        consumer.accept(recipes);
-                    return recipes;
-                };
-            } else {
-                recipesSupplier = () -> Collections.emptyList();
-            }
+
+            Supplier<List<RecipeHolder<T>>> recipesSupplier;
+            recipesSupplier = () -> {
+                List<RecipeHolder<T>> recipes = new ArrayList<>();
+                for (Consumer<List<RecipeHolder<T>>> consumer : recipeListConsumers) {
+                    consumer.accept(recipes);
+                }
+                return recipes;
+            };
 
             CreateRecipeCategory.Info<T> info = new CreateRecipeCategory.Info<>(
-                    new mezz.jei.api.recipe.RecipeType<>(CreateDieselGenerators.rl(name), recipeClass),
-                    Component.translatable("createdieselgenerators.recipe." + name), background, icon, recipesSupplier, catalysts);
+                    createRecipeHolderType(CreateDieselGenerators.rl(name)),
+                    Component.translatable(CreateDieselGenerators.ID + ".recipe." + name),
+                    background,
+                    icon,
+                    recipesSupplier,
+                    catalysts
+            );
             CreateRecipeCategory<T> category = factory.create(info);
             allCategories.add(category);
             return category;

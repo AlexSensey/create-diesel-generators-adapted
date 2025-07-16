@@ -23,10 +23,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +43,8 @@ public class DistillationControllerItem extends Item {
         BlockPos controllerPos = ftbe.getController();
         int width = ftbe.getControllerBE().getWidth();
         int height = ftbe.getControllerBE().getHeight();
-        FluidStack fluidInTank = ftbe.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(new FluidTank(0)).getFluidInTank(0).copy();
+        IFluidHandler tank = context.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, ftbe.getBlockPos(), null);
+        FluidStack fluidInTank = tank.getFluidInTank(0);
         List<BlockPos> positions = new ArrayList<>();
 
         for (int y = 0; y < height; y++) {
@@ -87,9 +87,9 @@ public class DistillationControllerItem extends Item {
             be.updateConnectivity();
             be.updateVerticalMulti();
             be.updateTemperature();
-            IFluidHandler tank = be.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
-            if (tank != null)
-                tank.fill(fluidInTank, IFluidHandler.FluidAction.EXECUTE);
+            IFluidHandler distillerTank = context.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, controllerPos, null);
+            if (distillerTank != null)
+                distillerTank.fill(fluidInTank, IFluidHandler.FluidAction.EXECUTE);
         }
 
         return InteractionResult.SUCCESS;

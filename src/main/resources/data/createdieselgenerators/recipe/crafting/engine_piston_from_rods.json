@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "A  ",
+    " R ",
+    "  Z"
+  ],
+  "key": {
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "R": {
+      "tag": "c:rods/iron"
+    },
+    "Z": {
+      "tag": "c:nuggets/zinc"
+    }
+  },
+  "result": {
+    "id": "createdieselgenerators:engine_piston",
+    "count": 2
+  },
+
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "neoforge:rods/iron"
+      }
+    }
+  ]
+}

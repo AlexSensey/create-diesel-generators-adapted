@@ -1,15 +1,15 @@
 package com.jesz.createdieselgenerators.content.tools;
 
 import com.jesz.createdieselgenerators.CDGRegistries;
+import com.jesz.createdieselgenerators.content.tools.wire_cutters.WireCuttersItemRenderer;
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.AllEnchantments;
 import com.simibubi.create.AllSoundEvents;
-import com.simibubi.create.content.equipment.armor.CapacityEnchantment;
 import com.simibubi.create.foundation.item.CustomArmPoseItem;
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -22,26 +22,25 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.List;
 import java.util.Random;
-import java.util.function.Consumer;
 
-public class ChemicalSprayerItem extends Item implements CustomArmPoseItem, CapacityEnchantment.ICapacityEnchantable, FueledToolItem {
+public class ChemicalSprayerItem extends Item implements CustomArmPoseItem, FueledToolItem {
     boolean lighter;
     public ChemicalSprayerItem(Properties properties, boolean lighter) {
         super(properties.stacksTo(1));
         this.lighter = lighter;
     }
-    public void appendHoverText(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, level, tooltip, tooltipFlag);
-        createTooltip(tooltip, stack);
+
+    @Override
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+        createTooltip(tooltipComponents, stack);
     }
+
     @Override
     public UseAnim getUseAnimation(ItemStack stack) {
         return UseAnim.NONE;
@@ -68,32 +67,33 @@ public class ChemicalSprayerItem extends Item implements CustomArmPoseItem, Capa
 
     @Override
     public boolean isEnchantable(ItemStack stack) { return true; }
+
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        if(enchantment == AllEnchantments.CAPACITY.get())
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (enchantment.is(AllEnchantments.CAPACITY))
             return true;
-        return super.canApplyAtEnchantingTable(stack, enchantment);
+        return super.supportsEnchantment(stack, enchantment);
     }
+
     @Override
     public void onUseTick(Level level, LivingEntity player, ItemStack stack, int count) {
-        if(stack.getTag()!= null) {
-            FluidStack fluidStack = readFluid(stack);
-            if (!fluidStack.isEmpty()) {
-                if (!level.isClientSide) {
-                    if (count % 2 == 0) {
-                        boolean fire = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fluidStack.getFluid()).normal().speed() != 0;
-                        ChemicalSprayerProjectileEntity projectile = ChemicalSprayerProjectileEntity.spray(level, fluidStack, (fire && lighter) || fluidStack.getFluid().isSame(Fluids.LAVA), fluidStack.getFluid().isSame(Fluids.WATER));
-                        projectile.setPos(player.position().add(0, 1.5f, 0));
-                        projectile.shootFromRotation(player, player.getXRot() + new Random().nextFloat(-5, 5), player.getYRot() + new Random().nextFloat(-5, 5), 0.0f, 1.0f, 1.0f);
-                        level.addFreshEntity(projectile);
-                        fluidStack.setAmount(fluidStack.getAmount() - 1);
-                    }
-                    if (!(player instanceof Player p && p.isCreative()) && count % 25 == 0)
-                        writeFluid(stack, fluidStack);
-                } else {
-                    if (count % 2 == 0) {
-                        AllSoundEvents.MIXING.playAt(level, player.blockPosition(), .75f, 1, true);
-                    }
+
+        FluidStack fluidStack = readFluid(stack);
+        if (!fluidStack.isEmpty()) {
+            if (!level.isClientSide) {
+                if (count % 2 == 0) {
+                    boolean fire = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fluidStack.getFluid()).normal().speed() != 0;
+                    ChemicalSprayerProjectileEntity projectile = ChemicalSprayerProjectileEntity.spray(level, fluidStack, (fire && lighter) || fluidStack.getFluid().isSame(Fluids.LAVA), fluidStack.getFluid().isSame(Fluids.WATER));
+                    projectile.setPos(player.position().add(0, 1.5f, 0));
+                    projectile.shootFromRotation(player, player.getXRot() + new Random().nextFloat(-5, 5), player.getYRot() + new Random().nextFloat(-5, 5), 0.0f, 1.0f, 1.0f);
+                    level.addFreshEntity(projectile);
+                    fluidStack.setAmount(fluidStack.getAmount() - 1);
+                }
+                if (!(player instanceof Player p && p.isCreative()) && count % 25 == 0)
+                    writeFluid(stack, fluidStack);
+            } else {
+                if (count % 2 == 0) {
+                    AllSoundEvents.MIXING.playAt(level, player.blockPosition(), .75f, 1, true);
                 }
             }
         }
@@ -101,7 +101,7 @@ public class ChemicalSprayerItem extends Item implements CustomArmPoseItem, Capa
     }
 
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return 1000;
     }
 
@@ -115,13 +115,7 @@ public class ChemicalSprayerItem extends Item implements CustomArmPoseItem, Capa
         return Math.round(13 * (getCurrentFillLevel(stack) / (float) getCapacity(stack)));
     }
 
-    @Override
-    public ICapabilityProvider initCapabilities(ItemStack stack, CompoundTag nbt) {
-        return getFluidHandler(stack);
-    }
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(SimpleCustomRenderer.create(this, new ChemicalSprayerItemRenderer()));
+    public void registerExtension(RegisterClientExtensionsEvent event) {
+        event.registerItem(SimpleCustomRenderer.create(this, new WireCuttersItemRenderer()), this);
     }
 }

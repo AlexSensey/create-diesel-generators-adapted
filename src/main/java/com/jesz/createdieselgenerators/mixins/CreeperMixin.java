@@ -10,10 +10,9 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,13 +25,13 @@ public abstract class CreeperMixin extends Monster {
 
     @Shadow public abstract void ignite();
 
-    @Inject(method = "mobInteract", at = @At("TAIL"))
-    public void mobInteract(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir){
+    @Inject(method = "mobInteract", at = @At("TAIL"), remap = false)
+    public void cdg$mobInteract(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir){
         ItemStack stackInHand = player.getItemInHand(hand);
         if(!CDGItems.LIGHTER.isIn(stackInHand))
             return;
-        IFluidHandlerItem fluid = stackInHand.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null).orElse(new FluidHandlerItemStack(stackInHand, 0));
-        if(fluid.getFluidInTank(0).isEmpty())
+        IFluidHandlerItem fluid = stackInHand.getCapability(Capabilities.FluidHandler.ITEM, null);
+        if (fluid == null || fluid.getFluidInTank(0).isEmpty())
             return;
         fluid.drain(1, IFluidHandler.FluidAction.EXECUTE);
         ignite();

@@ -7,7 +7,9 @@ import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOp
 import com.simibubi.create.foundation.gui.AllIcons;
 import net.createmod.catnip.lang.Lang;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -31,39 +33,23 @@ public class PumpjackCrankBlockEntity extends KineticBlockEntity {
     }
 
     @Override
-    protected void read(CompoundTag compound, boolean clientPacket) {
+    protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(compound, registries, clientPacket);
+
         angle = compound.getFloat("Angle");
         crankBearingLocation = new Vec3(
                 compound.getDouble("BackPosX"),
                 compound.getDouble("BackPosY"),
                 compound.getDouble("BackPosZ"));
-        super.read(compound, clientPacket);
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag compound) {
-        angle = compound.getFloat("Angle");
-        crankBearingLocation = new Vec3(compound.getDouble("BackPosX"), compound.getDouble("BackPosY"), compound.getDouble("BackPosZ"));
-
-        super.handleUpdateTag(compound);
-    }
-    @Override
-    public CompoundTag getUpdateTag() {
-        CompoundTag compound = super.getUpdateTag();
+    protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(compound, registries, clientPacket);
         compound.putFloat("Angle", angle);
         compound.putDouble("BackPosX", crankBearingLocation.x);
         compound.putDouble("BackPosY", crankBearingLocation.y);
         compound.putDouble("BackPosZ", crankBearingLocation.z);
-
-        return compound;
-    }
-    @Override
-    protected void write(CompoundTag compound, boolean clientPacket) {
-        compound.putFloat("Angle", angle);
-        compound.putDouble("BackPosX", crankBearingLocation.x);
-        compound.putDouble("BackPosY", crankBearingLocation.y);
-        compound.putDouble("BackPosZ", crankBearingLocation.z);
-        super.write(compound, clientPacket);
     }
 
     @Override
@@ -72,6 +58,7 @@ public class PumpjackCrankBlockEntity extends KineticBlockEntity {
         this.lastStressApplied = impact;
         return impact;
     }
+
     public PumpjackBearingBlockEntity getBearing(){
         if(bearing.get() != null){
             if(bearing.get().isRemoved() || !bearing.get().isRunning()) {

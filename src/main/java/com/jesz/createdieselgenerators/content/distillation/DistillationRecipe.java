@@ -3,11 +3,14 @@ package com.jesz.createdieselgenerators.content.distillation;
 import com.jesz.createdieselgenerators.CDGRecipes;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder;
+import com.simibubi.create.content.processing.recipe.ProcessingRecipeParams;
+import com.simibubi.create.content.processing.recipe.StandardProcessingRecipe;
 import com.simibubi.create.foundation.item.SmartInventory;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.level.Level;
 
-public class DistillationRecipe extends ProcessingRecipe<SmartInventory> {
-    public DistillationRecipe(ProcessingRecipeBuilder.ProcessingRecipeParams params){
+public class DistillationRecipe extends StandardProcessingRecipe<SmartInventory> {
+    public DistillationRecipe(ProcessingRecipeParams params){
         super(CDGRecipes.DISTILLATION, params);
 
     }
@@ -42,7 +45,7 @@ public class DistillationRecipe extends ProcessingRecipe<SmartInventory> {
     }
 
     @Override
-    public boolean matches(SmartInventory p_44002_, Level p_44003_) {
+    public boolean matches(SmartInventory input, Level level) {
         return false;
     }
 }

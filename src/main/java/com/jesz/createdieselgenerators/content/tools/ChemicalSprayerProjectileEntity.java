@@ -5,11 +5,11 @@ import com.jesz.createdieselgenerators.CDGRegistries;
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.AllFluids;
 import com.simibubi.create.content.fluids.FluidFX;
-import com.simibubi.create.content.fluids.potion.PotionFluidHandler;
 import com.simibubi.create.foundation.fluid.FluidHelper;
 import com.simibubi.create.foundation.utility.BlockHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -24,9 +24,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractHurtingProjectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Blocks;
@@ -37,8 +35,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
     public FluidStack stack;
@@ -48,6 +46,7 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
     public ChemicalSprayerProjectileEntity(EntityType<? extends AbstractHurtingProjectile> type, Level level) {
         super(type, level);
     }
+
     int t = 0;
     public static ChemicalSprayerProjectileEntity spray(Level level, FluidStack stack, boolean fire, boolean cooling){
         ChemicalSprayerProjectileEntity projectile = new ChemicalSprayerProjectileEntity(CDGEntityTypes.CHEMICAL_SPRAYER_PROJECTILE.get(), level);
@@ -55,10 +54,13 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
         projectile.fire = fire;
         projectile.cooling = cooling;
         CompoundTag tag = new CompoundTag();
+
         tag.putBoolean("Fire", fire);
         tag.putBoolean("Cooling", cooling);
         tag.put("FluidStack", new CompoundTag());
-        stack.writeToNBT(tag.getCompound("FluidStack"));
+
+        stack.save(level.registryAccess(), tag.getCompound("FluidStack"));
+
         projectile.getEntityData().set(DATA, tag);
         return projectile;
     }
@@ -68,7 +70,7 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
         Entity owner = getOwner();
 
         if (fire) {
-            hit.getEntity().setSecondsOnFire((hit.getEntity().getRemainingFireTicks() / 20) + 10);
+            hit.getEntity().setRemainingFireTicks((hit.getEntity().getRemainingFireTicks()) + 100);
             hit.getEntity().hurt(damageSources().inFire(), 2);
         } else if(cooling) {
             hit.getEntity().clearFire();
@@ -77,21 +79,21 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
         }
         else if (stack.getFluid().isSame(AllFluids.POTION.get())) {
             if (hit.getEntity() instanceof LivingEntity le && le.isAffectedByPotions()) {
-                for (MobEffectInstance effectInstance : PotionUtils.getMobEffects(PotionFluidHandler.fillBottle(new ItemStack(Items.GLASS_BOTTLE), stack))){
-                    MobEffect effect = effectInstance.getEffect();
+                PotionContents potionContents = stack.get(DataComponents.POTION_CONTENTS);
+                if (potionContents != null)
+                    for (MobEffectInstance effectInstance : potionContents.getAllEffects()){
+                        MobEffect effect = effectInstance.getEffect().value();
 
-                    if (effect.isInstantenous()) {
-                        effect.applyInstantenousEffect(owner, owner, le, effectInstance.getAmplifier(), 0.5d);
-                    } else {
-                        le.addEffect(new MobEffectInstance(effectInstance), owner);
+                        if (effect.isInstantenous()) {
+                            effect.applyInstantenousEffect(owner, owner, le, effectInstance.getAmplifier(), 0.5d);
+                        } else {
+                            le.addEffect(new MobEffectInstance(effectInstance), owner);
+                        }
                     }
-                }
             }
         } else if (FluidHelper.isTag(stack, Tags.Fluids.MILK)) {
-            if (hit.getEntity() instanceof LivingEntity le && le.isAffectedByPotions()) {
-                ItemStack curativeItem = new ItemStack(Items.MILK_BUCKET);
-                le.curePotionEffects(curativeItem);
-            }
+            if (hit.getEntity() instanceof LivingEntity le && le.isAffectedByPotions())
+                le.removeEffectsCuredBy(net.neoforged.neoforge.common.EffectCures.MILK);
         } else {
             if (owner instanceof LivingEntity)
                 ((LivingEntity) owner).setLastHurtMob(hit.getEntity());
@@ -104,32 +106,35 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
     @Override
     public void load(CompoundTag compound) {
         if (stack == null)
-            stack = FluidStack.loadFluidStackFromNBT(compound.getCompound("FluidStack"));
+            stack = FluidStack.parseOptional(level().registryAccess(), compound.getCompound("FluidStack"));
         super.load(compound);
     }
 
     @Override
     public CompoundTag saveWithoutId(CompoundTag compound) {
-        if(stack != null)
-            stack.writeToNBT(compound.getCompound("FluidStack"));
+        if (stack != null)
+            stack.save(level().registryAccess(), compound.getCompound("FluidStack"));
         return super.saveWithoutId(compound);
     }
+
     static final EntityDataAccessor<CompoundTag> DATA = SynchedEntityData.defineId(ChemicalSprayerProjectileEntity.class, EntityDataSerializers.COMPOUND_TAG);
+
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+
         CompoundTag tag = new CompoundTag();
         tag.putBoolean("Fire", fire);
         tag.putBoolean("Cooling", cooling);
         tag.put("FluidStack", new CompoundTag());
-        FluidStack.EMPTY.writeToNBT(tag.getCompound("FluidStack"));
-        this.entityData.define(DATA, tag);
+        FluidStack.EMPTY.save(level().registryAccess(), tag.getCompound("FluidStack"));
+        builder.define(DATA, tag);
     }
 
     @Override
     public void tick() {
         if (level().isClientSide) {
-            stack = FluidStack.loadFluidStackFromNBT(getEntityData().get(DATA).getCompound("FluidStack"));
+            stack = FluidStack.parseOptional(level().registryAccess(), getEntityData().get(DATA).getCompound("FluidStack"));
             fire = getEntityData().get(DATA).getBoolean("Fire");
             cooling = getEntityData().get(DATA).getBoolean("Cooling");
             if (stack != null && !stack.isEmpty() && !fire)
@@ -164,13 +169,12 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
         Entity entity = this.getOwner();
         if (this.level().isClientSide || (entity == null || !entity.isRemoved()) && this.level().hasChunkAt(this.blockPosition())) {
             if (this.shouldBurn()) {
-                this.setSecondsOnFire(1);
+                this.setRemainingFireTicks(1);
             }
 
             HitResult hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-            if (hitresult.getType() != HitResult.Type.MISS && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitresult)) {
+            if (hitresult.getType() != HitResult.Type.MISS)
                 this.onHit(hitresult);
-            }
 
             this.checkInsideBlocks();
             ProjectileUtil.rotateTowardsMovement(this, 0.2F);

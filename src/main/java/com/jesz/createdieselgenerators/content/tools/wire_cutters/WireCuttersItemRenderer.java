@@ -1,5 +1,6 @@
 package com.jesz.createdieselgenerators.content.tools.wire_cutters;
 
+import com.jesz.createdieselgenerators.CDGDataComponents;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
@@ -22,13 +23,14 @@ public class WireCuttersItemRenderer extends CustomRenderedItemModelRenderer {
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
         Player player = Minecraft.getInstance().player;
         ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
-        CompoundTag tag = stack.getOrCreateTag();
 
-        if (!tag.contains("ProcessingItem") || player == null)
+
+        if (!stack.has(CDGDataComponents.PROCESSING_ITEM) || player == null)
             renderer.render(model.getOriginalModel(), light);
         else {
             float time = ((AnimationTickHolder.getTicks() + AnimationTickHolder.getPartialTicks()) % 10) / 10;
-            ItemStack processingItem = ItemStack.of(tag.getCompound("ProcessingItem"));
+            ItemStack processingItem = stack.get(CDGDataComponents.PROCESSING_ITEM).item();
+
             ms.pushPose();
             TransformStack.of(ms)
                     .translate(0.1, 0.2, 0)

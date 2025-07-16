@@ -2,57 +2,45 @@ package com.jesz.createdieselgenerators.packets;
 
 import com.jesz.createdieselgenerators.content.entity_filter.EntityAttribute;
 import com.jesz.createdieselgenerators.content.entity_filter.EntityFilterMenu;
-import com.simibubi.create.content.logistics.filter.AttributeFilterMenu;
+import com.simibubi.create.content.logistics.filter.AttributeFilterWhitelistMode;
 import com.simibubi.create.content.logistics.filter.FilterScreenPacket;
-import com.simibubi.create.foundation.networking.SimplePacketBase;
+import io.netty.buffer.ByteBuf;
+import net.createmod.catnip.codecs.stream.CatnipStreamCodecBuilders;
+import net.createmod.catnip.net.base.ServerboundPacketPayload;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
 
-public class EntityFilterScreenPacket extends SimplePacketBase {
-    private final FilterScreenPacket.Option option;
-    private final CompoundTag data;
-    public EntityFilterScreenPacket(FilterScreenPacket.Option option) {
-        this(option, new CompoundTag());
-    }
+public record EntityFilterScreenPacket(FilterScreenPacket.Option option, EntityAttribute attribute) implements ServerboundPacketPayload {
+    public static final StreamCodec<ByteBuf, EntityFilterScreenPacket> STREAM_CODEC = StreamCodec.composite(
+            FilterScreenPacket.Option.STREAM_CODEC, EntityFilterScreenPacket::option,
+            EntityAttribute.STREAM_CODEC, EntityFilterScreenPacket::attribute,
+            EntityFilterScreenPacket::new
+    );
 
-    public EntityFilterScreenPacket(FilterScreenPacket.Option option, CompoundTag data) {
-        this.option = option;
-        this.data = data;
-    }
+    @Override
+    public void handle(ServerPlayer player) {
+        if (player == null)
+            return;
 
-    public EntityFilterScreenPacket(FriendlyByteBuf buffer) {
-        option = FilterScreenPacket.Option.values()[buffer.readInt()];
-        data = buffer.readNbt();
+        if (player.containerMenu instanceof EntityFilterMenu c) {
+            if (option == FilterScreenPacket.Option.WHITELIST)
+                c.whitelistMode = AttributeFilterWhitelistMode.WHITELIST_DISJ;
+            if (option == FilterScreenPacket.Option.WHITELIST2)
+                c.whitelistMode = AttributeFilterWhitelistMode.WHITELIST_CONJ;
+            if (option == FilterScreenPacket.Option.BLACKLIST)
+                c.whitelistMode = AttributeFilterWhitelistMode.BLACKLIST;
+
+            if (option == FilterScreenPacket.Option.ADD_TAG || option == FilterScreenPacket.Option.ADD_INVERTED_TAG)
+                c.appendSelectedAttribute(attribute, option == FilterScreenPacket.Option.ADD_INVERTED_TAG);
+
+        }
     }
 
     @Override
-    public void write(FriendlyByteBuf buffer) {
-        buffer.writeInt(option.ordinal());
-        buffer.writeNbt(data);
-    }
-
-    @Override
-    public boolean handle(NetworkEvent.Context context) {
-        context.enqueueWork(() -> {
-            ServerPlayer player = context.getSender();
-            if (player == null)
-                return;
-
-            if (player.containerMenu instanceof EntityFilterMenu c) {
-                if (option == FilterScreenPacket.Option.WHITELIST)
-                    c.whitelist = AttributeFilterMenu.WhitelistMode.WHITELIST_DISJ;
-                if (option == FilterScreenPacket.Option.WHITELIST2)
-                    c.whitelist = AttributeFilterMenu.WhitelistMode.WHITELIST_CONJ;
-                if (option == FilterScreenPacket.Option.BLACKLIST)
-                    c.whitelist = AttributeFilterMenu.WhitelistMode.BLACKLIST;
-                if (option == FilterScreenPacket.Option.ADD_TAG)
-                    c.appendSelectedAttribute(EntityAttribute.fromNBT(data), false);
-                if (option == FilterScreenPacket.Option.ADD_INVERTED_TAG)
-                    c.appendSelectedAttribute(EntityAttribute.fromNBT(data), true);
-            }
-        });
-        return true;
+    public PacketTypeProvider getTypeProvider() {
+        return null;
     }
 }

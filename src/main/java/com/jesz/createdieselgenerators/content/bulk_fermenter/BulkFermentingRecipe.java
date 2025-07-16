@@ -3,8 +3,8 @@ package com.jesz.createdieselgenerators.content.bulk_fermenter;
 import com.jesz.createdieselgenerators.CDGRecipes;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder;
+import com.simibubi.create.content.processing.recipe.ProcessingRecipeParams;
+import com.simibubi.create.content.processing.recipe.StandardProcessingRecipe;
 import com.simibubi.create.foundation.fluid.FluidIngredient;
 import com.simibubi.create.foundation.item.SmartInventory;
 import net.createmod.catnip.data.Iterate;
@@ -12,17 +12,19 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
-public class BulkFermentingRecipe extends ProcessingRecipe<SmartInventory> {
-    public BulkFermentingRecipe(ProcessingRecipeBuilder.ProcessingRecipeParams params){
+public class BulkFermentingRecipe extends StandardProcessingRecipe<SmartInventory> {
+    public BulkFermentingRecipe(ProcessingRecipeParams params){
         super(CDGRecipes.BULK_FERMENTING, params);
     }
     @Override
@@ -60,81 +62,9 @@ public class BulkFermentingRecipe extends ProcessingRecipe<SmartInventory> {
         return false;
     }
 
-    public boolean test(IItemHandler container){
-        if(container == null)
-            return false;
-        for (Ingredient ingredient : getIngredients()) {
-            boolean valid = false;
-            for (int i = 0; i < container.getSlots(); i++) {
-                ItemStack stack = container.getStackInSlot(i);
-                if (!ingredient.test(stack))
-                    continue;
-                ItemStack[] items = ingredient.getItems();
-                if (items.length == 0 || items[0].getCount() > stack.getCount())
-                    continue;
-                valid = true;
-            }
-            if (!valid)
-                return false;
-        }
-        return true;
-    }
-
-    public boolean test(BulkFermenterBlockEntity.BulkFermenterFluidHandler container){
-        if(container == null)
-            return false;
-        for(FluidIngredient ingredient : getFluidIngredients()){
-            boolean valid = false;
-            for (int i = 0; i < container.getTanks(); i++) {
-                FluidStack fluidInTank = container.getFluidInTank(i);
-                if (ingredient.test(fluidInTank) && ingredient.getRequiredAmount() <= fluidInTank.getAmount()) {
-                    valid = true;
-                    break;
-                }
-            }
-            if(!valid)
-                return false;
-        }
-        return true;
-    }
-
-    public void remove(BulkFermenterBlockEntity.BulkFermenterFluidHandler container){
-        if (container == null)
-            return;
-        for (FluidIngredient ingredient : getFluidIngredients()){
-            for (int i = 0; i < container.getTanks(); i++) {
-                FluidStack fluidInTank = container.getFluidInTank(i);
-                if (ingredient.test(fluidInTank) && ingredient.getRequiredAmount() <= fluidInTank.getAmount()) {
-                    FluidStack toDrain = fluidInTank.copy();
-                    toDrain.setAmount(ingredient.getRequiredAmount());
-                    container.drain(toDrain, IFluidHandler.FluidAction.EXECUTE);
-                    break;
-                }
-            }
-        }
-    }
-    public void remove(IItemHandler container){
-        if(container == null)
-            return;
-        for (Ingredient ingredient : getIngredients()){
-            for (int i = 0; i < container.getSlots(); i++) {
-                ItemStack stack = container.getStackInSlot(i);
-                if(!ingredient.test(stack))
-                    continue;
-                ItemStack[] items = ingredient.getItems();
-                if(items.length == 0 || items[0].getCount() > stack.getCount())
-                    continue;
-                container.extractItem(i, items[0].getCount(), false);
-                break;
-            }
-        }
-    }
-
     public boolean apply(BulkFermenterBlockEntity be, boolean test) {
-        IItemHandler availableItems = be.getCapability(ForgeCapabilities.ITEM_HANDLER)
-                .orElse(null);
-        IFluidHandler fluidCap = be.getCapability(ForgeCapabilities.FLUID_HANDLER)
-                .orElse(null);
+        IItemHandler availableItems = be.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, be.getBlockPos(), null);
+        IFluidHandler fluidCap = be.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, be.getBlockPos(), null);
 
         if (availableItems == null || fluidCap == null ||
                 !(fluidCap instanceof BulkFermenterBlockEntity.BulkFermenterFluidHandler availableFluids))
@@ -223,10 +153,8 @@ public class BulkFermentingRecipe extends ProcessingRecipe<SmartInventory> {
     }
 
     private boolean applyOutputs(BulkFermenterBlockEntity be, List<ItemStack> outputItems, List<FluidStack> outputFluids, boolean test) {
-        IItemHandler availableItems = be.getCapability(ForgeCapabilities.ITEM_HANDLER)
-                .orElse(null);
-        IFluidHandler fluidCap = be.getCapability(ForgeCapabilities.FLUID_HANDLER)
-                .orElse(null);
+        IItemHandler availableItems = be.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, be.getBlockPos(), null);
+        IFluidHandler fluidCap = be.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, be.getBlockPos(), null);
 
         if (availableItems == null || fluidCap == null ||
                 !(fluidCap instanceof BulkFermenterBlockEntity.BulkFermenterFluidHandler availableFluids))
@@ -242,7 +170,7 @@ public class BulkFermentingRecipe extends ProcessingRecipe<SmartInventory> {
 
             int left = stack.getCount();
             for (ItemStack slot : items) {
-                if (slot.getItem() == stack.getItem() && Objects.equals(slot.getTag(), stack.getTag())) {
+                if (ItemStack.isSameItemSameComponents(slot, stack)) {
                     if ((availableItems.getSlotLimit(0) - slot.getCount()) >= left) {
                         left = 0;
                         break;
@@ -269,7 +197,7 @@ public class BulkFermentingRecipe extends ProcessingRecipe<SmartInventory> {
 
             boolean filled = false;
             for (FluidTank tank : availableFluids.tanks) {
-                if (tank.getFluid().isFluidEqual(result)) {
+                if (FluidStack.isSameFluidSameComponents(tank.getFluid(), result)) {
                     if (tank.fill(result, IFluidHandler.FluidAction.SIMULATE) < result.getAmount())
                         return false;
                     else

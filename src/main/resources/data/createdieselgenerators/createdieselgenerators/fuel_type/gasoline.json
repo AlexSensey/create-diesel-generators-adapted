@@ -1,5 +1,5 @@
 {
-  "fluid": "#forge:gasoline",
+  "fluid": "#c:gasoline",
   "sound_pitch": 1,
   "normal": {
     "speed": 96.0,

@@ -26,9 +26,9 @@ public class DistillationTankCTBehavior extends ConnectedTextureBehaviour.Base {
     @Override
     public boolean connectsTo(BlockState state, BlockState other, BlockAndTintGetter reader, BlockPos pos, BlockPos otherPos, Direction face, Direction primaryOffset, Direction secondaryOffset) {
         if(pos.above(1).equals(otherPos))
-            return !state.getValue(FluidTankBlock.TOP);
+            return !state.getValue(DistillationTankBlock.TOP);
         if(pos.below(1).equals(otherPos))
-            return !state.getValue(FluidTankBlock.BOTTOM);
+            return !state.getValue(DistillationTankBlock.BOTTOM);
         return other.getBlock() instanceof DistillationTankBlock && ConnectivityHandler.isConnected(reader, pos, otherPos);
 
     }

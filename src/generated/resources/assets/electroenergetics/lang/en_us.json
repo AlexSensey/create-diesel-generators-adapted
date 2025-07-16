@@ -1,9 +1,0 @@
-{
-  "block.electroenergetics.bulb": "Bulb",
-  "block.electroenergetics.connector": "Connector",
-  "block.electroenergetics.creative_battery": "Creative Battery",
-  "block.electroenergetics.cut_off_switch": "Cut Off Switch",
-  "electroenergetics.wire_spool.node_selection": "Selected Node: %1$s",
-  "item.electroenergetics.wire_spool": "Wire Spool",
-  "itemGroup.electroenergetics": "Create: Electro Energetics"
-}

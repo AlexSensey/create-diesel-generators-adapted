@@ -20,25 +20,24 @@ public class CDGPonderPlugin implements PonderPlugin {
     @Override
     public void registerScenes(PonderSceneRegistrationHelper<ResourceLocation> helper) {
         PonderPlugin.super.registerScenes(helper);
-        PonderSceneRegistrationHelper<ItemProviderEntry<?>> HELPER = helper.withKeyFunction(RegistryEntry::getId);
 
-        HELPER.forComponents(CDGItems.DISTILLATION_CONTROLLER)
+        helper.forComponents(CDGItems.DISTILLATION_CONTROLLER.getId())
                 .addStoryBoard("distillation_tower", DistillationScene::scene);
-        HELPER.forComponents(CDGBlocks.DIESEL_ENGINE)
+        helper.forComponents(CDGBlocks.DIESEL_ENGINE.getId())
                 .addStoryBoard("diesel_engine", DieselEngineScenes::small);
-        HELPER.forComponents(CDGBlocks.MODULAR_DIESEL_ENGINE)
+        helper.forComponents(CDGBlocks.MODULAR_DIESEL_ENGINE.getId())
                 .addStoryBoard("large_diesel_engine", DieselEngineScenes::modular);
-        HELPER.forComponents(CDGBlocks.BASIN_LID)
+        helper.forComponents(CDGBlocks.BASIN_LID.getId())
                 .addStoryBoard("basin_fermenting_station", BasinScenes::basin_lid);
-        HELPER.forComponents(CDGBlocks.HUGE_DIESEL_ENGINE)
+        helper.forComponents(CDGBlocks.HUGE_DIESEL_ENGINE.getId())
                 .addStoryBoard("huge_diesel_engine", DieselEngineScenes::huge);
-        HELPER.forComponents(CDGBlocks.PUMPJACK_BEARING, CDGBlocks.PUMPJACK_CRANK, CDGBlocks.PUMPJACK_HEAD)
+        helper.forComponents(CDGBlocks.PUMPJACK_BEARING.getId(), CDGBlocks.PUMPJACK_CRANK.getId(), CDGBlocks.PUMPJACK_HEAD.getId())
                 .addStoryBoard("pumpjack", PumpjackScene::scene);
-        HELPER.forComponents(CDGBlocks.PUMPJACK_BEARING, CDGBlocks.PUMPJACK_CRANK, CDGBlocks.PUMPJACK_HEAD, CDGItems.OIL_SCANNER)
+        helper.forComponents(CDGBlocks.PUMPJACK_BEARING.getId(), CDGBlocks.PUMPJACK_CRANK.getId(), CDGBlocks.PUMPJACK_HEAD.getId(), CDGItems.OIL_SCANNER.getId())
                 .addStoryBoard("pumpjack", OilChunkScene::scene);
-        HELPER.forComponents(CDGBlocks.BURNER)
+        helper.forComponents(CDGBlocks.BURNER.getId())
                 .addStoryBoard("burner", BurnerScenes::scene);
-        HELPER.forComponents(CDGBlocks.CHEMICAL_TURRET)
+        helper.forComponents(CDGBlocks.CHEMICAL_TURRET.getId())
                 .addStoryBoard("chemical_turret", TurretScenes::chemical)
                 .addStoryBoard("automatic_turret", TurretScenes::automatic);
     }
@@ -47,21 +46,19 @@ public class CDGPonderPlugin implements PonderPlugin {
     public void registerTags(PonderTagRegistrationHelper<ResourceLocation> helper) {
         PonderPlugin.super.registerTags(helper);
 
-        PonderTagRegistrationHelper<RegistryEntry<?>> HELPER = helper.withKeyFunction(RegistryEntry::getId);
-
-        HELPER.addToTag(AllCreatePonderTags.KINETIC_SOURCES)
-                .add(CDGBlocks.DIESEL_ENGINE)
-                .add(CDGBlocks.MODULAR_DIESEL_ENGINE)
-                .add(CDGBlocks.HUGE_DIESEL_ENGINE);
-        HELPER.addToTag(AllCreatePonderTags.KINETIC_APPLIANCES)
-                .add(CDGBlocks.BASIN_LID)
-                .add(CDGBlocks.PUMPJACK_BEARING)
-                .add(CDGBlocks.CHEMICAL_TURRET);
-        HELPER.addToTag(AllCreatePonderTags.DISPLAY_SOURCES)
-                .add(CDGBlocks.DIESEL_ENGINE)
-                .add(CDGBlocks.MODULAR_DIESEL_ENGINE);
-        HELPER.addToTag(AllCreatePonderTags.DECORATION)
-                .add(CDGBlocks.ANDESITE_GIRDER)
-                .add(CDGBlocks.SHEET_METAL_PANEL);
+        helper.addToTag(AllCreatePonderTags.KINETIC_SOURCES)
+                .add(CDGBlocks.DIESEL_ENGINE.getId())
+                .add(CDGBlocks.MODULAR_DIESEL_ENGINE.getId())
+                .add(CDGBlocks.HUGE_DIESEL_ENGINE.getId());
+        helper.addToTag(AllCreatePonderTags.KINETIC_APPLIANCES)
+                .add(CDGBlocks.BASIN_LID.getId())
+                .add(CDGBlocks.PUMPJACK_BEARING.getId())
+                .add(CDGBlocks.CHEMICAL_TURRET.getId());
+        helper.addToTag(AllCreatePonderTags.DISPLAY_SOURCES)
+                .add(CDGBlocks.DIESEL_ENGINE.getId())
+                .add(CDGBlocks.MODULAR_DIESEL_ENGINE.getId());
+        helper.addToTag(AllCreatePonderTags.DECORATION)
+                .add(CDGBlocks.ANDESITE_GIRDER.getId())
+                .add(CDGBlocks.SHEET_METAL_PANEL.getId());
     }
 }

@@ -1,12 +1,14 @@
 package com.jesz.createdieselgenerators.content.canister;
 
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
+import com.jesz.createdieselgenerators.CDGDataComponents;
 import com.simibubi.create.AllEnchantments;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.IBE;
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -23,8 +25,14 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
+
+import java.util.List;
 
 public class CanisterBlock extends Block implements IBE<CanisterBlockEntity>, ProperWaterloggedBlock, IWrenchable {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
@@ -45,27 +53,25 @@ public class CanisterBlock extends Block implements IBE<CanisterBlockEntity>, Pr
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getClickedFace()).setValue(WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).is(Fluids.WATER));
+        return withWater(defaultBlockState().setValue(FACING, context.getClickedFace()).setValue(WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).is(Fluids.WATER)), context);
     }
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.isClientSide)
             return;
-        if (stack == null)
-            return;
+
         withBlockEntityDo(level, pos, be -> {
-            be.setCapacityEnchantLevel(stack.getEnchantmentLevel(AllEnchantments.CAPACITY.get()));
-            if (stack.isEnchanted())
-                be.setEnchantmentTag(stack.getEnchantmentTags());
-            if (stack.hasCustomHoverName())
-                be.setCustomName(stack.getHoverName());
+            be.setComponentPatch(stack.getComponentsPatch());
+            be.setCapacityEnchantLevel(stack.getEnchantmentLevel(level.holderOrThrow(AllEnchantments.CAPACITY)));
         });
-        if(stack.getEnchantmentLevel(AllEnchantments.CAPACITY.get()) != 0)
+
+        if(stack.getEnchantmentLevel(level.holderOrThrow(AllEnchantments.CAPACITY)) != 0)
             level.setBlock(pos, state.setValue(ENCHANTED, true), 2);
     }
+
     @Override
-    public VoxelShape getShape(BlockState state, BlockGetter getter, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if(state.getValue(FACING).getAxis() == Direction.Axis.Y)
             return Block.box(2, 0, 2, 14, 16, 14);
         else if(state.getValue(FACING).getAxis() == Direction.Axis.X)
@@ -82,15 +88,39 @@ public class CanisterBlock extends Block implements IBE<CanisterBlockEntity>, Pr
     }
 
     @Override
-    public FluidState getFluidState(BlockState pState) {
-        return fluidState(pState);
+    public FluidState getFluidState(BlockState state) {
+        return fluidState(state);
     }
 
     @Override
-    public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState,
-                                  LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pNeighborPos) {
-        updateWater(pLevel, pState, pCurrentPos);
-        return pState;
+    public BlockState updateShape(BlockState state, Direction direction, BlockState neighbourState,
+                                  LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+        updateWater(level, state, pos);
+        return state;
+    }
+
+    @Override
+    public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        List<ItemStack> lootDrops = super.getDrops(state, params);
+
+        if (!(params.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof CanisterBlockEntity be))
+            return lootDrops;
+
+        FluidStack contents = be.tank.getCapability().getFluidInTank(0);
+
+        DataComponentPatch components = be.getComponentPatch()
+                .forget(c -> c.equals(CDGDataComponents.FLUID_CONTENTS));
+        if (components.isEmpty() && contents.isEmpty())
+            return lootDrops;
+
+        return lootDrops.stream()
+                .peek(stack -> {
+                    if (stack.getItem() instanceof CanisterBlockItem) {
+                        stack.applyComponents(components);
+                        stack.set(CDGDataComponents.FLUID_CONTENTS, SimpleFluidContent.copyOf(contents));
+                    }
+                })
+                .toList();
     }
 
     @Override

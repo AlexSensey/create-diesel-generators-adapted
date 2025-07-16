@@ -3,8 +3,8 @@ package com.jesz.createdieselgenerators.content.molds;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +32,7 @@ public class MoldType {
     }
 
     public ResourceLocation getModelId() {
-        return new ResourceLocation(id.getNamespace(), "item/mold/"+id.getPath());
+        return ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "item/mold/"+id.getPath());
     }
 
     public static MoldType findById(ResourceLocation id) {

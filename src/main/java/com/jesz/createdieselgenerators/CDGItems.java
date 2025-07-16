@@ -22,7 +22,7 @@ public class CDGItems {
     public static final ItemEntry<Item> KELP_HANDLE = REGISTRATE.item("kelp_handle", Item::new).register();
 
     public static final ItemEntry<FurnaceBurnItem> WOOD_CHIPS = REGISTRATE.item("wood_chip", p -> new FurnaceBurnItem(p, 200))
-            .tag(AllTags.forgeItemTag("dusts/wood"))
+            .tag(AllTags.commonItemTag("dusts/wood"))
             .register();
 
     public static final ItemEntry<Item> ENGINE_PISTON = REGISTRATE.item("engine_piston", Item::new).register();

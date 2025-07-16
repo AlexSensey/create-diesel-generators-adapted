@@ -1,42 +1,23 @@
 package com.jesz.createdieselgenerators.content.molds;
 
-import com.google.gson.JsonObject;
+import com.google.common.base.Joiner;
 import com.jesz.createdieselgenerators.CDGRecipes;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
 import com.simibubi.create.content.kinetics.mixer.CompactingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 
 public class CompressionMoldingRecipe extends CompactingRecipe {
     public MoldType moldType;
-    public CompressionMoldingRecipe(ProcessingRecipeBuilder.ProcessingRecipeParams params) {
+    MoldRecipeParams params;
+
+    public CompressionMoldingRecipe(MoldRecipeParams params) {
         super(params);
-    }
-
-    @Override
-    public void readAdditional(JsonObject json) {
-        super.readAdditional(json);
-        moldType = MoldType.findById(new ResourceLocation(json.get("mold").getAsString()));
-    }
-
-    @Override
-    public void readAdditional(FriendlyByteBuf buffer) {
-        super.readAdditional(buffer);
-        moldType = MoldType.findById(new ResourceLocation(buffer.readUtf()));
-    }
-
-    @Override
-    public void writeAdditional(JsonObject json) {
-        super.writeAdditional(json);
-        json.addProperty("mold", moldType.getId().toString());
-    }
-
-    @Override
-    public void writeAdditional(FriendlyByteBuf buffer) {
-        super.writeAdditional(buffer);
-        buffer.writeUtf(moldType.getId().toString());
+        this.moldType = MoldType.findById(params.mold());
+        this.params = params;
     }
 
     @Override
@@ -47,5 +28,38 @@ public class CompressionMoldingRecipe extends CompactingRecipe {
     @Override
     public RecipeType<CompressionMoldingRecipe> getType() {
         return CDGRecipes.COMPRESSION_MOLDING.getType();
+    }
+
+    @Override
+    public MoldRecipeParams getParams() {
+        return params;
+    }
+
+    public static class Serializer implements RecipeSerializer<CompressionMoldingRecipe> {
+        private final MapCodec<CompressionMoldingRecipe> codec;
+        private final StreamCodec<RegistryFriendlyByteBuf, CompressionMoldingRecipe> streamCodec;
+
+        public Serializer() {
+            this.codec = MoldRecipeParams.CODEC.xmap(CompressionMoldingRecipe::new, CompressionMoldingRecipe::getParams)
+                    .validate(recipe -> {
+                        var errors = recipe.validate();
+                        if (errors.isEmpty())
+                            return DataResult.success(recipe);
+                        errors.add(recipe.getClass().getSimpleName() + " failed validation:");
+                        return DataResult.error(() -> Joiner.on('\n').join(errors), recipe);
+                    });
+            this.streamCodec = MoldRecipeParams.STREAM_CODEC.map(CompressionMoldingRecipe::new, CompressionMoldingRecipe::getParams);
+        }
+
+        @Override
+        public MapCodec<CompressionMoldingRecipe> codec() {
+            return codec;
+        }
+
+        @Override
+        public StreamCodec<RegistryFriendlyByteBuf, CompressionMoldingRecipe> streamCodec() {
+            return streamCodec;
+        }
+
     }
 }

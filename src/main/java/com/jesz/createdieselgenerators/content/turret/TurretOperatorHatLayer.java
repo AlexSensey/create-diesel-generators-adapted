@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.content.trains.schedule.hat.TrainHatInfo;
 import com.simibubi.create.content.trains.schedule.hat.TrainHatInfoReloadListener;
 import com.simibubi.create.foundation.mixin.accessor.AgeableListModelAccessor;
+import com.simibubi.create.foundation.mixin.accessor.EntityRenderDispatcherAccessor;
 import dev.engine_room.flywheel.lib.transform.PoseTransformStack;
 import dev.engine_room.flywheel.lib.transform.TransformStack;
 import net.createmod.catnip.render.CachedBuffers;
@@ -99,7 +100,7 @@ public class TurretOperatorHatLayer<T extends LivingEntity, M extends EntityMode
         for (EntityRenderer<? extends Player> renderer : renderManager.getSkinMap()
                 .values())
             registerOn(renderer);
-        for (EntityRenderer<?> renderer : renderManager.renderers.values())
+        for (EntityRenderer<?> renderer : ((EntityRenderDispatcherAccessor) renderManager).create$getRenderers().values())
             registerOn(renderer);
     }
 

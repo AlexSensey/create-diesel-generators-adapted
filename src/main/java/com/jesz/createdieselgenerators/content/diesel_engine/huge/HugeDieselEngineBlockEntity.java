@@ -1,5 +1,6 @@
 package com.jesz.createdieselgenerators.content.diesel_engine.huge;
 
+import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGBlocks;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineSoundInstance;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
@@ -8,7 +9,6 @@ import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.contraptions.bearing.WindmillBearingBlockEntity;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
-import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
@@ -16,10 +16,12 @@ import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOp
 import com.simibubi.create.foundation.utility.CreateLang;
 import net.createmod.catnip.data.Couple;
 import net.createmod.catnip.data.Pair;
+import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -29,20 +31,17 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
 
 import static com.jesz.createdieselgenerators.content.diesel_engine.huge.HugeDieselEngineBlock.FACING;
-import static com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock.AXIS;
 
 public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHaveGoggleInformation, IEngine {
     ScrollOptionBehaviour<WindmillBearingBlockEntity.RotationDirection> movementDirection;
@@ -57,18 +56,18 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
     }
 
     @Override
-    protected void write(CompoundTag tag, boolean clientPacket) {
-        super.write(tag, clientPacket);
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
         tag.putFloat("RemainingTicks", remainingTicks);
         tag.putString("Upgrade", upgrade.getId().toString());
 
     }
 
     @Override
-    protected void read(CompoundTag tag, boolean clientPacket) {
-        super.read(tag, clientPacket);
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
         remainingTicks = tag.getFloat("RemainingTicks");
-        upgrade = EngineUpgrades.get(new ResourceLocation(tag.getString("Upgrade")));
+        upgrade = EngineUpgrades.get(ResourceLocation.parse(tag.getString("Upgrade")));
     }
 
     @Override
@@ -101,13 +100,14 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
             shaft.update(worldPosition, movementDirection.getValue() == 0 ? 1 : -1, upgrade.getCapacity(getFuelCapacity(), this), upgrade.getSpeed(getFuelSpeed(), this));
 
             if (level.isClientSide)
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::tickClient);
+                CatnipServices.PLATFORM.executeOnClientOnly(() -> this::tickClient);
         } else
             shaft.removeGenerator(worldPosition);
     }
 
     @OnlyIn(Dist.CLIENT)
     protected EngineSoundInstance soundInstance;
+
     @OnlyIn(Dist.CLIENT)
     protected void tickClient() {
         if (enabled()) {
@@ -161,11 +161,14 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
                 be.movementDirection.setValue(v);
     }
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (cap == ForgeCapabilities.FLUID_HANDLER && (side == null || side.getAxis() != getBlockState().getValue(FACING).getAxis()))
-            return tank.getCapability().cast();
-        return super.getCapability(cap, side);
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK,
+                CDGBlockEntityTypes.HUGE_DIESEL_ENGINE.get(),
+                (be, side) -> {
+                    if (side == null || side.getAxis() != be.getBlockState().getValue(FACING).getAxis())
+                        return be.getTank();
+                    return null;
+                });
     }
 
     @Override
@@ -196,7 +199,7 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
                 .add(CreateLang.translate("gui.goggles.at_current_speed")
                         .style(ChatFormatting.DARK_GRAY))
                 .forGoggles(tooltip, 1);
-        return containedFluidTooltip(tooltip, isPlayerSneaking, tank.getCapability().cast());
+        return containedFluidTooltip(tooltip, isPlayerSneaking, tank.getCapability());
     }
 
     public Float getTargetAngle() {

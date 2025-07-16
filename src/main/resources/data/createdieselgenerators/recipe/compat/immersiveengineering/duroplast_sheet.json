@@ -1,0 +1,22 @@
+{
+  "type": "createdieselgenerators:casting",
+  "ingredients": [
+    {
+      "fluid": "c:phenolic_resin",
+      "amount": 250
+    }
+  ],
+  "mold": "createdieselgenerators:bar",
+  "results": [
+    {
+      "id": "immersiveengineering:plate_duroplast"
+    }
+  ],
+
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "immersiveengineering"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "type": "create:cutting",
+  "ingredients": [
+    {
+      "tag": "c:plates/iron"
+    }
+  ],
+  "results": [
+    {
+      "id": "createdieselgenerators:mold",
+      "nbt": {
+        "Mold": "createdieselgenerators:bowl"
+      }
+    }
+  ]
+}

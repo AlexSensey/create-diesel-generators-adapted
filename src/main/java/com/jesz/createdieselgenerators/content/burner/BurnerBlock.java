@@ -38,12 +38,13 @@ public class BurnerBlock extends HorizontalAxisKineticBlock implements IBE<Burne
     }
 
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-        if (state.getValue(LIT) && entity instanceof LivingEntity && !EnchantmentHelper.hasFrostWalker((LivingEntity)entity)) {
-            entity.hurt(level.damageSources().inFire(), 1);
+        if (state.getValue(LIT) && entity instanceof LivingEntity) {
+            entity.hurt(level.damageSources().campfire(), 1);
         }
 
         super.entityInside(state, level, pos, entity);
     }
+
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return box(1, 0, 1, 15, 12, 15);

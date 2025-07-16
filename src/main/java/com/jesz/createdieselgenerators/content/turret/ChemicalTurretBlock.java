@@ -2,6 +2,7 @@ package com.jesz.createdieselgenerators.content.turret;
 
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGItems;
+import com.simibubi.create.AllItems;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel;
@@ -10,7 +11,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -48,7 +51,7 @@ public class ChemicalTurretBlock extends KineticBlock implements IBE<ChemicalTur
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        if((!state.hasBlockEntity() || state.getBlock() == newState.getBlock()) && !isMoving){
+        if ((!state.hasBlockEntity() || state.getBlock() == newState.getBlock()) && !isMoving) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if(blockEntity instanceof ChemicalTurretBlockEntity be)
                 if(be.lighterUpgrade)
@@ -59,30 +62,31 @@ public class ChemicalTurretBlock extends KineticBlock implements IBE<ChemicalTur
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if(blockEntity instanceof ChemicalTurretBlockEntity be) {
+
+        if (blockEntity instanceof ChemicalTurretBlockEntity be) {
             if (player.getItemInHand(hand).isEmpty())
                 if (be.controllingPlayer == player) {
                     be.removePlayer();
-                    return InteractionResult.SUCCESS;
+                    return ItemInteractionResult.SUCCESS;
                 } else if (be.controllingPlayer == null) {
                     be.setControllingPlayer(player);
-                    return InteractionResult.SUCCESS;
+                    return ItemInteractionResult.SUCCESS;
                 }
-            if(player.getItemInHand(hand).is(CDGItems.LIGHTER.get())){
-                if(!be.lighterUpgrade) {
+            if (player.getItemInHand(hand).is(CDGItems.LIGHTER.get())) {
+                if (!be.lighterUpgrade) {
                     be.lighterUpgrade = true;
-                    if(!level.isClientSide)
+                    if (!level.isClientSide)
                         be.notifyUpdate();
-                    if(!player.isCreative())
+                    if (!player.isCreative())
                         player.getItemInHand(hand).shrink(1);
                     IWrenchable.playRotateSound(level, pos);
-                    return InteractionResult.SUCCESS;
+                    return ItemInteractionResult.SUCCESS;
                 }
             }
         }
-        return super.use(state, level, pos, player, hand, hit);
+        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
 
     @Override

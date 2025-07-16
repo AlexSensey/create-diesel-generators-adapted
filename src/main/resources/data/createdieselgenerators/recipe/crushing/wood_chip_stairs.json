@@ -1,0 +1,32 @@
+{
+  "type": "create:crushing",
+  "ingredients": [
+    {
+      "type": "neoforge:difference",
+      "base": [
+        {
+          "tag": "minecraft:wooden_stairs"
+        },
+        {
+          "item": "minecraft:bamboo_mosaic_stairs"
+        },
+        {
+          "item": "createdieselgenerators:chip_wood_beam"
+        }
+      ],
+      "subtracted": {
+        "item": "createdieselgenerators:chip_wood_stairs"
+      }
+    }
+  ],
+  "results": [
+    {
+      "id": "createdieselgenerators:wood_chip",
+      "count": 5
+    },
+    {
+      "id": "createdieselgenerators:wood_chip",
+      "chance": 0.5
+    }
+  ]
+}

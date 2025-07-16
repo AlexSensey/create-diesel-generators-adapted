@@ -3,7 +3,7 @@ package com.jesz.createdieselgenerators.content.canister;
 import com.jesz.createdieselgenerators.CDGConfig;
 import com.jesz.createdieselgenerators.content.tools.FueledToolItem;
 import com.simibubi.create.AllEnchantments;
-import com.simibubi.create.content.equipment.armor.CapacityEnchantment;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -16,18 +16,19 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.List;
 
-public class CanisterBlockItem extends BlockItem implements CapacityEnchantment.ICapacityEnchantable, FueledToolItem {
+public class CanisterBlockItem extends BlockItem implements FueledToolItem {
     public CanisterBlockItem(Block block, Properties properties) {
         super(block, properties.stacksTo(1));
     }
-    public void appendHoverText(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, level, tooltip, tooltipFlag);
-        createTooltip(tooltip, stack);
+
+    @Override
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+        createTooltip(tooltipComponents, stack);
     }
 
     @Override
@@ -41,34 +42,20 @@ public class CanisterBlockItem extends BlockItem implements CapacityEnchantment.
     }
 
     @Override
-    public void writeFluid(ItemStack stack, FluidStack fluid) {
-        ListTag list = new ListTag();
-        CompoundTag tankContent = new CompoundTag();
-        tankContent.put("TankContent", fluid.writeToNBT(new CompoundTag()));
-        list.add(tankContent);
-        CompoundTag tag = new CompoundTag();
-        tag.put("Tanks", list);
-        stack.getOrCreateTag().put("BlockEntityTag", tag);
-    }
-
-    @Override
-    public FluidStack readFluid(ItemStack stack) {
-        return FluidStack.loadFluidStackFromNBT(stack.getOrCreateTag().getCompound("BlockEntityTag").getList("Tanks", Tag.TAG_COMPOUND).getCompound(0).getCompound("TankContent"));
-    }
-
-    @Override
     public InteractionResult useOn(UseOnContext p_40581_) {
         return super.useOn(p_40581_);
     }
 
     @Override
     public boolean isEnchantable(ItemStack stack) { return true; }
+
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        if(enchantment == AllEnchantments.CAPACITY.get())
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (AllEnchantments.CAPACITY.equals(enchantment.getKey()))
             return true;
-        return super.canApplyAtEnchantingTable(stack, enchantment);
+        return super.supportsEnchantment(stack, enchantment);
     }
+
     @Override
     public int getBarColor(ItemStack stack) {
         return 0xEFEFEF;
@@ -81,10 +68,5 @@ public class CanisterBlockItem extends BlockItem implements CapacityEnchantment.
     @Override
     public int getBarWidth(ItemStack stack) {
         return Math.round(13 * (float) getCurrentFillLevel(stack) / getCapacity(stack));
-    }
-
-    @Override
-    public ICapabilityProvider initCapabilities(ItemStack stack, CompoundTag nbt) {
-        return getFluidHandler(stack);
     }
 }

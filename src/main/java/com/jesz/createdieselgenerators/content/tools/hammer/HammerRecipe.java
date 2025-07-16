@@ -1,15 +1,15 @@
 package com.jesz.createdieselgenerators.content.tools.hammer;
 
 import com.jesz.createdieselgenerators.CDGRecipes;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder;
+import com.simibubi.create.content.processing.recipe.ProcessingRecipeParams;
+import com.simibubi.create.content.processing.recipe.StandardProcessingRecipe;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
 
-public class HammerRecipe extends ProcessingRecipe<HammerRecipe.HammerInv> {
-    public HammerRecipe(ProcessingRecipeBuilder.ProcessingRecipeParams params) {
+public class HammerRecipe extends StandardProcessingRecipe<HammerRecipe.HammerInv> {
+    public HammerRecipe(ProcessingRecipeParams params) {
         super(CDGRecipes.HAMMERING, params);
     }
 
@@ -24,14 +24,14 @@ public class HammerRecipe extends ProcessingRecipe<HammerRecipe.HammerInv> {
     }
 
     @Override
-    public boolean matches(HammerInv inv, Level level) {
-        return ingredients.get(0).test(inv.getItem(0));
+    public boolean matches(HammerInv input, Level level) {
+        return ingredients.get(0).test(input.getItem(0));
     }
 
     public static class HammerInv extends RecipeWrapper {
         public HammerInv(ItemStack stack) {
             super(new ItemStackHandler(1));
-            inv.setStackInSlot(0, stack);
+            inv.insertItem(0, stack, false);
         }
     }
 }

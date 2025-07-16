@@ -3,8 +3,9 @@ package com.jesz.createdieselgenerators.content.tools.lighter;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.simibubi.create.foundation.utility.CreateLang;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,13 +38,13 @@ public class LighterModel {
     }
     public static void onModelRegistry(ModelEvent.RegisterAdditional event) {
         for (LighterModel partial : ALL)
-            event.register(partial.getLocation());
+            event.register(new ModelResourceLocation(partial.getLocation(), ModelResourceLocation.STANDALONE_VARIANT));
     }
 
     public static void onModelBake(ModelEvent.BakingCompleted event) {
-        Map<ResourceLocation, BakedModel> models = event.getModels();
+        Map<ModelResourceLocation, BakedModel> models = event.getModels();
         for (LighterModel partial : ALL)
-            partial.set(models.get(partial.getLocation()));
+            partial.set(models.get(new ModelResourceLocation(partial.getLocation(), ModelResourceLocation.STANDALONE_VARIANT)));
     }
 
     protected void set(BakedModel bakedModel) {

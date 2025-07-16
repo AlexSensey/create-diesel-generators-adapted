@@ -20,16 +20,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(CopycatBlock.class)
 public class CopycatBlockMixin {
-    @Inject(method = "use", at = @At("HEAD"), cancellable = true)
-    public void use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
-        ItemStack stackInHand = player.getItemInHand(hand);
-        if(stackInHand.getItem() instanceof DyeItem di){
-            if(level.getBlockEntity(pos) instanceof CopycatBlockEntity be){
+    @Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true, remap = false)
+    public void use(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
+
+        if (stack.getItem() instanceof DyeItem di) {
+            if (level.getBlockEntity(pos) instanceof CopycatBlockEntity be){
                 if(CDGBlocks.OIL_BARREL.has(be.getMaterial()))
                     be.setMaterial(be.getMaterial().setValue(OilBarrelBlock.OIL_BARREL_COLOR, OilBarrelBlock.OilBarrelColor.getForDyeColor(di.getDyeColor())));
             }
-            if(!player.isCreative())
-                stackInHand.shrink(1);
+            if (!player.isCreative())
+                stack.shrink(1);
             cir.setReturnValue(InteractionResult.SUCCESS);
         }
     }

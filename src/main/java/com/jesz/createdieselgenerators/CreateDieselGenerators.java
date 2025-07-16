@@ -4,7 +4,6 @@ import com.jesz.createdieselgenerators.compat.EveryCompatCompat;
 import com.jesz.createdieselgenerators.compat.computercraft.CCProxy;
 import com.jesz.createdieselgenerators.content.molds.MoldType;
 import com.jesz.createdieselgenerators.content.tools.lighter.LighterModel;
-import com.jesz.createdieselgenerators.datagen.CDGDatagen;
 import com.jesz.createdieselgenerators.packets.CDGPackets;
 import com.jesz.createdieselgenerators.ponder.CDGPonderPlugin;
 import com.simibubi.create.compat.Mods;
@@ -16,8 +15,9 @@ import net.createmod.catnip.lang.FontHelper;
 import net.createmod.catnip.platform.CatnipServices;
 import net.createmod.ponder.foundation.PonderIndex;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.bus.api.EventPriority;
+import net.minecraft.world.item.CreativeModeTab;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -37,6 +37,8 @@ public class CreateDieselGenerators
                             .andThen(TooltipModifier.mapNull(KineticStats.create(item)))
             );
     public CreateDieselGenerators(IEventBus modEventBus, ModContainer container) {
+        REGISTRATE.defaultCreativeTab((ResourceKey<CreativeModeTab>) null);
+        REGISTRATE.registerEventListeners(modEventBus);
 
         CDGItems.register();
         CDGBlocks.register();
@@ -50,18 +52,15 @@ public class CreateDieselGenerators
         CDGMountedStorageTypes.register();
         CDGCreativeTab.register(modEventBus);
         CDGPackets.register();
+        CDGDataComponents.register(modEventBus);
 
-        if(ModList.get().isLoaded("moonlight"))
+        if (ModList.get().isLoaded("moonlight"))
             EveryCompatCompat.init();
         Mods.COMPUTERCRAFT.executeIfInstalled(() -> CCProxy::register);
 
         CatnipServices.PLATFORM.executeOnClientOnly(() -> () -> onClient(modEventBus, container));
         container.registerConfig(ModConfig.Type.SERVER, CDGConfig.SERVER_SPEC, ID + "-server.toml");
         container.registerConfig(ModConfig.Type.COMMON, CDGConfig.COMMON_SPEC, ID + "-common.toml");
-
-        REGISTRATE.registerEventListeners(modEventBus);
-        modEventBus.addListener(EventPriority.LOWEST, CDGDatagen::gatherData);
-
     }
 
     public static void onClient(IEventBus modEventBus, ModContainer container) {

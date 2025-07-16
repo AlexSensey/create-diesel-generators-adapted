@@ -1,0 +1,20 @@
+{
+  "type": "createdieselgenerators:wire_cutting",
+  "ingredients": [
+    {
+      "tag": "c:ingots/electrum"
+    }
+  ],
+  "results": [
+    {
+      "id": "createaddition:electrum_rod"
+    }
+  ],
+
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "createaddition"
+    }
+  ]
+}

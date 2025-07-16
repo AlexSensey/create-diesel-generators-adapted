@@ -1,5 +1,6 @@
 package com.jesz.createdieselgenerators.ponder;
 
+import com.jesz.createdieselgenerators.CDGDataComponents;
 import com.jesz.createdieselgenerators.CDGItems;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
 import net.createmod.ponder.api.PonderPalette;
@@ -93,7 +94,7 @@ public class OilChunkScene {
         scene.addInstruction(sc -> {
             sc.resolve(scanner).ifPresent(entity -> {
                 if (entity instanceof ItemEntity ie) {
-                    ie.getItem().getOrCreateTag().putInt("Type", type);
+                    ie.getItem().set(CDGDataComponents.OIL_SCANNER_STATE, type);
                 }
             });
         });

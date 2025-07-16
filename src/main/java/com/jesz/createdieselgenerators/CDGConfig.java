@@ -1,48 +1,48 @@
 package com.jesz.createdieselgenerators;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class CDGConfig {
-    public static final ForgeConfigSpec.Builder SERVER_BUILDER = new ForgeConfigSpec.Builder();
-    public static final ForgeConfigSpec.Builder CLIENT_BUILDER = new ForgeConfigSpec.Builder();
-    public static final ForgeConfigSpec.Builder COMMON_BUILDER = new ForgeConfigSpec.Builder();
+    public static final ModConfigSpec.Builder SERVER_BUILDER = new ModConfigSpec.Builder();
+    public static final ModConfigSpec.Builder CLIENT_BUILDER = new ModConfigSpec.Builder();
+    public static final ModConfigSpec.Builder COMMON_BUILDER = new ModConfigSpec.Builder();
 
-    public static final ForgeConfigSpec SERVER_SPEC;
-    public static final ForgeConfigSpec CLIENT_SPEC;
-    public static final ForgeConfigSpec COMMON_SPEC;
+    public static final ModConfigSpec SERVER_SPEC;
+    public static final ModConfigSpec CLIENT_SPEC;
+    public static final ModConfigSpec COMMON_SPEC;
 
-    public static final ForgeConfigSpec.ConfigValue<Double> TURBOCHARGED_ENGINE_MULTIPLIER;
-    public static final ForgeConfigSpec.ConfigValue<Double> TURBOCHARGED_ENGINE_BURN_RATE_MULTIPLIER;
+    public static final ModConfigSpec.ConfigValue<Double> TURBOCHARGED_ENGINE_MULTIPLIER;
+    public static final ModConfigSpec.ConfigValue<Double> TURBOCHARGED_ENGINE_BURN_RATE_MULTIPLIER;
 
-    public static final ForgeConfigSpec.ConfigValue<Boolean> ENGINES_EMIT_SOUND_ON_TRAINS;
+    public static final ModConfigSpec.ConfigValue<Boolean> ENGINES_EMIT_SOUND_ON_TRAINS;
 
-    public static final ForgeConfigSpec.ConfigValue<Boolean> CANISTER_SPOUT_FILLING;
-    public static final ForgeConfigSpec.ConfigValue<Integer> CANISTER_CAPACITY;
-    public static final ForgeConfigSpec.ConfigValue<Integer> CANISTER_CAPACITY_ENCHANTMENT;
+    public static final ModConfigSpec.ConfigValue<Boolean> CANISTER_SPOUT_FILLING;
+    public static final ModConfigSpec.ConfigValue<Integer> CANISTER_CAPACITY;
+    public static final ModConfigSpec.ConfigValue<Integer> CANISTER_CAPACITY_ENCHANTMENT;
 
-    public static final ForgeConfigSpec.ConfigValue<Integer> TOOL_CAPACITY;
-    public static final ForgeConfigSpec.ConfigValue<Integer> TOOL_CAPACITY_ENCHANTMENT;
+    public static final ModConfigSpec.ConfigValue<Integer> TOOL_CAPACITY;
+    public static final ModConfigSpec.ConfigValue<Integer> TOOL_CAPACITY_ENCHANTMENT;
 
-    public static final ForgeConfigSpec.ConfigValue<Integer> MAX_OIL_SCANNER_LEVEL;
-    public static final ForgeConfigSpec.ConfigValue<Integer> MAX_OIL_BARREL_WIDTH;
+    public static final ModConfigSpec.ConfigValue<Integer> MAX_OIL_SCANNER_LEVEL;
+    public static final ModConfigSpec.ConfigValue<Integer> MAX_OIL_BARREL_WIDTH;
 
-    public static final ForgeConfigSpec.ConfigValue<Integer> OIL_CHUNK_INFINITE_THRESHOLD;
-    public static final ForgeConfigSpec.ConfigValue<Integer> OIL_CHUNK_THRESHOLD;
+    public static final ModConfigSpec.ConfigValue<Integer> OIL_CHUNK_INFINITE_THRESHOLD;
+    public static final ModConfigSpec.ConfigValue<Integer> OIL_CHUNK_THRESHOLD;
 
-    public static final ForgeConfigSpec.ConfigValue<Double> OIL_CHUNK_SCALE;
-    public static final ForgeConfigSpec.ConfigValue<Double> OIL_MULTIPLIER;
-    public static final ForgeConfigSpec.ConfigValue<Double> HIGH_OIL_MULTIPLIER;
+    public static final ModConfigSpec.ConfigValue<Double> OIL_CHUNK_SCALE;
+    public static final ModConfigSpec.ConfigValue<Double> OIL_MULTIPLIER;
+    public static final ModConfigSpec.ConfigValue<Double> HIGH_OIL_MULTIPLIER;
 
-    public static final ForgeConfigSpec.ConfigValue<Boolean> FUEL_TOOLTIPS;
-    public static final ForgeConfigSpec.ConfigValue<Boolean> DIESEL_ENGINE_IN_JEI;
+    public static final ModConfigSpec.ConfigValue<Boolean> FUEL_TOOLTIPS;
+    public static final ModConfigSpec.ConfigValue<Boolean> DIESEL_ENGINE_IN_JEI;
 
-    public static final ForgeConfigSpec.ConfigValue<Boolean> COMBUSTIBLES_BLOW_UP;
+    public static final ModConfigSpec.ConfigValue<Boolean> COMBUSTIBLES_BLOW_UP;
 
-    public static final ForgeConfigSpec.ConfigValue<Boolean> NORMAL_ENGINES;
-    public static final ForgeConfigSpec.ConfigValue<Boolean> MODULAR_ENGINES;
-    public static final ForgeConfigSpec.ConfigValue<Boolean> HUGE_ENGINES;
-    public static final ForgeConfigSpec.ConfigValue<Boolean> ENGINES_FILLED_WITH_ITEMS;
-    public static final ForgeConfigSpec.ConfigValue<Boolean> ENGINES_DISABLED_WITH_REDSTONE;
+    public static final ModConfigSpec.ConfigValue<Boolean> NORMAL_ENGINES;
+    public static final ModConfigSpec.ConfigValue<Boolean> MODULAR_ENGINES;
+    public static final ModConfigSpec.ConfigValue<Boolean> HUGE_ENGINES;
+    public static final ModConfigSpec.ConfigValue<Boolean> ENGINES_FILLED_WITH_ITEMS;
+    public static final ModConfigSpec.ConfigValue<Boolean> ENGINES_DISABLED_WITH_REDSTONE;
 
     static {
 

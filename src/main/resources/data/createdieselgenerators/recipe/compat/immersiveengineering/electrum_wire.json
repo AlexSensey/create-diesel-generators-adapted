@@ -1,0 +1,20 @@
+{
+  "type": "createdieselgenerators:wire_cutting",
+  "ingredients": [
+    {
+      "tag": "c:plates/electrum"
+    }
+  ],
+  "results": [
+    {
+      "id": "immersiveengineering:wire_electrum"
+    }
+  ],
+
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "immersiveengineering"
+    }
+  ]
+}

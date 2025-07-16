@@ -2,6 +2,7 @@ package com.jesz.createdieselgenerators.mixins;
 
 import com.jesz.createdieselgenerators.content.oil_barrel.OilBarrelBlockEntity;
 import com.simibubi.create.content.contraptions.Contraption;
+import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -23,10 +24,10 @@ public abstract class ContraptionMixin {
         if (!(blockEntity instanceof OilBarrelBlockEntity))
             return;
         CompoundTag nbt = cir.getReturnValue();
-        if(nbt == null)
+        if (nbt == null)
             return;
-        if(nbt.contains("Controller"))
-            nbt.put("Controller", NbtUtils.writeBlockPos(toLocalPos(NbtUtils.readBlockPos(nbt.getCompound("Controller")))));
+        if (nbt.contains("Controller"))
+            nbt.put("Controller", NbtUtils.writeBlockPos(toLocalPos(NBTHelper.readBlockPos(nbt, "Controller"))));
 
     }
 }

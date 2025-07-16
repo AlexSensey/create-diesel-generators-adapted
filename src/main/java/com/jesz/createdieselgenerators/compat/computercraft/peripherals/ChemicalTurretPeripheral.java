@@ -19,10 +19,12 @@ public class ChemicalTurretPeripheral extends SyncedPeripheral<ChemicalTurretBlo
     public final float getHorizontalRotation(){
         return blockEntity.targetedHorizontalRotation;
     }
+
     @LuaFunction
     public final float getVerticalRotation(){
         return blockEntity.targetedVerticalRotation;
     }
+
     @LuaFunction
     public final void setHorizontalRotation(int v) {
         blockEntity.targetedHorizontalRotation = v;

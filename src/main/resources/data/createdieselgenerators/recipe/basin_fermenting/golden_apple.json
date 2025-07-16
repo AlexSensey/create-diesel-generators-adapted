@@ -1,0 +1,44 @@
+{
+  "type": "createdieselgenerators:basin_fermenting",
+  "ingredients": [
+    {
+      "item": "minecraft:apple"
+    },
+    {
+      "tag": "c:ingots/gold"
+    },
+    {
+      "tag": "c:ingots/gold"
+    },
+    {
+      "tag": "c:ingots/gold"
+    },
+    {
+      "tag": "c:ingots/gold"
+    },
+    {
+      "tag": "c:ingots/gold"
+    },
+    {
+      "type": "fluid_stack",
+      "fluid": "create:potion",
+      "nbt": {
+        "Potion": "minecraft:mundane"
+      },
+      "amount": 100
+    }
+  ],
+  "processing_time": 400,
+  "results": [
+    {
+      "id": "minecraft:golden_apple"
+    },
+    {
+      "id": "create:potion",
+      "nbt": {
+        "Potion": "minecraft:thick"
+      },
+      "amount": 100
+    }
+  ]
+}

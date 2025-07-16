@@ -1,0 +1,28 @@
+{
+  "type": "create:mechanical_crafting",
+  "pattern": [
+    "AIA",
+    " S ",
+    "AIA",
+    "ZSZ",
+    "AZA"
+  ],
+  "key": {
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "Z": {
+      "tag": "c:ingots/zinc"
+    },
+    "I": {
+      "tag": "c:plates/iron"
+    },
+    "S": {
+      "item": "create:shaft"
+    }
+  },
+  "accept_mirrored": true,
+  "result": {
+    "id": "createdieselgenerators:pumpjack_crank"
+  }
+}

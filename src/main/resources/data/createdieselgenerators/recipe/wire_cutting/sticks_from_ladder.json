@@ -1,0 +1,14 @@
+{
+  "type": "createdieselgenerators:wire_cutting",
+  "ingredients": [
+    {
+      "item": "minecraft:ladder"
+    }
+  ],
+  "results": [
+    {
+      "id": "minecraft:stick",
+      "count": 2
+    }
+  ]
+}

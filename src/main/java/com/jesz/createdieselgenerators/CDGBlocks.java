@@ -22,7 +22,6 @@ import com.jesz.createdieselgenerators.content.distillation.DistillationTankGene
 import com.jesz.createdieselgenerators.content.distillation.DistillationTankModel;
 import com.jesz.createdieselgenerators.content.items.MultiBlockContainerBlockItem;
 import com.jesz.createdieselgenerators.content.oil_barrel.OilBarrelBlock;
-import com.jesz.createdieselgenerators.content.oil_barrel.OilBarrelCTBehavior;
 import com.jesz.createdieselgenerators.content.pumpjack.*;
 import com.jesz.createdieselgenerators.content.sheetmetal.SheetMetalPanelBlock;
 import com.jesz.createdieselgenerators.content.sheetmetal.SheetMetalPanelModel;
@@ -32,8 +31,10 @@ import com.jesz.createdieselgenerators.contraption.PumpjackBearingBMovementBehav
 import com.jesz.createdieselgenerators.contraption.PumpjackHeadMovementBehaviour;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllTags;
+import com.simibubi.create.api.behaviour.display.DisplaySource;
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.api.boiler.BoilerHeater;
+import com.simibubi.create.api.registry.CreateRegistries;
 import com.simibubi.create.api.stress.BlockStressValues;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.BlockStateGen;
@@ -42,31 +43,25 @@ import com.simibubi.create.foundation.data.SharedProperties;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.loot.LootPool;
-import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
-import net.minecraft.world.level.storage.loot.functions.CopyNameFunction;
-import net.minecraft.world.level.storage.loot.functions.CopyNbtFunction;
-import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
-import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraft.world.level.storage.loot.providers.nbt.ContextNbtProvider;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
-import net.minecraftforge.client.model.generators.ConfiguredModel;
-import net.minecraftforge.client.model.generators.MultiPartBlockStateBuilder;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
+import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.jesz.createdieselgenerators.CreateDieselGenerators.REGISTRATE;
-import static com.simibubi.create.api.behaviour.display.DisplaySource.displaySource;
-import static com.simibubi.create.api.contraption.storage.fluid.MountedFluidStorageType.mountedFluidStorage;
 import static com.simibubi.create.foundation.data.CreateRegistrate.connectedTextures;
 import static com.simibubi.create.foundation.data.TagGen.axeOnly;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
@@ -76,7 +71,7 @@ public class CDGBlocks {
     public static final BlockEntry<BurnerBlock> BURNER = REGISTRATE.block("burner", BurnerBlock::new)
             .initialProperties(SharedProperties::copperMetal)
             .transform(pickaxeOnly())
-            .tag(AllTags.optionalTag(ForgeRegistries.BLOCKS, new ResourceLocation("farmersdelight:heat_sources")))
+            .tag(AllTags.optionalTag(BuiltInRegistries.BLOCK, ResourceLocation.fromNamespaceAndPath("farmersdelight", "heat_sources")))
             .blockstate((c, p) -> BlockStateGen.horizontalAxisBlock(c, p, bs -> AssetLookup.partialBaseModel(c, p)))
             .onRegister((b) -> BoilerHeater.REGISTRY.register(b, ((level, pos, state) -> {
                 if(level.getBlockEntity(pos) instanceof BurnerBlockEntity be)
@@ -171,7 +166,7 @@ public class CDGBlocks {
             .initialProperties(SharedProperties::softMetal)
             .properties(p -> p.mapColor(MapColor.GLOW_LICHEN))
             .transform(pickaxeOnly())
-            .blockstate((c, p) -> p.horizontalBlock(c.getEntry(), AssetLookup.standardModel(c, p), 180))
+            .blockstate((c, p) -> p.horizontalBlock(c.getEntry(), AssetLookup.standardModel(c, p), 0))
             .onRegister(movementBehaviour(new PumpjackHeadMovementBehaviour()))
             .simpleItem()
             .register();
@@ -188,9 +183,8 @@ public class CDGBlocks {
     public static final BlockEntry<PumpjackHoleBlock> PUMPJACK_HOLE = REGISTRATE.block("pumpjack_hole", PumpjackHoleBlock::new)
             .initialProperties(SharedProperties::copperMetal)
             .transform(pickaxeOnly())
-            .transform(displaySource(CDGDisplaySources.OIL_AMOUNT))
-            .transform(pickaxeOnly())
             .blockstate(PumpjackHoleGenerator::blockState)
+            .onRegisterAfter(CreateRegistries.DISPLAY_SOURCE, block -> DisplaySource.BY_BLOCK.add(block, new OilAmountDisplaySource()))
             .item().model((c, p) -> p.cubeBottomTop("pumpjack_hole", p.modLoc("block/pumpjack_hole_pipe"), p.modLoc("block/pumpjack_hole_base"), p.modLoc("block/pumpjack_hole_pipe"))).build()
             .register();
 
@@ -199,7 +193,6 @@ public class CDGBlocks {
             .properties(p -> p.mapColor(MapColor.GLOW_LICHEN))
             .transform(pickaxeOnly())
             .blockstate((c, p) -> p.horizontalBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .onRegister(b -> BlockStressValues.IMPACTS.register(b, () -> 16))
             .item().model((c, p) -> p.blockItem(c, "/item")).build()
             .register();
 
@@ -217,19 +210,6 @@ public class CDGBlocks {
                                 .build();
                     })
             )
-            .loot((lt, block) -> {
-                LootTable.Builder builder = LootTable.lootTable();
-                LootItemCondition.Builder survivesExplosion = ExplosionCondition.survivesExplosion();
-                lt.add(block, builder.withPool(LootPool.lootPool()
-                        .when(survivesExplosion)
-                        .setRolls(ConstantValue.exactly(1))
-                        .add(LootItem.lootTableItem(block)
-                                .apply(CopyNameFunction.copyName(CopyNameFunction.NameSource.BLOCK_ENTITY))
-                                .apply(CopyNbtFunction.copyData(ContextNbtProvider.BLOCK_ENTITY)
-                                        .copy("Enchantments", "Enchantments"))
-                                .apply(CopyNbtFunction.copyData(ContextNbtProvider.BLOCK_ENTITY)
-                                        .copy("Tanks", "BlockEntityTag.Tanks")))));
-            })
             .item(CanisterBlockItem::new)
             .model((c, p) -> p.blockItem(c, "/block")).build()
             .register();
@@ -244,9 +224,10 @@ public class CDGBlocks {
             .register();
 
     public static final BlockEntry<BulkFermenterBlock> BULK_FERMENTER = REGISTRATE.block("bulk_fermenter", BulkFermenterBlock::new)
-            .initialProperties(SharedProperties::copperMetal)
-            .properties(BlockBehaviour.Properties::noOcclusion)
+            .initialProperties(SharedProperties::softMetal)
+            .properties(p -> p.mapColor(MapColor.METAL))
             .properties(p -> p.isRedstoneConductor((p1, p2, p3) -> true))
+            .properties(p -> p.noOcclusion())
             .transform(pickaxeOnly())
             .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.standardModel(c, p)))
             .onRegister(CreateRegistrate.connectedTextures(BulkFermenterCTBehavior::new))
@@ -260,19 +241,17 @@ public class CDGBlocks {
             .properties(p -> p.isRedstoneConductor((p1, p2, p3) -> true))
             .transform(pickaxeOnly())
             .tag(AllTags.AllBlockTags.COPYCAT_ALLOW.tag)
-            .blockstate((c, p) -> BlockStateGen.simpleBlock(c, p, bs -> p.models().getExistingFile(p.modLoc("block/oil_barrel" + (bs.getValue(OilBarrelBlock.AXIS).isVertical() ? "" : bs.getValue(OilBarrelBlock.AXIS) == Direction.Axis.Z ? "_sideways_clockwise" : "_sideways")))))
-            .onRegister(CreateRegistrate.connectedTextures(OilBarrelCTBehavior::new))
-            .transform(mountedFluidStorage(CDGMountedStorageTypes.OIL_BARREL))
+            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.standardModel(c, p)))
             .item(MultiBlockContainerBlockItem::new)
             .build()
             .register();
 
     public static final BlockEntry<RotatedPillarBlock> CHIP_WOOD_BLOCK = REGISTRATE.block("chip_wood_block", RotatedPillarBlock::new)
             .initialProperties(() -> Blocks.OAK_PLANKS)
-            .tag(AllTags.optionalTag(ForgeRegistries.BLOCKS, new ResourceLocation("planks")))
+            .tag(AllTags.optionalTag(BuiltInRegistries.BLOCK, ResourceLocation.withDefaultNamespace("planks")))
             .transform(axeOnly())
             .blockstate((c, p) -> p.axisBlock(c.getEntry(), p.modLoc("block/chip_wood_block_side"), p.modLoc("block/chip_wood_block")))
-            .item().tag(AllTags.optionalTag(ForgeRegistries.ITEMS, new ResourceLocation("planks"))).build()
+            .item().tag(AllTags.optionalTag(BuiltInRegistries.ITEM, ResourceLocation.withDefaultNamespace("planks"))).build()
             .register();
 
     public static final BlockEntry<RotatedPillarBlock> CHIP_WOOD_BEAM = REGISTRATE.block("chip_wood_beam", RotatedPillarBlock::new)
@@ -286,14 +265,14 @@ public class CDGBlocks {
             .initialProperties(() -> Blocks.OAK_SLAB)
             .transform(axeOnly())
             .blockstate((c, p) -> p.slabBlock(c.getEntry(), p.modLoc("block/chip_wood_block"), p.modLoc("block/chip_wood_block_side"), p.modLoc("block/chip_wood_block"), p.modLoc("block/chip_wood_block")))
-            .item().tag(AllTags.optionalTag(ForgeRegistries.ITEMS, new ResourceLocation("wooden_slabs"))).build()
+            .item().tag(AllTags.optionalTag(BuiltInRegistries.ITEM, ResourceLocation.withDefaultNamespace("wooden_slabs"))).build()
             .register();
 
-    public static final BlockEntry<StairBlock> CHIP_WOOD_STAIRS = REGISTRATE.block("chip_wood_stairs", p -> new StairBlock(Blocks.ANDESITE_STAIRS::defaultBlockState, p))
+    public static final BlockEntry<StairBlock> CHIP_WOOD_STAIRS = REGISTRATE.block("chip_wood_stairs", p -> new StairBlock(Blocks.ANDESITE_STAIRS.defaultBlockState(), p))
             .initialProperties(() -> Blocks.OAK_STAIRS)
             .transform(axeOnly())
             .blockstate((c, p) -> p.stairsBlock(c.getEntry(), p.modLoc("block/chip_wood_block_side"), p.modLoc("block/chip_wood_block"), p.modLoc("block/chip_wood_block")))
-            .item().tag(AllTags.optionalTag(ForgeRegistries.ITEMS, new ResourceLocation("wooden_stairs"))).build()
+            .item().tag(AllTags.optionalTag(BuiltInRegistries.ITEM, ResourceLocation.withDefaultNamespace("wooden_stairs"))).build()
             .register();
 
     public static final BlockEntry<Block> ASPHALT_BLOCK = REGISTRATE.block("asphalt_block", Block::new)
@@ -315,7 +294,7 @@ public class CDGBlocks {
             .simpleItem()
             .register();
 
-    public static final BlockEntry<StairBlock> ASPHALT_STAIRS = REGISTRATE.block("asphalt_stairs", p -> new StairBlock(Blocks.ANDESITE_STAIRS::defaultBlockState, p))
+    public static final BlockEntry<StairBlock> ASPHALT_STAIRS = REGISTRATE.block("asphalt_stairs", p -> new StairBlock(Blocks.ANDESITE_STAIRS.defaultBlockState(), p))
             .initialProperties(SharedProperties::stone)
             .properties(p -> p.mapColor(MapColor.COLOR_BLACK))
             .properties(p -> p.speedFactor(1.25f))
@@ -367,7 +346,6 @@ public class CDGBlocks {
                     .register();
 
     public static final Map<DyeColor, BlockEntry<ConcreteEncasedFluidPipeBlock>> CONCRETE_ENCASED_FLUID_PIPES = new HashMap<>();
-
     static {
         for (DyeColor color : DyeColor.values()) {
             CONCRETE_ENCASED_FLUID_PIPES.put(color,
@@ -377,7 +355,7 @@ public class CDGBlocks {
                         .blockstate((c, p) -> {
                             MultiPartBlockStateBuilder builder = p.getMultipartBuilder(c.get());
                             builder.part()
-                                    .modelFile(p.models().getExistingFile(new ResourceLocation("block/" + color.getName() + "_concrete")))
+                                    .modelFile(p.models().getExistingFile(ResourceLocation.withDefaultNamespace("block/" + color.getName() + "_concrete")))
                                     .addModel()
                                     .end();
 
@@ -428,7 +406,6 @@ public class CDGBlocks {
         }
     }
     public static void register() {
-
     }
 
     private static NonNullConsumer<? super Block> movementBehaviour(MovementBehaviour movementBehaviour) {

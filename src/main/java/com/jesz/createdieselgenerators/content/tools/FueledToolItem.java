@@ -1,44 +1,56 @@
 package com.jesz.createdieselgenerators.content.tools;
 
 import com.jesz.createdieselgenerators.CDGConfig;
+import com.jesz.createdieselgenerators.CDGDataComponents;
 import com.simibubi.create.AllEnchantments;
 import com.simibubi.create.foundation.utility.CreateLang;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
-import net.minecraftforge.fml.ModList;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
+import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStack;
 
 import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 public interface FueledToolItem {
+
     default int getBaseCapacity(ItemStack stack){
         return CDGConfig.TOOL_CAPACITY.get();
     }
+
     default int getCapacityEnchantmentAddition(ItemStack stack){
         return CDGConfig.TOOL_CAPACITY_ENCHANTMENT.get();
     }
-    default int getCapacity(ItemStack stack){
-        if(!ModList.get().isLoaded("dungeons_libraries"))
-            return getBaseCapacity(stack) + (getCapacityEnchantmentAddition(stack) * stack.getEnchantmentLevel(AllEnchantments.CAPACITY.get()));
-        return getBaseCapacity(stack);
 
+    default int getCapacity(ItemStack stack){
+        int enchantmentLevel = 0;
+        if (stack.has(DataComponents.ENCHANTMENTS))
+            for (Object2IntMap.Entry<Holder<Enchantment>> enchantment : stack.get(DataComponents.ENCHANTMENTS).entrySet())
+                if (enchantment.getKey().is(AllEnchantments.CAPACITY))
+                    enchantmentLevel = enchantment.getIntValue();
+
+        return getBaseCapacity(stack) + (getCapacityEnchantmentAddition(stack) * enchantmentLevel);
     }
+
     default FluidStack readFluid(ItemStack stack){
-        return FluidStack.loadFluidStackFromNBT(stack.getOrCreateTag().getCompound("Fluid"));
+        return stack.has(CDGDataComponents.FLUID_CONTENTS) ? stack.get(CDGDataComponents.FLUID_CONTENTS).copy() : FluidStack.EMPTY;
     }
+
     default void writeFluid(ItemStack stack, FluidStack fluid){
-        stack.getOrCreateTag().put("Fluid", fluid.writeToNBT(new CompoundTag()));
+        stack.set(CDGDataComponents.FLUID_CONTENTS, SimpleFluidContent.copyOf(fluid));
     }
+
     default int getCurrentFillLevel(ItemStack stack){
         return readFluid(stack).getAmount();
     }
+
     default void createTooltip(List<Component> tooltip, ItemStack stack){
-        if(stack.getTag() != null) {
+        if(stack.has(CDGDataComponents.FLUID_CONTENTS)) {
             FluidStack fluid = readFluid(stack);
             if(fluid.isEmpty()){
                 tooltip.add(Component.translatable("createdieselgenerators.tooltip.empty").withStyle(ChatFormatting.GRAY));
@@ -56,26 +68,9 @@ public interface FueledToolItem {
         }
         tooltip.add(Component.translatable("createdieselgenerators.tooltip.empty").withStyle(ChatFormatting.GRAY));
     }
-    default FluidHandlerItemStack getFluidHandler(ItemStack stack){
-        return new ToolItemFluidHandler(stack, getCapacity(stack), this::readFluid, this::writeFluid);
-    }
-    class ToolItemFluidHandler extends FluidHandlerItemStack{
-        BiConsumer<ItemStack, FluidStack> write;
-        Function<ItemStack, FluidStack> read;
-        public ToolItemFluidHandler(ItemStack container, int capacity, Function<ItemStack, FluidStack> read, BiConsumer<ItemStack, FluidStack> write) {
-            super(container, capacity);
-            this.write = write;
-            this.read = read;
-        }
-        @Override
-        public FluidStack getFluid() {
-            return read.apply(container);
-        }
-        @Override
-        protected void setFluid(FluidStack fluid) {
-            write.accept(container, fluid);
-        }
 
+    default FluidHandlerItemStack getFluidHandler(ItemStack stack){
+        return new FluidHandlerItemStack(() -> CDGDataComponents.FLUID_CONTENTS, stack, getCapacity(stack));
     }
 
 }

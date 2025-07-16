@@ -42,7 +42,7 @@ public class CDGCommands {
     }
 
     private int getOilChunk(CommandSourceStack source) throws CommandSyntaxException {
-        if(!source.hasPermission(2))
+        if (!source.hasPermission(2))
             return 0;
         ChunkPos chunkPos = new ChunkPos(new BlockPos((int) source.getPosition().x, (int) source.getPosition().y, (int) source.getPosition().z));
 
@@ -57,7 +57,7 @@ public class CDGCommands {
     }
 
     private int refreshOilChunk(CommandSourceStack source) throws CommandSyntaxException {
-        if(!source.hasPermission(2))
+        if (!source.hasPermission(2))
             return 0;
         ChunkPos chunkPos = new ChunkPos(new BlockPos((int) source.getPosition().x, (int) source.getPosition().y, (int) source.getPosition().z));
 
@@ -69,7 +69,7 @@ public class CDGCommands {
     }
 
     private int setOilChunk(CommandSourceStack source, CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        if(!source.hasPermission(2))
+        if (!source.hasPermission(2))
             return 0;
         ChunkPos chunkPos = new ChunkPos(new BlockPos((int) source.getPosition().x, (int) source.getPosition().y, (int) source.getPosition().z));
 

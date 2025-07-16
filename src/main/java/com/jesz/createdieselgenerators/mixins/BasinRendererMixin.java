@@ -7,8 +7,8 @@ import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -33,7 +33,9 @@ public abstract class BasinRendererMixin {
     @Inject(method = "renderSafe(Lcom/simibubi/create/content/processing/basin/BasinBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V", at=@At("HEAD"), remap = false, cancellable = true)
     public void renderSafe(BasinBlockEntity basin, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light, int overlay, CallbackInfo ci){
 //        items.addAll(((BasinBlockEntityAccessor)basin).getVisualizedInputItems())
-        IItemHandlerModifiable inv = ((BasinBlockEntityAccessor) basin).getItemCapability().orElse(new ItemStackHandler());
+        IItemHandler inv = basin.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, basin.getBlockPos(), null);
+        if (inv == null)
+            return;
         List<ItemStack> items = new LinkedList<>();
         boolean hasMold = false;
         for (int slot = 0; slot < inv.getSlots(); slot++) {

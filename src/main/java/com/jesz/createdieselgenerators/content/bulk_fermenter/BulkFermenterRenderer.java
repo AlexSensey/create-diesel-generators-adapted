@@ -34,9 +34,9 @@ public class BulkFermenterRenderer extends SafeBlockEntityRenderer<BulkFermenter
 
         float dialPivotY = 6f / 16;
         float dialPivotZ = 8f / 16;
-        ProcessingRecipe<SmartInventory> r = be.currentRecipe;
+        BulkFermentingRecipe r = be.currentRecipe;
 
-        float progress = Mth.clamp((float)be.processingTime/(be.currentRecipe == null ? 1 : be.currentRecipe.getProcessingDuration()), 0, 1);
+        float progress = Mth.clamp((float)be.processingTime/(r == null ? 1 : r.getProcessingDuration()), 0, 1);
 
         for (Direction d : Iterate.horizontalDirections) {
             ms.pushPose();

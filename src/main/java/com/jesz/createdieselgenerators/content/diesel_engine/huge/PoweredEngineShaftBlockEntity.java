@@ -89,8 +89,8 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
     }
 
     @Override
-    protected void write(CompoundTag compound, boolean clientPacket) {
-        super.write(compound, clientPacket);
+    protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(compound, registries, clientPacket);
 
         compound.putInt("Direction", movementDirection);
         if (initialTicks > 0)
@@ -109,15 +109,15 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
     }
 
     @Override
-    protected void read(CompoundTag compound, boolean clientPacket) {
-        super.read(compound, clientPacket);
+    protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(compound, registries, clientPacket);
         movementDirection = compound.getInt("Direction");
         initialTicks = compound.getInt("Warmup");
 
         ListTag engineList = compound.getList("Engines", CompoundTag.TAG_COMPOUND);
         List<Pair<BlockPos, Couple<Float>>> newEngines = new ArrayList<>();
         for (int i = 0; i < engineList.size(); i++) {
-            newEngines.add(Pair.of(NbtUtils.readBlockPos(engineList.getCompound(i).getCompound("Pos")),
+            newEngines.add(Pair.of(NBTHelper.readBlockPos(engineList.getCompound(i), "Pos"),
                     Couple.create(engineList.getCompound(i).getFloat("Capacity"),
                             engineList.getCompound(i).getFloat("Speed"))));
         }

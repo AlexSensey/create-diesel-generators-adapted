@@ -2,6 +2,7 @@ package com.jesz.createdieselgenerators.content.basin_lid;
 
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.mojang.logging.LogUtils;
+import com.simibubi.create.AllItems;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
@@ -14,7 +15,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -108,8 +111,10 @@ public class BasinLidBlock extends Block implements ProperWaterloggedBlock, IBE<
     }
 
     @Override
-    public InteractionResult use( BlockState state, Level level, BlockPos pos,
-                                 Player player, InteractionHand hand, BlockHitResult hit) {
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (AllItems.WRENCH.isIn(stack))
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+
         boolean currentState = state.getValue(OPEN);
         if (!currentState && level.getBlockEntity(pos) instanceof BasinLidBlockEntity a && a.steamInside) {
             for (int i = 0; i < 3 ; i++) {
@@ -127,7 +132,7 @@ public class BasinLidBlock extends Block implements ProperWaterloggedBlock, IBE<
         }
         level.playSound(null, pos, !currentState ? BlockSetType.IRON.trapdoorOpen() : BlockSetType.IRON.trapdoorClose(), SoundSource.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
 
-        return InteractionResult.SUCCESS;
+        return ItemInteractionResult.SUCCESS;
     }
 
     @Override

@@ -1,12 +1,15 @@
 package com.jesz.createdieselgenerators.content.pumpjack;
 
+import com.mojang.serialization.MapCodec;
 import com.simibubi.create.content.contraptions.actors.AttachedActorBlock;
+import com.simibubi.create.content.contraptions.actors.harvester.HarvesterBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -17,20 +20,27 @@ public class PumpjackHeadBlock extends AttachedActorBlock {
         super(properties);
     }
 
+    public static final MapCodec<PumpjackHeadBlock> CODEC = simpleCodec(PumpjackHeadBlock::new);
+
+    @Override
+    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
+        return CODEC;
+    }
+
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
-        if(state.getValue(FACING) == Direction.NORTH)
+        if (state.getValue(FACING) == Direction.SOUTH)
             return Block.box(0, 2, 0, 16, 14, 2);
-        if(state.getValue(FACING) == Direction.SOUTH)
+        if (state.getValue(FACING) == Direction.NORTH)
             return Block.box(0, 2, 14, 16, 14, 16);
-        if(state.getValue(FACING) == Direction.WEST)
+        if (state.getValue(FACING) == Direction.EAST)
             return Block.box(0, 2, 0, 2, 14, 16);
         return Block.box(14, 2, 0, 16, 14, 16);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return super.getStateForPlacement(context).setValue(FACING, context.getPlayer() != null && context.getPlayer().isShiftKeyDown() ? context.getHorizontalDirection().getOpposite() : context.getHorizontalDirection()).setValue(WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).is(Fluids.WATER));
+        return withWater(defaultBlockState().setValue(FACING, context.getPlayer() != null && context.getPlayer().isShiftKeyDown() ? context.getHorizontalDirection() : context.getHorizontalDirection().getOpposite()), context);
     }
 
     @Override

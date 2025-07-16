@@ -1,5 +1,6 @@
 package com.jesz.createdieselgenerators.content.diesel_engine.normal;
 
+import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineSoundInstance;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.jesz.createdieselgenerators.content.diesel_engine.IEngine;
@@ -10,23 +11,23 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.utility.CreateLang;
+import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import java.util.List;
 
@@ -43,37 +44,38 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
         super(typeIn, pos, state);
     }
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if(getBlockState().getValue(FACING) == Direction.DOWN) {
-            if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.WEST)
-                return tank.getCapability().cast();
-            if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.EAST)
-                return tank.getCapability().cast();
-        }else if(getBlockState().getValue(FACING) == Direction.UP){
-            if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.NORTH)
-                return tank.getCapability().cast();
-            if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.SOUTH)
-                return tank.getCapability().cast();
-        }else{
-            if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.DOWN)
-                return tank.getCapability().cast();
-        }
-        return super.getCapability(cap, side);
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK,
+                CDGBlockEntityTypes.DIESEL_ENGINE.get(),
+                (be, side) -> {
+                    if (side == null)
+                        return be.tank.getCapability();
+                    Direction facing = be.getBlockState().getValue(FACING);
+                    if (facing.getAxis().isVertical()) {
+                        if (side.getAxis() == (facing == Direction.UP ? Direction.Axis.X : Direction.Axis.Z))
+                            return be.tank.getCapability();
+                    } else {
+                        if (side == Direction.DOWN)
+                            return be.tank.getCapability();
+                    }
+                    return null;
+                });
     }
 
     @Override
-    protected void write(CompoundTag tag, boolean clientPacket) {
-        super.write(tag, clientPacket);
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
+
         tag.putFloat("RemainingTicks", remainingTicks);
         tag.putString("Upgrade", upgrade.getId().toString());
     }
 
     @Override
-    protected void read(CompoundTag tag, boolean clientPacket) {
-        super.read(tag, clientPacket);
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
+
         remainingTicks = tag.getFloat("RemainingTicks");
-        upgrade = EngineUpgrades.get(new ResourceLocation(tag.getString("Upgrade")));
+        upgrade = EngineUpgrades.get(ResourceLocation.parse(tag.getString("Upgrade")));
     }
 
     @Override
@@ -106,7 +108,7 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
         if (getGeneratedSpeed() == 0)
             return false;
         super.addToGoggleTooltip(tooltip, isPlayerSneaking);
-        containedFluidTooltip(tooltip, isPlayerSneaking, tank.getCapability().cast());
+        containedFluidTooltip(tooltip, isPlayerSneaking, tank.getCapability());
         return true;
     }
 
@@ -127,12 +129,13 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
         }
 
         if (level.isClientSide) {
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::tickClient);
+            CatnipServices.PLATFORM.executeOnClientOnly(() -> this::tickClient);
         }
     }
 
     @OnlyIn(Dist.CLIENT)
     protected EngineSoundInstance soundInstance;
+
     @OnlyIn(Dist.CLIENT)
     protected void tickClient() {
         if (enabled()) {

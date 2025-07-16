@@ -1,13 +1,12 @@
 package com.jesz.createdieselgenerators.compat.jei;
 
+import com.jesz.createdieselgenerators.CDGDataComponents;
 import com.jesz.createdieselgenerators.CDGItems;
 import com.jesz.createdieselgenerators.content.molds.CastingRecipe;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;
 import com.simibubi.create.foundation.fluid.FluidIngredient;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
-import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
@@ -26,7 +25,7 @@ public class CastingCategory extends CreateRecipeCategory<CastingRecipe> {
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, CastingRecipe recipe, IFocusGroup focuses) {
         ItemStack stack = CDGItems.MOLD.asStack();
-        stack.addTagElement("Mold", StringTag.valueOf(recipe.moldType.getId().toString()));
+        stack.set(CDGDataComponents.MOLD_TYPE, recipe.moldType.getId());
         builder
                 .addSlot(RecipeIngredientRole.CATALYST, 36, 11)
                 .setBackground(getRenderedSlot(), -1, -1)
@@ -54,7 +53,6 @@ public class CastingCategory extends CreateRecipeCategory<CastingRecipe> {
 
     @Override
     public void draw(CastingRecipe recipe, IRecipeSlotsView iRecipeSlotsView, GuiGraphics graphics, double mouseX, double mouseY) {
-        super.draw(recipe, iRecipeSlotsView, graphics, mouseX, mouseY);
         AllGuiTextures.JEI_SHADOW.render(graphics, 81, 68);
         int vRows = (1 + recipe.getRollableResults().size()) / 2;
 

@@ -1,12 +1,14 @@
 package com.jesz.createdieselgenerators.content.tools.wire_cutters;
 
+import com.jesz.createdieselgenerators.CDGDataComponents;
 import com.jesz.createdieselgenerators.CDGRecipes;
+import com.simibubi.create.content.equipment.sandPaper.SandPaperItemComponent;
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -17,18 +19,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public class WireCuttersItem extends Item {
     public WireCuttersItem(Properties properties) {
-        super(properties.stacksTo(1).defaultDurability(32));
+        super(properties.stacksTo(1).durability(32));
     }
 
     @Override
@@ -41,15 +41,14 @@ public class WireCuttersItem extends Item {
         ItemStack itemInHand = player.getItemInHand(hand);
         ItemStack itemInOtherHand = player.getItemInHand(otherHand);
 
-        WireCuttingRecipe.WireCuttingInv wireCuttingInv = new WireCuttingRecipe.WireCuttingInv(itemInOtherHand);
-        Optional<WireCuttingRecipe> recipe = level.getRecipeManager().getRecipeFor(CDGRecipes.WIRE_CUTTING.getType(), wireCuttingInv, level);
+        WireCuttingRecipe.WireCuttingInv inv = new WireCuttingRecipe.WireCuttingInv(itemInOtherHand);
+        Optional<RecipeHolder<WireCuttingRecipe>> recipe = level.getRecipeManager().getRecipeFor(CDGRecipes.WIRE_CUTTING.getType(), inv, level);
         if (recipe.isPresent()) {
             ItemStack processingItem = itemInOtherHand.copy();
             itemInOtherHand.shrink(1);
             processingItem.setCount(1);
 
-            CompoundTag tag = itemInHand.getOrCreateTag();
-            tag.put("ProcessingItem", processingItem.save(new CompoundTag()));
+            itemInHand.set(CDGDataComponents.PROCESSING_ITEM,  new SandPaperItemComponent(processingItem));
             player.startUsingItem(hand);
             return InteractionResultHolder.success(itemInHand);
         }
@@ -61,22 +60,23 @@ public class WireCuttersItem extends Item {
         if (!(entity instanceof Player player))
             return stack;
         synchronized ("wire_cutters_release") {
-
-            CompoundTag tag = stack.getOrCreateTag();
-            if (!tag.contains("ProcessingItem"))
+            if (!stack.has(CDGDataComponents.PROCESSING_ITEM))
                 return stack;
-            ItemStack processingItem = ItemStack.of(tag.getCompound("ProcessingItem"));
+            ItemStack processingItem = stack.get(CDGDataComponents.PROCESSING_ITEM).item();
 
-            WireCuttingRecipe.WireCuttingInv wireCuttingInv = new WireCuttingRecipe.WireCuttingInv(processingItem);
-            Optional<WireCuttingRecipe> recipe = level.getRecipeManager().getRecipeFor(CDGRecipes.WIRE_CUTTING.getType(), wireCuttingInv, level);
-            tag.remove("ProcessingItem");
+            WireCuttingRecipe.WireCuttingInv inv = new WireCuttingRecipe.WireCuttingInv(processingItem);
+            Optional<RecipeHolder<WireCuttingRecipe>> recipe = level.getRecipeManager().getRecipeFor(CDGRecipes.WIRE_CUTTING.getType(), inv, level);
+
+            stack.remove(CDGDataComponents.PROCESSING_ITEM);
+
             if (recipe.isEmpty()) {
                 player.getInventory().placeItemBackInInventory(processingItem);
                 return stack;
             }
-            recipe.get().rollResults();
-            player.getInventory().placeItemBackInInventory(recipe.get().assemble(wireCuttingInv, level.registryAccess()).copy());
-            stack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(p.getUsedItemHand()));
+            recipe.get().value().rollResults();
+            player.getInventory().placeItemBackInInventory(recipe.get().value().assemble(inv, level.registryAccess()).copy());
+            if (level instanceof ServerLevel sl)
+                stack.hurtAndBreak(1, sl, player, i -> {});
             return stack;
         }
     }
@@ -84,13 +84,15 @@ public class WireCuttersItem extends Item {
     @Override
     public void onUseTick(Level level, LivingEntity entity, ItemStack stack, int tick) {
         if (AnimationTickHolder.getTicks() % 10 == 0) {
-            level.playLocalSound(entity.xo, entity.yo, entity.zo, SoundEvents.SHEEP_SHEAR, SoundSource.PLAYERS, 0.3f, 1f, true);
-            CompoundTag tag = stack.getOrCreateTag();
-            if (!tag.contains("ProcessingItem")) {
+            level.playLocalSound(entity.xo, entity.yo, entity.zo, SoundEvents.ANVIL_PLACE, SoundSource.PLAYERS, 0.3f, 1f, true);
+
+            if (!stack.has(CDGDataComponents.PROCESSING_ITEM)) {
                 super.onUseTick(level, entity, stack, tick);
                 return;
             }
-            ItemStack processingItem = ItemStack.of(tag.getCompound("ProcessingItem"));
+
+            ItemStack processingItem = stack.get(CDGDataComponents.PROCESSING_ITEM).item();
+
             for (int i = 0; i < 30; i++) {
                 Vec3 offset = VecHelper.offsetRandomly(entity.position().add(Math.sin(-entity.getYRot() / 180 * Math.PI) / 2, 1.3, Math.cos(-entity.getYRot() / 180 * Math.PI) / 2), level.getRandom(), .3f);
                 Vec3 motion = VecHelper.offsetRandomly(Vec3.ZERO, level.getRandom(), .1f);
@@ -104,42 +106,29 @@ public class WireCuttersItem extends Item {
 
     @Override
     public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int tick) {
-        if (!(entity instanceof Player player))
-            return;
         synchronized ("wire_cutters_release") {
-            CompoundTag tag = stack.getOrCreateTag();
-            if (!tag.contains("ProcessingItem"))
+            if (!(entity instanceof Player player))
+                return;
+            if (!stack.has(CDGDataComponents.PROCESSING_ITEM))
                 return;
 
-            ItemStack processingItem = ItemStack.of(tag.getCompound("ProcessingItem"));
+            ItemStack processingItem = stack.get(CDGDataComponents.PROCESSING_ITEM).item();
             player.getInventory().placeItemBackInInventory(processingItem);
-            tag.remove("ProcessingItem");
+            stack.remove(CDGDataComponents.PROCESSING_ITEM);
         }
     }
 
     @Override
     public void onStopUsing(ItemStack stack, LivingEntity entity, int count) {
-        if (!(entity instanceof Player player))
-            return;
-        synchronized ("wire_cutters_release") {
-            CompoundTag tag = stack.getOrCreateTag();
-            if (!tag.contains("ProcessingItem"))
-                return;
-
-            ItemStack processingItem = ItemStack.of(tag.getCompound("ProcessingItem"));
-            player.getInventory().placeItemBackInInventory(processingItem);
-            tag.remove("ProcessingItem");
-        }
+        releaseUsing(stack, entity.level(), entity, 0);
     }
 
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return 90;
     }
 
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(SimpleCustomRenderer.create(this, new WireCuttersItemRenderer()));
+    public void registerExtension(RegisterClientExtensionsEvent event) {
+        event.registerItem(SimpleCustomRenderer.create(this, new WireCuttersItemRenderer()), this);
     }
 }

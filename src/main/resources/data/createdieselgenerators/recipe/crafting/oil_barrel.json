@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SBS"
+  ],
+  "key": {
+    "B": {
+      "tag": "c:barrels/wooden"
+    },
+    "S": {
+      "tag": "c:plates/iron"
+    }
+  },
+  "result": {
+    "id": "createdieselgenerators:oil_barrel"
+  }
+}

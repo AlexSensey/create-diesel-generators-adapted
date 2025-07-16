@@ -1,0 +1,23 @@
+{
+  "type": "createdieselgenerators:compression_molding",
+  "ingredients": [
+    {
+      "tag": "c:ingots/hop_graphite",
+      "count": 4
+    }
+  ],
+  "mold": "createdieselgenerators:lines",
+  "results": [
+    {
+      "id": "immersiveengineering:graphite_electrode",
+      "nbt":"{graphDmg:48000}"
+    }
+  ],
+
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "immersiveengineering"
+    }
+  ]
+}

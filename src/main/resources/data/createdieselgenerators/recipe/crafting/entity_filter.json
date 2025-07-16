@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ASA"
+  ],
+  "category": "misc",
+  "key": {
+    "A": {
+      "tag": "c:nuggets/copper"
+    },
+    "S": {
+      "tag": "minecraft:wool"
+    }
+  },
+  "result": {
+    "id": "createdieselgenerators:entity_filter"
+  }
+}

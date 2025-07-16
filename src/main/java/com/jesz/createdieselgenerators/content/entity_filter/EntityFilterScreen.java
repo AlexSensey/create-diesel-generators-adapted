@@ -6,6 +6,7 @@ import com.jesz.createdieselgenerators.packets.EntityFilterScreenPacket;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.content.logistics.filter.AbstractFilterScreen;
 import com.simibubi.create.content.logistics.filter.AttributeFilterMenu;
+import com.simibubi.create.content.logistics.filter.AttributeFilterWhitelistMode;
 import com.simibubi.create.content.logistics.filter.FilterScreenPacket;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.foundation.gui.AllIcons;
@@ -15,6 +16,7 @@ import com.simibubi.create.foundation.gui.widget.Label;
 import com.simibubi.create.foundation.gui.widget.SelectionScrollInput;
 import net.createmod.catnip.data.Pair;
 import net.createmod.catnip.gui.element.GuiGameElement;
+import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
@@ -51,18 +53,18 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
         blacklist = new IconButton(leftPos + 74, topPos + 61, AllIcons.I_WHITELIST_NOT);
 
         whitelistCon.withCallback(() -> {
-            menu.whitelist = AttributeFilterMenu.WhitelistMode.WHITELIST_CONJ;
+            menu.whitelistMode = AttributeFilterWhitelistMode.WHITELIST_CONJ;
             sendOptionUpdate(FilterScreenPacket.Option.WHITELIST2);
         });
         whitelistCon.setToolTip(CreateDieselGenerators.lang("gui.entity_filter.allow_list_conjunctive"));
         whitelistDis.withCallback(() -> {
-            menu.whitelist = AttributeFilterMenu.WhitelistMode.WHITELIST_DISJ;
+            menu.whitelistMode = AttributeFilterWhitelistMode.WHITELIST_DISJ;
             sendOptionUpdate(FilterScreenPacket.Option.WHITELIST);
         });
         whitelistDis.setToolTip(CreateDieselGenerators.lang("gui.entity_filter.allow_list_disjunctive"));
 
         blacklist.withCallback(() -> {
-            menu.whitelist = AttributeFilterMenu.WhitelistMode.BLACKLIST;
+            menu.whitelistMode = AttributeFilterWhitelistMode.BLACKLIST;
             sendOptionUpdate(FilterScreenPacket.Option.BLACKLIST);
         });
         blacklist.setToolTip(CreateDieselGenerators.lang("gui.entity_filter.deny_list"));
@@ -94,8 +96,7 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
                 CreateDieselGenerators.lang("gui.entity_filter.selected_attributes")).plainCopy()
                 .withStyle(ChatFormatting.YELLOW));
         menu.selectedAttributes.forEach(at -> selectedAttributes.add(Component.literal("- ")
-                .append(at.getFirst()
-                        .format(at.getSecond()))
+                .append(at.attribute().format(at.inverted()))
                 .withStyle(ChatFormatting.GRAY)));
     }
     @Override
@@ -151,8 +152,8 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
                 return;
             attributeSelectorLabel.setTextAndTrim(options.get(i), true, 112);
             EntityAttribute selected = attributesOfItem.get(i);
-            for (Pair<EntityAttribute, Boolean> existing : menu.selectedAttributes) {
-                CompoundTag testTag = existing.getFirst()
+            for (EntityAttribute.EntityAttributeEntry existing : menu.selectedAttributes) {
+                CompoundTag testTag = existing.attribute()
                                     .write();
                 CompoundTag testTag2 = selected.write();
                 if (testTag.equals(testTag2)) {
@@ -172,16 +173,14 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
             return false;
         add.active = false;
         addInverted.active = false;
-        EntityAttribute itemAttribute = attributesOfItem.get(index);
-        CompoundTag tag = itemAttribute.write();
-        CDGPackets.getChannel()
-                .sendToServer(new EntityFilterScreenPacket(inverted ? FilterScreenPacket.Option.ADD_INVERTED_TAG : FilterScreenPacket.Option.ADD_TAG, tag));
-        menu.appendSelectedAttribute(itemAttribute, inverted);
+        EntityAttribute attribute = attributesOfItem.get(index);
+        CatnipServices.NETWORK.sendToServer(new EntityFilterScreenPacket(inverted ? FilterScreenPacket.Option.ADD_INVERTED_TAG : FilterScreenPacket.Option.ADD_TAG, attribute));
+        menu.appendSelectedAttribute(attribute, inverted);
         if (menu.selectedAttributes.size() == 1)
             selectedAttributes.set(0,
                     CreateDieselGenerators.lang("gui.entity_filter.selected_attributes").plainCopy()
                     .withStyle(ChatFormatting.YELLOW));
-        selectedAttributes.add(Component.literal("- ").append(itemAttribute.format(inverted))
+        selectedAttributes.add(Component.literal("- ").append(attribute.format(inverted))
                 .withStyle(ChatFormatting.GRAY));
         return true;
     }
@@ -213,7 +212,7 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
     protected void containerTick() {
         super.containerTick();
         ItemStack stackInSlot = menu.ghostInventory.getStackInSlot(0);
-        if (!stackInSlot.equals(lastItemScanned, false))
+        if (!ItemStack.isSameItemSameComponents(stackInSlot, lastItemScanned))
             referenceItemChanged(stackInSlot);
     }
     @Override
@@ -229,11 +228,11 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
     @Override
     protected boolean isButtonEnabled(IconButton button) {
         if (button == blacklist)
-            return menu.whitelist != AttributeFilterMenu.WhitelistMode.BLACKLIST;
+            return menu.whitelistMode != AttributeFilterWhitelistMode.BLACKLIST;
         if (button == whitelistCon)
-            return menu.whitelist != AttributeFilterMenu.WhitelistMode.WHITELIST_CONJ;
+            return menu.whitelistMode != AttributeFilterWhitelistMode.WHITELIST_CONJ;
         if (button == whitelistDis)
-            return menu.whitelist != AttributeFilterMenu.WhitelistMode.WHITELIST_DISJ;
+            return menu.whitelistMode != AttributeFilterWhitelistMode.WHITELIST_DISJ;
         return true;
     }
     @Override
@@ -250,7 +249,6 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
 
     @Override
     protected void sendOptionUpdate(FilterScreenPacket.Option option) {
-        CDGPackets.getChannel()
-                .sendToServer(new EntityFilterScreenPacket(option));
+        CatnipServices.NETWORK.sendToServer(new EntityFilterScreenPacket(option, EntityAttribute.IS_MOB));
     }
 }

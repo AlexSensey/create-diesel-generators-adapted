@@ -1,5 +1,5 @@
 {
-	"loader": "forge:obj",
+	"loader": "neoforge:obj",
 	"flip_v": true,
 	"model": "createdieselgenerators:models/block/pumpjack_crank/large_rod.obj",
 	"ambientocclusion": false,

@@ -1,5 +1,6 @@
 package com.jesz.createdieselgenerators.compat.jei;
 
+import com.jesz.createdieselgenerators.CDGDataComponents;
 import com.jesz.createdieselgenerators.CDGItems;
 import com.jesz.createdieselgenerators.content.molds.CompressionMoldingRecipe;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -30,7 +31,7 @@ public class CompressionMoldingCategory extends BasinCategory {
         if(!(recipe instanceof CompressionMoldingRecipe compressionMoldingRecipe))
             return;
         ItemStack stack = CDGItems.MOLD.asStack();
-        stack.addTagElement("Mold", StringTag.valueOf(compressionMoldingRecipe.moldType.getId().toString()));
+        stack.set(CDGDataComponents.MOLD_TYPE, compressionMoldingRecipe.moldType.getId());
         builder
                 .addSlot(RecipeIngredientRole.CATALYST, 36, 11)
                 .setBackground(getRenderedSlot(), -1, -1)

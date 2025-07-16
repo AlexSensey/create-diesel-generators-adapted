@@ -1,5 +1,6 @@
 package com.jesz.createdieselgenerators.content.tools.hammer;
 
+import com.jesz.createdieselgenerators.CDGDataComponents;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
@@ -23,14 +24,14 @@ public class HammerItemRenderer extends CustomRenderedItemModelRenderer {
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
         ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
         Player player = Minecraft.getInstance().player;
-        CompoundTag tag = stack.getOrCreateTag();
-        if (!tag.contains("ProcessingItem") || player == null)
+
+        if (!stack.has(CDGDataComponents.PROCESSING_ITEM) || player == null)
             renderer.render(model.getOriginalModel(), light);
         else {
             float time = ((AnimationTickHolder.getTicks() + AnimationTickHolder.getPartialTicks()) % 10) / 10;
             time -= 0.5f;
 
-            ItemStack processingItem = ItemStack.of(tag.getCompound("ProcessingItem"));
+            ItemStack processingItem = stack.get(CDGDataComponents.PROCESSING_ITEM).item();
             if (!transformType.firstPerson()) {
                 boolean thirdPerson = transformType.name().startsWith("THIRD_PERSON");
                 if (!thirdPerson) {

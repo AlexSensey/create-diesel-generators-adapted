@@ -2,10 +2,9 @@ package com.jesz.createdieselgenerators;
 
 import com.jesz.createdieselgenerators.content.concrete.ConcreteBucketItem;
 import com.jesz.createdieselgenerators.content.concrete.ConcreteFluid;
-import com.tterrag.registrate.providers.RegistrateLangProvider;
 import com.tterrag.registrate.util.entry.FluidEntry;
 import net.minecraft.world.item.DyeColor;
-import net.minecraftforge.fluids.ForgeFlowingFluid;
+import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -15,7 +14,7 @@ import static com.jesz.createdieselgenerators.CreateDieselGenerators.REGISTRATE;
 
 public class CDGFluids {
 
-    public static final FluidEntry<ForgeFlowingFluid.Flowing> PLANT_OIL =
+    public static final FluidEntry<BaseFlowingFluid.Flowing> PLANT_OIL =
             REGISTRATE.fluid("plant_oil", CreateDieselGenerators.rl("block/plant_oil_still"), CreateDieselGenerators.rl("block/plant_oil_flow"))
                     .properties(b -> b.viscosity(1500)
                             .density(500))
@@ -24,8 +23,7 @@ public class CDGFluids {
                             .slopeFindDistance(3)
                             .explosionResistance(100f))
                     .register();
-    
-    public static final FluidEntry<ForgeFlowingFluid.Flowing> CRUDE_OIL =
+    public static final FluidEntry<BaseFlowingFluid.Flowing> CRUDE_OIL =
             REGISTRATE.fluid("crude_oil", CreateDieselGenerators.rl("block/crude_oil_still"), CreateDieselGenerators.rl("block/crude_oil_flow"))
                     .properties(b -> b.viscosity(1500)
                             .density(100))
@@ -35,7 +33,7 @@ public class CDGFluids {
                             .explosionResistance(100f))
                     .register();
 
-    public static final FluidEntry<ForgeFlowingFluid.Flowing> BIODIESEL =
+    public static final FluidEntry<BaseFlowingFluid.Flowing> BIODIESEL =
             REGISTRATE.fluid("biodiesel", CreateDieselGenerators.rl("block/biodiesel_still"), CreateDieselGenerators.rl("block/biodiesel_flow"))
                     .properties(b -> b.viscosity(1500)
                             .density(500))
@@ -44,8 +42,7 @@ public class CDGFluids {
                             .slopeFindDistance(3)
                             .explosionResistance(100f))
                     .register();
-
-    public static final FluidEntry<ForgeFlowingFluid.Flowing> DIESEL =
+    public static final FluidEntry<BaseFlowingFluid.Flowing> DIESEL =
             REGISTRATE.fluid("diesel", CreateDieselGenerators.rl("block/diesel_still"), CreateDieselGenerators.rl("block/diesel_flow"))
                     .properties(b -> b.viscosity(1500)
                             .density(500))
@@ -54,8 +51,7 @@ public class CDGFluids {
                             .slopeFindDistance(3)
                             .explosionResistance(100f))
                     .register();
-
-    public static final FluidEntry<ForgeFlowingFluid.Flowing> GASOLINE =
+    public static final FluidEntry<BaseFlowingFluid.Flowing> GASOLINE =
             REGISTRATE.fluid("gasoline", CreateDieselGenerators.rl("block/gasoline_still"), CreateDieselGenerators.rl("block/gasoline_flow"))
                     .properties(b -> b.viscosity(1500)
                             .density(500))
@@ -64,8 +60,7 @@ public class CDGFluids {
                             .slopeFindDistance(3)
                             .explosionResistance(100f))
                     .register();
-
-    public static final FluidEntry<ForgeFlowingFluid.Flowing> ETHANOL =
+    public static final FluidEntry<BaseFlowingFluid.Flowing> ETHANOL =
             REGISTRATE.fluid("ethanol", CreateDieselGenerators.rl("block/ethanol_still"), CreateDieselGenerators.rl("block/ethanol_flow"))
                     .properties(b -> b.viscosity(1500)
                             .density(500))
@@ -74,21 +69,19 @@ public class CDGFluids {
                             .slopeFindDistance(5)
                             .explosionResistance(100f))
                     .register();
-
-    public static final Map<DyeColor, FluidEntry<ForgeFlowingFluid.Flowing>> CONCRETE = new HashMap<>();
+    public static final Map<DyeColor, FluidEntry<BaseFlowingFluid.Flowing>> CONCRETE = new HashMap<>();
     static {
         for (DyeColor color : DyeColor.values()) {
             CONCRETE.put(color,
                     REGISTRATE.fluid(color.getName() + "_cement", CreateDieselGenerators.rl("block/cement/" + color.getName() + "_still"), CreateDieselGenerators.rl("block/cement/" + color.getName() + "_flow"))
-                            .lang(RegistrateLangProvider.toEnglishName(color.getName().replace('_', ' ')) + " Concrete")
+                            .lang(StringUtils.capitalize(color.getName()) + " Concrete")
                     .properties(b -> b.viscosity(1500)
                             .density(500))
-                    .fluidProperties(p -> p.levelDecreasePerBlock(8)
+                    .fluidProperties(p -> p.levelDecreasePerBlock(3)
                             .tickRate(12)
-                            .slopeFindDistance(1)
+                            .slopeFindDistance(2)
                             .explosionResistance(100f)).source(p -> new ConcreteFluid(p, color))
                     .bucket((f, p) -> new ConcreteBucketItem(color, f, p))
-                            .lang(RegistrateLangProvider.toEnglishName(color.getName().replace('_', ' ')) + " Concrete Bucket")
                             .build()
                     .register()
             );

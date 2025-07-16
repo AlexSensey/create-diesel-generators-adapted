@@ -50,9 +50,9 @@ public record FuelType(HolderSet<Fluid> fluid, PerEngineProperties normal, PerEn
         if (registry == null)
             return EMPTY;
         var type = registry.listElements()
-                .filter(r -> r.get().fluid().contains(fluid.builtInRegistryHolder()))
+                .filter(r -> r.value().fluid().contains(fluid.builtInRegistryHolder()))
                 .findFirst();
-        return type.isEmpty() ? EMPTY : type.get().get();
+        return type.isEmpty() ? EMPTY : type.get().value();
     }
 
     public PerEngineProperties getGenerated(EngineTypes currentEngine) {

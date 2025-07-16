@@ -1,0 +1,23 @@
+{
+    "type": "create:mixing",
+    "ingredients": [
+        {
+           "type": "fluid_stack",
+           "fluid": "minecraft:water",
+           "amount": 100
+        },
+        {
+           "item": "minecraft:blue_concrete_powder"
+        }
+    ],
+    "results": [
+        {
+           "id": "createdieselgenerators:blue_cement",
+           "amount": 1000
+        },
+        {
+           "id": "minecraft:blue_concrete_powder",
+           "chance": 0.25
+        }
+    ]
+}

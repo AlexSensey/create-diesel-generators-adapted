@@ -1,5 +1,6 @@
 package com.jesz.createdieselgenerators.content.tools;
 
+import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
@@ -15,7 +16,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 public class ChemicalSprayerItemRenderer extends CustomRenderedItemModelRenderer {
-    protected static final PartialModel COG = PartialModel.of(new ResourceLocation("createdieselgenerators:item/chemical_sprayer/cog"));
+    protected static final PartialModel COG = PartialModel.of(CreateDieselGenerators.rl("item/chemical_sprayer/cog"));
 
     @Override
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {

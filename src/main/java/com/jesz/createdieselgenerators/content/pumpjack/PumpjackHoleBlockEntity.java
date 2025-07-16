@@ -1,9 +1,10 @@
 package com.jesz.createdieselgenerators.content.pumpjack;
 
+import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.content.concrete.ConcreteEncasedFluidPipeBlock;
 import com.jesz.createdieselgenerators.world.OilChunksSavedData;
-import com.simibubi.create.AllSoundEvents;
+import com.mojang.datafixers.util.Pair;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.api.equipment.goggles.IHaveHoveringInformation;
 import com.simibubi.create.content.fluids.FluidFX;
@@ -17,9 +18,11 @@ import com.simibubi.create.foundation.utility.CreateLang;
 import net.createmod.catnip.lang.FontHelper;
 import net.createmod.catnip.lang.Lang;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -30,16 +33,16 @@ import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.simibubi.create.AllTags.optionalTag;
@@ -56,12 +59,14 @@ public class PumpjackHoleBlockEntity extends SmartBlockEntity implements IHaveGo
         super(type, pos, state);
         this.state = state;
     }
+
     @Override
-    protected void write(CompoundTag compound, boolean clientPacket) {
-        super.write(compound, clientPacket);
-        compound.putInt("OilAmount", oilAmount);
-        compound.putBoolean("Started", started);
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
+        tag.putInt("OilAmount", oilAmount);
+        tag.putBoolean("Started", started);
     }
+
     public int oilAmount = 0;
 
     @Override
@@ -93,18 +98,12 @@ public class PumpjackHoleBlockEntity extends SmartBlockEntity implements IHaveGo
     }
 
     @Override
-    protected void read(CompoundTag compound, boolean clientPacket) {
-        super.read(compound, clientPacket);
-        oilAmount = compound.getInt("OilAmount");
-        started = compound.getBoolean("Started");
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
+        oilAmount = tag.getInt("OilAmount");
+        started = tag.getBoolean("Started");
     }
 
-    @Override
-    public void handleUpdateTag(CompoundTag compound) {
-        super.handleUpdateTag(compound);
-        oilAmount = compound.getInt("OilAmount");
-        started = compound.getBoolean("Started");
-    }
     byte tick = 0;
     public int pipeLength = 0;
     boolean valid = false;
@@ -125,9 +124,9 @@ public class PumpjackHoleBlockEntity extends SmartBlockEntity implements IHaveGo
                 } else if(bs.getBlock() instanceof GlassFluidPipeBlock) {
                     if (!(bs.getValue(AXIS) == Direction.Axis.Y))
                         break;
-                } else if(bs.is(optionalTag(ForgeRegistries.BLOCKS, new ResourceLocation("createdieselgenerators:pumpjack_pipe")))){
+                } else if (bs.is(optionalTag(BuiltInRegistries.BLOCK, CreateDieselGenerators.rl("pumpjack_pipe")))){
                     continue;
-                } else if (bs.is(optionalTag(ForgeRegistries.BLOCKS, new ResourceLocation("createdieselgenerators:oil_deposit")))) {
+                } else if (bs.is(optionalTag(BuiltInRegistries.BLOCK, CreateDieselGenerators.rl("oil_deposit")))) {
                     valid = true;
                     break;
                 } else
@@ -148,25 +147,19 @@ public class PumpjackHoleBlockEntity extends SmartBlockEntity implements IHaveGo
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        CompoundTag compound = super.getUpdateTag();
-        compound.putInt("OilAmount", oilAmount);
-        compound.putBoolean("Started", started);
-        return compound;
-    }
-
-    @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
         tank = SmartFluidTankBehaviour.single(this, 1000);
         behaviours.add(tank);
     }
 
     public void pumpjackRotation(boolean isCrankLarge) {
-        List<Fluid> stackList = ForgeRegistries.FLUIDS.tags()
-                .getTag(optionalTag(ForgeRegistries.FLUIDS, new ResourceLocation("createdieselgenerators:pumpjack_output")))
-                .stream()
-                .distinct()
-                .toList();
+
+        List<Fluid> stackList = new ArrayList<>();
+        BuiltInRegistries.FLUID.getTags()
+                .filter(p -> p.getFirst().equals(optionalTag(BuiltInRegistries.FLUID, CreateDieselGenerators.rl("pumpjack_output"))))
+                .map(Pair::getSecond)
+                .forEach(s -> stackList.addAll(s.stream().map(Holder::value).toList()));
+
         if (stackList.isEmpty())
             return;
 
@@ -192,19 +185,19 @@ public class PumpjackHoleBlockEntity extends SmartBlockEntity implements IHaveGo
             FluidFX.spawnPouringLiquid(level, worldPosition, 20, FluidFX.getFluidParticle(new FluidStack(stackList.get(0), 1000)), 0.3f, new Vec3(0.1, 1, 0.1), true);
     }
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (!(cap == ForgeCapabilities.FLUID_HANDLER))
-            return super.getCapability(cap, side);
-        if(side == Direction.NORTH && getBlockState().getValue(NORTH))
-            return tank.getCapability().cast();
-        if(side == Direction.EAST && getBlockState().getValue(EAST))
-            return tank.getCapability().cast();
-        if(side == Direction.SOUTH && getBlockState().getValue(SOUTH))
-            return tank.getCapability().cast();
-        if(side == Direction.WEST && getBlockState().getValue(WEST))
-            return tank.getCapability().cast();
-
-        return super.getCapability(cap, side);
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                CDGBlockEntityTypes.PUMPJACK_HOLE.get(),
+                (be, side) -> {
+                    if (side == null || (side.getAxis().isHorizontal() && be.getBlockState().getValue(
+                            side == Direction.NORTH ? NORTH :
+                            side == Direction.EAST ? EAST :
+                            side == Direction.WEST ? WEST : SOUTH
+                    )))
+                        return be.tank.getCapability();
+                    return null;
+                }
+        );
     }
 }

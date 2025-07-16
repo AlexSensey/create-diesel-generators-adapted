@@ -1,12 +1,12 @@
 package com.jesz.createdieselgenerators.compat.kubejs;
 
-import dev.latvian.mods.kubejs.client.ClientEventJS;
+import dev.latvian.mods.kubejs.event.KubeEvent;
 import dev.latvian.mods.kubejs.typings.Info;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class LighterSkinsEventJS extends ClientEventJS {
+public class LighterSkinsEventJS implements KubeEvent {
     public static final Map<String, String> addedIds = new HashMap();
     public static final Map<String, String> removedIds = new HashMap();
     @Info("Adds a new lighter skin")

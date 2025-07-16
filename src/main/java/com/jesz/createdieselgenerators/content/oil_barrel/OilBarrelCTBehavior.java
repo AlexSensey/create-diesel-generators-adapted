@@ -19,9 +19,9 @@ public class OilBarrelCTBehavior extends ConnectedTextureBehaviour {
 
     @Override
     public CTSpriteShiftEntry getShift(BlockState state, Direction direction, TextureAtlasSprite sprite) {
-        if(direction.getAxis() == state.getValue(AXIS))
+        if (direction.getAxis() == state.getValue(AXIS))
             return CDGSpriteShifts.OIL_BARREL_TOP;
-        if((state.getValue(AXIS) == Direction.Axis.Z && direction.getAxis() == Direction.Axis.Y) || (state.getValue(AXIS) == Direction.Axis.Y)){
+        if ((state.getValue(AXIS) == Direction.Axis.Z && direction.getAxis() == Direction.Axis.Y) || (state.getValue(AXIS) == Direction.Axis.Y)){
             if(state.getValue(OIL_BARREL_COLOR) == OilBarrelBlock.OilBarrelColor.WHITE)
                 return CDGSpriteShifts.OIL_BARREL_WHITE;
             if(state.getValue(OIL_BARREL_COLOR) == OilBarrelBlock.OilBarrelColor.ORANGE)

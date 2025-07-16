@@ -1,9 +1,11 @@
 package com.jesz.createdieselgenerators.content.distillation;
 
+import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGRecipes;
 import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.fluids.tank.FluidTankBlock;
+import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer;
@@ -13,24 +15,26 @@ import com.simibubi.create.foundation.fluid.SmartFluidTank;
 import com.simibubi.create.foundation.recipe.RecipeFinder;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import net.createmod.catnip.animation.LerpedFloat;
+import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.IFluidTank;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.IFluidTank;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,12 +46,13 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
     private static final int MAX_SIZE = 3;
 
     public float progress;
-    protected LazyOptional<IFluidHandler> fluidCapability;
+    protected IFluidHandler fluidCapability;
     protected boolean forceFluidLevelUpdate;
     public FluidTank tankInventory;
     protected BlockPos controller;
     protected BlockPos lastKnownPos;
     protected boolean updateConnectivity;
+    protected boolean updateCapability;
     public boolean window;
     protected int luminosity;
     protected int width;
@@ -64,9 +69,9 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
     public DistillationTankBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
         tankInventory = createInventory();
-        fluidCapability = LazyOptional.of(() -> tankInventory);
         forceFluidLevelUpdate = true;
         updateConnectivity = false;
+        updateCapability = false;
         window = false;
         height = 1;
         width = 1;
@@ -177,6 +182,11 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
 
         if (updateConnectivity)
             updateConnectivity();
+
+        if (updateCapability) {
+            updateCapability = false;
+            refreshCapability();
+        }
         if (fluidLevel != null)
             fluidLevel.tickChaser();
     }
@@ -207,8 +217,9 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
     }
     protected List<Recipe<?>> getMatchingRecipes() {
 
-        List<Recipe<?>> list = RecipeFinder.get(getRecipeCacheKey(), level, recipe -> recipe.getType() == CDGRecipes.DISTILLATION.getType());
+        List<RecipeHolder<? extends Recipe<?>>> list = RecipeFinder.get(getRecipeCacheKey(), level, recipe -> recipe.value().getType() == CDGRecipes.DISTILLATION.getType());
         return list.stream()
+                .map(RecipeHolder::value)
                 .sorted((r1, r2) -> {
                     if(r1 instanceof DistillationRecipe recipe1 && r2 instanceof DistillationRecipe recipe2)
                         return recipe2.getRequiredHeat().ordinal() - recipe1.getRequiredHeat().ordinal();
@@ -388,9 +399,8 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
     }
 
     private void refreshCapability() {
-        LazyOptional<IFluidHandler> oldCap = fluidCapability;
-        fluidCapability = LazyOptional.of(() -> handlerForCapability());
-        oldCap.invalidate();
+        fluidCapability = handlerForCapability();
+        invalidateCapabilities();
     }
 
     private IFluidHandler handlerForCapability() {
@@ -417,40 +427,42 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
         if (controllerBE == null)
             return false;
         return containedFluidTooltip(tooltip, isPlayerSneaking,
-                controllerBE.getCapability(ForgeCapabilities.FLUID_HANDLER));
+                level.getCapability(Capabilities.FluidHandler.BLOCK, controllerBE.getBlockPos(), null));
     }
 
     @Override
-    protected void read(CompoundTag compound, boolean clientPacket) {
-        super.read(compound, clientPacket);
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
 
         BlockPos controllerBefore = controller;
         int prevSize = width;
         int prevHeight = height;
         int prevLum = luminosity;
 
-        updateConnectivity = compound.contains("Uninitialized");
-        luminosity = compound.getInt("Luminosity");
+        updateConnectivity = tag.contains("Uninitialized");
+        luminosity = tag.getInt("Luminosity");
         controller = null;
         lastKnownPos = null;
 
-        if (compound.contains("LastKnownPos"))
-            lastKnownPos = NbtUtils.readBlockPos(compound.getCompound("LastKnownPos"));
-        if (compound.contains("Controller"))
-            controller = NbtUtils.readBlockPos(compound.getCompound("Controller"));
+        if (tag.contains("LastKnownPos"))
+            lastKnownPos = NBTHelper.readBlockPos(tag, "LastKnownPos");
+        if (tag.contains("Controller"))
+            controller = NBTHelper.readBlockPos(tag, "Controller");
 
         if (isController()) {
-            window = compound.getBoolean("Window");
-            width = compound.getInt("Size");
-            height = compound.getInt("Height");
+            window = tag.getBoolean("Window");
+            width = tag.getInt("Size");
+            height = tag.getInt("Height");
             tankInventory.setCapacity(getTotalTankSize() * getCapacityMultiplier());
-            tankInventory.readFromNBT(compound.getCompound("TankContent"));
+            tankInventory.readFromNBT(registries, tag.getCompound("TankContent"));
             if (tankInventory.getSpace() < 0)
                 tankInventory.drain(-tankInventory.getSpace(), IFluidHandler.FluidAction.EXECUTE);
         }
-        if (compound.contains("ForceFluidLevel") || fluidLevel == null)
+        if (tag.contains("ForceFluidLevel") || fluidLevel == null)
             fluidLevel = LerpedFloat.linear()
                     .startWithValue(getFillState());
+
+        updateCapability = true;
 
         if (!clientPacket)
             return;
@@ -466,18 +478,18 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
         }
         if (isController()) {
             float fillState = getFillState();
-            if (compound.contains("ForceFluidLevel") || fluidLevel == null)
+            if (tag.contains("ForceFluidLevel") || fluidLevel == null)
                 fluidLevel = LerpedFloat.linear()
                         .startWithValue(fillState);
             fluidLevel.chase(fillState, 0.5f, LerpedFloat.Chaser.EXP);
-            processingTime = compound.getInt("Progress");
+            processingTime = tag.getInt("Progress");
         }
         if (luminosity != prevLum && hasLevel())
             level.getChunkSource()
                     .getLightEngine()
                     .checkBlock(worldPosition);
 
-        if (compound.contains("LazySync"))
+        if (tag.contains("LazySync"))
             fluidLevel.chase(fluidLevel.getChaseTarget(), 0.125f, LerpedFloat.Chaser.EXP);
         updateTemperature();
         List<Recipe<?>> r = getMatchingRecipes();
@@ -485,45 +497,51 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
             currentRecipe = (DistillationRecipe) r.get(0);
             if(processingTime <= 0)
                 startProcessing();
-        }}
+        }
+    }
+
     public float getFillState() {
         return (float) tankInventory.getFluidAmount() / tankInventory.getCapacity();
     }
+
     @Override
-    public void write(CompoundTag compound, boolean clientPacket) {
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
         if (updateConnectivity)
-            compound.putBoolean("Uninitialized", true);
+            tag.putBoolean("Uninitialized", true);
         if (lastKnownPos != null)
-            compound.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
+            tag.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
         if (!isController())
-            compound.put("Controller", NbtUtils.writeBlockPos(controller));
+            tag.put("Controller", NbtUtils.writeBlockPos(controller));
         if (isController()) {
-            compound.putBoolean("Window", window);
-            compound.put("TankContent", tankInventory.writeToNBT(new CompoundTag()));
-            compound.putInt("Size", width);
-            compound.putInt("Height", height);
-            compound.putInt("Progress", processingTime);
+            tag.putBoolean("Window", window);
+            tag.put("TankContent", tankInventory.writeToNBT(registries, new CompoundTag()));
+            tag.putInt("Size", width);
+            tag.putInt("Height", height);
+            tag.putInt("Progress", processingTime);
 
         }
-        compound.putInt("Luminosity", luminosity);
-        super.write(compound, clientPacket);
+        tag.putInt("Luminosity", luminosity);
 
         if (!clientPacket)
             return;
         if (forceFluidLevelUpdate)
-            compound.putBoolean("ForceFluidLevel", true);
+            tag.putBoolean("ForceFluidLevel", true);
         if (queuedSync)
-            compound.putBoolean("LazySync", true);
+            tag.putBoolean("LazySync", true);
         forceFluidLevelUpdate = false;
     }
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        if (!fluidCapability.isPresent())
-            refreshCapability();
-        if (cap == ForgeCapabilities.FLUID_HANDLER)
-            return fluidCapability.cast();
-        return super.getCapability(cap, side);
+
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                CDGBlockEntityTypes.DISTILLATION_TANK.get(),
+                (be, context) -> {
+                    if (be.fluidCapability == null)
+                        be.refreshCapability();
+                    return be.fluidCapability;
+                }
+        );
     }
     @Override
     public void invalidate() {
@@ -693,16 +711,16 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
     }
 
     public void updateTemperature() {
-        if(!isBottom())
+        if (!isBottom())
             return;
-        if(isController()){
+        if (isController()) {
             currentHeating = getHeat();
             sendData();
             checkForRecipes();
             return;
         }
         DistillationTankBlockEntity be = getControllerBE();
-        if(be == null)
+        if (be == null)
             return;
         be.updateTemperature();
     }

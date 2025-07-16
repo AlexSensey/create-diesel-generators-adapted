@@ -5,24 +5,22 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.content.tools.lighter.LighterModel;
-import com.jesz.createdieselgenerators.fuel_type.FuelType;
-import dev.latvian.mods.kubejs.KubeJSPlugin;
-import dev.latvian.mods.kubejs.client.LangEventJS;
+import dev.latvian.mods.kubejs.client.LangKubeEvent;
 import dev.latvian.mods.kubejs.event.EventGroup;
+import dev.latvian.mods.kubejs.event.EventGroupRegistry;
 import dev.latvian.mods.kubejs.event.EventHandler;
-import dev.latvian.mods.kubejs.generator.AssetJsonGenerator;
-import dev.latvian.mods.kubejs.generator.DataJsonGenerator;
+import dev.latvian.mods.kubejs.generator.KubeAssetGenerator;
+import dev.latvian.mods.kubejs.plugin.ClassFilter;
+import dev.latvian.mods.kubejs.plugin.KubeJSPlugin;
 import dev.latvian.mods.kubejs.script.ScriptType;
-import dev.latvian.mods.kubejs.util.ClassFilter;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class CDGKubeJSPlugin extends KubeJSPlugin {
+public class CDGKubeJSPlugin implements KubeJSPlugin {
     public static EventGroup GROUP = EventGroup.of("CDGEvents");
     public static EventHandler MOLDS = GROUP.startup("molds", () -> MoldEventJS.class);
     public static EventHandler OIL_CHUNKS = GROUP.server("oilAmount", () -> GetChunkOilAmountEventJS.class);
@@ -33,16 +31,17 @@ public class CDGKubeJSPlugin extends KubeJSPlugin {
     }
 
     @Override
-    public void registerEvents() {
-        GROUP.register();
+    public void registerEvents(EventGroupRegistry registry) {
+        registry.register(GROUP);
     }
 
     @Override
-    public void registerClasses(ScriptType type, ClassFilter filter) {
+    public void registerClasses(ClassFilter filter) {
         filter.allow("com.jesz.createdieselgenerators");
         filter.deny("com.jesz.createdieselgenerators.mixins");
         filter.deny(CDGKubeJSPlugin.class);
     }
+
     public static void registerMolds(){
         MoldEventJS event = new MoldEventJS();
         MOLDS.post(event);
@@ -54,7 +53,7 @@ public class CDGKubeJSPlugin extends KubeJSPlugin {
     }
 
     public static int calculateOilChunks(List<Holder<Biome>> biomes, ChunkPos chunkPos, long seed) {
-        if(!OIL_CHUNKS.hasListeners())
+        if (!OIL_CHUNKS.hasListeners())
             return -1;
 
         GetChunkOilAmountEventJS event = new GetChunkOilAmountEventJS();
@@ -75,11 +74,11 @@ public class CDGKubeJSPlugin extends KubeJSPlugin {
     }
 
     @Override
-    public void generateAssetJsons(AssetJsonGenerator generator) {
+    public void generateAssets(KubeAssetGenerator generator) {
         CDGKubeJSPlugin.registerLighterSkins();
 
         MoldEventJS.addedMolds.forEach((rl, name) -> {
-            generator.json(new ResourceLocation(rl.getNamespace(), "models/item/mold/"+rl.getPath()), generateTextureModel(new ResourceLocation(rl.getNamespace(), "item/mold/"+rl.getPath())));
+            generator.json(ResourceLocation.fromNamespaceAndPath(rl.getNamespace(), "models/item/mold/"+rl.getPath()), generateTextureModel(ResourceLocation.fromNamespaceAndPath(rl.getNamespace(), "item/mold/"+rl.getPath())));
         });
 
         LighterSkinsEventJS.addedIds.forEach((name, id) -> {
@@ -90,7 +89,7 @@ public class CDGKubeJSPlugin extends KubeJSPlugin {
     }
 
     @Override
-    public void generateLang(LangEventJS event) {
+    public void generateLang(LangKubeEvent event) {
         MoldEventJS.addedMolds.forEach((rl, name) -> {
             event.add("mold." + rl.getNamespace() + "." + rl.getPath(), name);
         });

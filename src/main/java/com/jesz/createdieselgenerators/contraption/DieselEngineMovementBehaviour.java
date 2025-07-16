@@ -9,14 +9,14 @@ import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.trains.entity.CarriageContraption;
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
 import it.unimi.dsi.fastutil.Pair;
+import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -43,7 +43,7 @@ public class DieselEngineMovementBehaviour implements MovementBehaviour {
         if (!context.world.isClientSide)
             return;
 
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> clientTick(context));
+        CatnipServices.PLATFORM.executeOnClientOnly(() -> () -> clientTick(context));
     }
 
     @OnlyIn(Dist.CLIENT)

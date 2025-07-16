@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "FIF",
+    " S ",
+    "ABA"
+  ],
+  "key": {
+    "B": {
+      "item": "create:empty_blaze_burner"
+    },
+    "S": {
+      "item": "create:shaft"
+    },
+    "I": {
+      "tag": "c:ingots/brass"
+    },
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "F": {
+      "item": "minecraft:flint_and_steel"
+    }
+  },
+  "result": {
+    "id": "createdieselgenerators:burner"
+  }
+}

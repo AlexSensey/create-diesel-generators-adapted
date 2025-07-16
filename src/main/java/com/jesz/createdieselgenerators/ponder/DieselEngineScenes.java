@@ -24,8 +24,8 @@ import net.minecraft.core.Registry;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import java.util.function.Supplier;
 
@@ -303,14 +303,14 @@ public class DieselEngineScenes {
         if (Minecraft.getInstance().level != null) {
             Registry<FuelType> registry = Minecraft.getInstance().level.registryAccess().registryOrThrow(CDGRegistries.FUEL_TYPE);
             Holder<FuelType> randomType = registry.getRandom(RandomSource.create()).orElse(null);
-            if (randomType == null || randomType.get().fluid().size() == 0)
+            if (randomType == null || randomType.value().fluid().size() == 0)
                 currentFuel = new FluidStack(CDGFluids.DIESEL.get(), 16000);
             else {
-                Holder<Fluid> randomFluid = randomType.get().fluid().getRandomElement(RandomSource.create()).orElse(null);
+                Holder<Fluid> randomFluid = randomType.value().fluid().getRandomElement(RandomSource.create()).orElse(null);
                 if (randomFluid == null)
                     currentFuel = new FluidStack(CDGFluids.DIESEL.get(), 16000);
                 else
-                    currentFuel = new FluidStack(randomFluid.get(), 16000);
+                    currentFuel = new FluidStack(randomFluid.value(), 16000);
             }
         } else
             currentFuel = new FluidStack(CDGFluids.DIESEL.get(), 16000);

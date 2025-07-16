@@ -1,5 +1,6 @@
 package com.jesz.createdieselgenerators.content.turret;
 
+import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGRegistries;
 import com.jesz.createdieselgenerators.compat.computercraft.CCProxy;
 import com.jesz.createdieselgenerators.content.tools.ChemicalSprayerProjectileEntity;
@@ -12,6 +13,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTank
 import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -19,13 +21,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import java.util.List;
-import java.util.Random;
 
 public class ChemicalTurretBlockEntity extends TurretBlockEntity {
 
@@ -49,19 +50,22 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
     public SmartFluidTankBehaviour tank;
     public AbstractComputerBehaviour computerBehaviour;
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (computerBehaviour.isPeripheralCap(cap))
-            return computerBehaviour.getPeripheralCapability();
-        if(side == Direction.DOWN)
-            return tank.getCapability().cast();
-        return LazyOptional.empty();
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                CDGBlockEntityTypes.CHEMICAL_TURRET.get(),
+                (be, side) -> {
+                    if (side == null || side == Direction.DOWN)
+                        return be.tank.getCapability();
+                    return null;
+                }
+        );
     }
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         super.addToGoggleTooltip(tooltip, isPlayerSneaking);
-        return containedFluidTooltip(tooltip, isPlayerSneaking, tank.getCapability().cast());
+        return containedFluidTooltip(tooltip, isPlayerSneaking, tank.getCapability());
     }
 
     public int redstoneSignal;
@@ -85,15 +89,15 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
     }
 
     @Override
-    protected void read(CompoundTag compound, boolean clientPacket) {
-        super.read(compound, clientPacket);
+    protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(compound, registries, clientPacket);
         lighterUpgrade = compound.getBoolean("LighterUpgrade");
         redstoneSignal = compound.getInt("RedstoneSignal");
     }
 
     @Override
-    protected void write(CompoundTag compound, boolean clientPacket) {
-        super.write(compound, clientPacket);
+    protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(compound, registries, clientPacket);
         compound.putBoolean("LighterUpgrade", lighterUpgrade);
         compound.putInt("RedstoneSignal", redstoneSignal);
     }

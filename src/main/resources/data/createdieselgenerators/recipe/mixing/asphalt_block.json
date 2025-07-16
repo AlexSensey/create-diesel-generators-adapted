@@ -1,0 +1,25 @@
+{
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "item": "minecraft:gravel",
+      "count": 2
+    },
+    {
+      "item": "minecraft:sand",
+      "count": 2
+    },
+    {
+      "type": "fluid_stack",
+      "fluid_tag": "c:crude_oil",
+      "amount": 100
+    }
+  ],
+  "heatRequirement": "heated",
+  "results": [
+    {
+      "id": "createdieselgenerators:asphalt_block",
+      "count": 4
+    }
+  ]
+}

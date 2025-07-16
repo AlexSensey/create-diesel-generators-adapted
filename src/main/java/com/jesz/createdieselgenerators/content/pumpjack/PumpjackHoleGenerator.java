@@ -1,14 +1,11 @@
 package com.jesz.createdieselgenerators.content.pumpjack;
 
-import com.jesz.createdieselgenerators.content.diesel_engine.huge.HugeDieselEngineBlock;
-import com.simibubi.create.Create;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider;
-import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraftforge.client.model.generators.MultiPartBlockStateBuilder;
+import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
 
 public class PumpjackHoleGenerator {
     public static void blockState(DataGenContext<Block, PumpjackHoleBlock> c, RegistrateBlockstateProvider p) {

@@ -1,0 +1,14 @@
+{
+  "type": "create:cutting",
+  "ingredients": [
+    {
+      "item": "c:stick"
+    }
+  ],
+  "results": [
+    {
+      "id": "createdieselgenerators:wood_chip",
+      "count": 1
+    }
+  ]
+}

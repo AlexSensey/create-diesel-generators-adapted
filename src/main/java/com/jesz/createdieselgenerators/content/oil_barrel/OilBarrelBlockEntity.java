@@ -1,6 +1,9 @@
 package com.jesz.createdieselgenerators.content.oil_barrel;
 
+import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGConfig;
+import com.jesz.createdieselgenerators.content.distillation.DistillationTankBlockEntity;
+import com.simibubi.create.AllBlockEntityTypes;
 import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer;
@@ -8,25 +11,23 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.fluid.SmartFluidTank;
 import com.simibubi.create.infrastructure.config.AllConfigs;
+import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.IFluidTank;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.IFluidTank;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,11 +35,12 @@ import static com.jesz.createdieselgenerators.content.oil_barrel.OilBarrelBlock.
 
 public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBlockEntityContainer.Fluid, IHaveGoggleInformation {
 
-    protected LazyOptional<IFluidHandler> fluidCapability;
+    protected IFluidHandler fluidCapability;
     protected FluidTank tankInventory;
     protected BlockPos controller;
     protected BlockPos lastKnownPos;
     protected boolean updateConnectivity;
+    protected boolean updateCapability;
     protected int width;
     protected int height;
 
@@ -49,8 +51,8 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
     public OilBarrelBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
         tankInventory = createInventory();
-        fluidCapability = LazyOptional.of(() -> tankInventory);
         updateConnectivity = false;
+        updateCapability = false;
         height = 1;
         width = 1;
         refreshCapability();
@@ -92,6 +94,11 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
 
         if (updateConnectivity)
             updateConnectivity();
+
+        if (updateCapability) {
+            updateCapability = false;
+            refreshCapability();
+        }
     }
 
     @Override
@@ -191,15 +198,15 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
         if (controller.equals(this.controller))
             return;
         this.controller = controller;
+
         refreshCapability();
         setChanged();
         sendData();
     }
 
-    private void refreshCapability() {
-        LazyOptional<IFluidHandler> oldCap = fluidCapability;
-        fluidCapability = LazyOptional.of(this::handlerForCapability);
-        oldCap.invalidate();
+    void refreshCapability() {
+        fluidCapability = handlerForCapability();
+        invalidateCapabilities();
     }
 
     private IFluidHandler handlerForCapability() {
@@ -218,34 +225,35 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
         if (controllerBE == null)
             return false;
         return containedFluidTooltip(tooltip, isPlayerSneaking,
-                controllerBE.getCapability(ForgeCapabilities.FLUID_HANDLER));
+                level.getCapability(Capabilities.FluidHandler.BLOCK, controllerBE.getBlockPos(), null));
     }
-
     @Override
-    protected void read(CompoundTag compound, boolean clientPacket) {
-        super.read(compound, clientPacket);
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
 
         BlockPos controllerBefore = controller;
         int prevSize = width;
         int prevHeight = height;
 
-        updateConnectivity = compound.contains("Uninitialized");
+        updateConnectivity = tag.contains("Uninitialized");
         controller = null;
         lastKnownPos = null;
 
-        if (compound.contains("LastKnownPos"))
-            lastKnownPos = NbtUtils.readBlockPos(compound.getCompound("LastKnownPos"));
-        if (compound.contains("Controller"))
-            controller = NbtUtils.readBlockPos(compound.getCompound("Controller"));
+        if (tag.contains("LastKnownPos"))
+            lastKnownPos = NBTHelper.readBlockPos(tag,"LastKnownPos");
+        if (tag.contains("Controller"))
+            controller = NBTHelper.readBlockPos(tag, "Controller");
 
         if (isController()) {
-            width = compound.getInt("Size");
-            height = compound.getInt("Height");
+            width = tag.getInt("Size");
+            height = tag.getInt("Height");
             tankInventory.setCapacity(getTotalTankSize() * getCapacityMultiplier());
-            tankInventory.readFromNBT(compound.getCompound("TankContent"));
+            tankInventory.readFromNBT(registries, tag.getCompound("TankContent"));
             if (tankInventory.getSpace() < 0)
                 tankInventory.drain(-tankInventory.getSpace(), IFluidHandler.FluidAction.EXECUTE);
         }
+
+        updateCapability = true;
 
         if (!clientPacket)
             return;
@@ -262,34 +270,37 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
     }
 
     @Override
-    public void write(CompoundTag compound, boolean clientPacket) {
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
+
         if (updateConnectivity)
-            compound.putBoolean("Uninitialized", true);
+            tag.putBoolean("Uninitialized", true);
         if (lastKnownPos != null)
-            compound.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
+            tag.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
         if (!isController())
-            compound.put("Controller", NbtUtils.writeBlockPos(getController()));
+            tag.put("Controller", NbtUtils.writeBlockPos(getController()));
         if (isController()) {
-            compound.put("TankContent", tankInventory.writeToNBT(new CompoundTag()));
-            compound.putInt("Size", width);
-            compound.putInt("Height", height);
+            tag.put("TankContent", tankInventory.writeToNBT(registries, new CompoundTag()));
+            tag.putInt("Size", width);
+            tag.putInt("Height", height);
         }
-        super.write(compound, clientPacket);
 
         if (!clientPacket)
             return;
         if (queuedSync)
-            compound.putBoolean("LazySync", true);
+            tag.putBoolean("LazySync", true);
     }
 
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        if (!fluidCapability.isPresent())
-            refreshCapability();
-        if (cap == ForgeCapabilities.FLUID_HANDLER)
-            return fluidCapability.cast();
-        return super.getCapability(cap, side);
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                CDGBlockEntityTypes.OIL_BARREL.get(),
+                (be, context) -> {
+                    if (be.fluidCapability == null)
+                        be.refreshCapability();
+                    return be.fluidCapability;
+                }
+        );
     }
 
     public int getTotalTankSize() {

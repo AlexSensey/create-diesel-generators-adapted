@@ -7,7 +7,7 @@ import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.generators.ModelFile;
+import net.neoforged.neoforge.client.model.generators.ModelFile;
 
 public class DistillationTankGenerator extends SpecialBlockStateGen {
     @Override
@@ -22,9 +22,9 @@ public class DistillationTankGenerator extends SpecialBlockStateGen {
 
     @Override
     public <T extends Block> ModelFile getModel(DataGenContext<Block, T> ctx, RegistrateBlockstateProvider prov, BlockState state) {
-        Boolean top = state.getValue(FluidTankBlock.TOP);
-        Boolean bottom = state.getValue(FluidTankBlock.BOTTOM);
-        FluidTankBlock.Shape shape = state.getValue(FluidTankBlock.SHAPE);
+        Boolean top = state.getValue(DistillationTankBlock.TOP);
+        Boolean bottom = state.getValue(DistillationTankBlock.BOTTOM);
+        FluidTankBlock.Shape shape = state.getValue(DistillationTankBlock.SHAPE);
 
         String modelName = "";
         if (bottom)

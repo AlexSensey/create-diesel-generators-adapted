@@ -22,8 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 public class EntityFilteringBehaviour extends FilteringBehaviour {
     public static final BehaviourType<FilteringBehaviour> TYPE = new BehaviourType<>();
@@ -54,7 +53,7 @@ public class EntityFilteringBehaviour extends FilteringBehaviour {
         if (getFilter(side).getItem() instanceof EntityFilterItem) {
             if (!player.isCreative() || ItemHelper
                     .extract(new InvWrapper(player.getInventory()),
-                            stack -> ItemHandlerHelper.canItemStacksStack(stack, getFilter(side)), true)
+                            stack -> ItemStack.isSameItemSameComponents(stack, getFilter(side)), true)
                     .isEmpty())
                 player.getInventory()
                         .placeItemBackInInventory(getFilter(side));

@@ -7,7 +7,6 @@ import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
-import com.simibubi.create.content.processing.recipe.ProcessingOutput;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.inventory.VersionedInventoryWrapper;
@@ -15,9 +14,11 @@ import com.simibubi.create.foundation.recipe.RecipeFinder;
 import com.simibubi.create.foundation.utility.CreateLang;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import net.createmod.catnip.lang.LangBuilder;
+import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -29,22 +30,22 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.IFluidTank;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.wrapper.CombinedInvWrapper;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.IFluidTank;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -54,13 +55,14 @@ import java.util.stream.Collectors;
 public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMultiBlockEntityContainerFluidItem, IHaveGoggleInformation {
 
     private static final int MAX_SIZE = 3;
-    LazyOptional<IItemHandler> itemCapability;
+    IItemHandler itemCapability;
     public ItemStackHandler inventory;
-    LazyOptional<IFluidHandler> fluidCapability;
+    IFluidHandler fluidCapability;
     BulkFermenterFluidHandler tankInventory;
     BlockPos controller;
     BlockPos lastKnownPos;
-    boolean updateConnectivity;
+    protected boolean updateConnectivity;
+    protected boolean updateCapability;
     int width = 1;
     int height = 1;
 
@@ -75,8 +77,8 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     public BulkFermenterBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
         tankInventory = createInventory();
-        fluidCapability = LazyOptional.of(() -> tankInventory);
         updateConnectivity = false;
+        updateCapability = false;
         inventory = new ItemStackHandler(5) {
             @Override
             protected void onContentsChanged(int slot) {
@@ -97,12 +99,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
                 }
             }
         };
-
-        itemCapability = LazyOptional.of(() -> inventory);
-        LazyOptional<IFluidHandler> oldCap = fluidCapability;
-        fluidCapability = LazyOptional.of(() -> handlerForCapability());
-        oldCap.invalidate();
-
+        refreshCapability();
     }
 
     @Override
@@ -194,11 +191,17 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
 
         if (updateConnectivity)
             updateConnectivity();
+
+        if (updateCapability) {
+            updateCapability = false;
+            refreshCapability();
+        }
     }
 
     protected List<Recipe<?>> getMatchingRecipes() {
-        List<Recipe<?>> list = RecipeFinder.get(RECIPE_CACHE_KEY, level, recipe -> recipe.getType() == CDGRecipes.BULK_FERMENTING.getType());
+        List<RecipeHolder<? extends Recipe<?>>> list = RecipeFinder.get(RECIPE_CACHE_KEY, level, recipe -> recipe.value().getType() == CDGRecipes.BULK_FERMENTING.getType());
         return list.stream()
+                .map(RecipeHolder::value)
                 .sorted((r1, r2) -> {
                     if(r1 instanceof DistillationRecipe recipe1 && r2 instanceof DistillationRecipe recipe2)
                         return recipe2.getRequiredHeat().ordinal() - recipe1.getRequiredHeat().ordinal();
@@ -320,9 +323,8 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     }
 
     private void refreshCapability() {
-        LazyOptional<IFluidHandler> oldCap = fluidCapability;
-        fluidCapability = LazyOptional.of(() -> handlerForCapability());
-        oldCap.invalidate();
+        fluidCapability = handlerForCapability();
+        invalidateCapabilities();
     }
 
     void initCapability() {
@@ -331,7 +333,6 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
             if (controllerBE == null)
                 return;
             controllerBE.initCapability();
-            itemCapability.invalidate();
             itemCapability = controllerBE.itemCapability;
             return;
         }
@@ -352,7 +353,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
             @Override
             public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
                 for (int i = 0; i < getSlots(); i++) {
-                    if (ItemHandlerHelper.canItemStacksStack(getStackInSlot(i), stack)) {
+                    if (ItemStack.isSameItemSameComponents(getStackInSlot(i), stack)) {
                         int space = getSlotLimit(i) - getStackInSlot(i).getCount();
                         if (space == 0)
                             return stack;
@@ -368,8 +369,8 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
                 return stack;
             }
         });
-        itemCapability.invalidate();
-        itemCapability = LazyOptional.of(() -> itemHandler);
+        itemCapability = itemHandler;
+        invalidateCapabilities();
     }
     private IFluidHandler handlerForCapability() {
         return isController() ? tankInventory
@@ -382,33 +383,35 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     }
 
     @Override
-    protected void read(CompoundTag compound, boolean clientPacket) {
-        super.read(compound, clientPacket);
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
 
         BlockPos controllerBefore = controller;
         int prevSize = width;
         int prevHeight = height;
 
-        updateConnectivity = compound.contains("Uninitialized");
+        updateConnectivity = tag.contains("Uninitialized");
         controller = null;
         lastKnownPos = null;
 
-        if (compound.contains("LastKnownPos"))
-            lastKnownPos = NbtUtils.readBlockPos(compound.getCompound("LastKnownPos"));
-        if (compound.contains("Controller"))
-            controller = NbtUtils.readBlockPos(compound.getCompound("Controller"));
+        if (tag.contains("LastKnownPos"))
+            lastKnownPos = NBTHelper.readBlockPos(tag, "LastKnownPos");
+        if (tag.contains("Controller"))
+            controller = NBTHelper.readBlockPos(tag, "Controller");
 
         if (isController()) {
-            width = compound.getInt("Size");
-            height = compound.getInt("Height");
-            lowestHeatLevel = BlazeBurnerBlock.HeatLevel.values()[compound.getInt("Heat")];
+            width = tag.getInt("Size");
+            height = tag.getInt("Height");
+            lowestHeatLevel = BlazeBurnerBlock.HeatLevel.values()[tag.getInt("Heat")];
             tankInventory.setCapacity(getTotalTankSize() * getCapacityMultiplier());
-            tankInventory.readFromNBT(compound.getCompound("TankContent"));
+            tankInventory.readFromNBT(registries, tag.getCompound("TankContent"));
 
-            processingTime = compound.getInt("ProcessingTime");
+            processingTime = tag.getInt("ProcessingTime");
         }
 
-        inventory.deserializeNBT(compound.getCompound("Inventory"));
+        inventory.deserializeNBT(registries, tag.getCompound("Inventory"));
+
+        updateCapability = true;
 
         if (!clientPacket)
             return;
@@ -426,41 +429,50 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     }
 
     @Override
-    public void write(CompoundTag compound, boolean clientPacket) {
-        super.write(compound, clientPacket);
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
+
         if (updateConnectivity)
-            compound.putBoolean("Uninitialized", true);
+            tag.putBoolean("Uninitialized", true);
         if (lastKnownPos != null)
-            compound.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
+            tag.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
         if (!isController())
-            compound.put("Controller", NbtUtils.writeBlockPos(controller));
+            tag.put("Controller", NbtUtils.writeBlockPos(controller));
         if (isController()) {
-            compound.put("TankContent", tankInventory.writeToNBT(new CompoundTag()));
-            compound.putInt("Size", width);
-            compound.putInt("Height", height);
-            compound.putInt("ProcessingTime", processingTime);
-            compound.putInt("Heat", lowestHeatLevel.ordinal());
+            tag.put("TankContent", tankInventory.writeToNBT(registries, new CompoundTag()));
+            tag.putInt("Size", width);
+            tag.putInt("Height", height);
+            tag.putInt("ProcessingTime", processingTime);
+            tag.putInt("Heat", lowestHeatLevel.ordinal());
         }
-        compound.put("Inventory", inventory.serializeNBT());
+        tag.put("Inventory", inventory.serializeNBT(registries));
 
         if (!clientPacket)
             return;
 
         if (queuedSync)
-            compound.putBoolean("LazySync", true);
+            tag.putBoolean("LazySync", true);
     }
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (!fluidCapability.isPresent())
-            refreshCapability();
-        if (cap == ForgeCapabilities.FLUID_HANDLER)
-            return fluidCapability.cast();
-        if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            initCapability();
-            return itemCapability.cast();
-        }
-        return super.getCapability(cap, side);
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                CDGBlockEntityTypes.BULK_FERMENTER.get(),
+                (be, side) -> {
+                    if (be.fluidCapability == null)
+                        be.refreshCapability();
+                    return be.fluidCapability;
+                }
+        );
+
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                CDGBlockEntityTypes.BULK_FERMENTER.get(),
+                (be, side) -> {
+                    be.initCapability();
+                    return be.itemCapability;
+                }
+        );
     }
 
     public int getTotalTankSize() {
@@ -478,7 +490,6 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
 
     @Override
     public void notifyMultiUpdated() {
-        itemCapability.invalidate();
         onFluidStackChanged();
         setChanged();
     }
@@ -556,8 +567,8 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
         if (controller == null)
             return false;
 
-        IItemHandler items = controller.getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null);
-        IFluidHandler fluids = controller.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
+        IItemHandler items = level.getCapability(Capabilities.ItemHandler.BLOCK, controller.getBlockPos(), null);
+        IFluidHandler fluids = level.getCapability(Capabilities.FluidHandler.BLOCK, controller.getBlockPos(), null);
 
         if(items == null || fluids == null)
             return false;
@@ -646,7 +657,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     }
 
 
-    public static class BulkFermenterFluidHandler implements IFluidHandler{
+    public static class BulkFermenterFluidHandler implements IFluidHandler {
         int tankCount;
         NonNullList<FluidTank> tanks = NonNullList.create();
         Consumer<FluidStack> updateCallback;
@@ -681,7 +692,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
         @Override
         public int fill(FluidStack resource, FluidAction action) {
             for (FluidTank tank : tanks) {
-                if (tank.getFluid().isFluidEqual(resource)) {
+                if (FluidStack.isSameFluidSameComponents(tank.getFluid(), resource)) {
                     int result = tank.fill(resource, action);
                     if (action.execute())
                         updateCallback.accept(tank.getFluid());
@@ -703,7 +714,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
         @Override
         public FluidStack drain(FluidStack resource, FluidAction action) {
             for (FluidTank tank : tanks) {
-                if (tank.getFluid().isFluidEqual(resource)) {
+                if (FluidStack.isSameFluidSameComponents(tank.getFluid(), resource)) {
                     FluidStack result = tank.drain(resource, action);
                     if (action.execute())
                         updateCallback.accept(tank.getFluid());
@@ -726,18 +737,19 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
             return FluidStack.EMPTY;
         }
 
-        public CompoundTag writeToNBT(CompoundTag compound) {
+        public CompoundTag writeToNBT(HolderLookup.Provider registries, CompoundTag compound) {
             ListTag list = new ListTag();
             for (FluidTank tank : tanks)
-                list.add(tank.writeToNBT(new CompoundTag()));
+                list.add(tank.writeToNBT(registries, new CompoundTag()));
 
             compound.put("Tanks", list);
             return compound;
         }
-        public void readFromNBT(CompoundTag compound) {
+
+        public void readFromNBT(HolderLookup.Provider registries, CompoundTag compound) {
             for (int i = 0; i < tanks.size(); i++) {
                 FluidTank tank = tanks.get(i);
-                tank.setFluid(FluidStack.loadFluidStackFromNBT(compound.getList("Tanks", Tag.TAG_COMPOUND).getCompound(i)));
+                tank.readFromNBT(registries, compound.getList("Tanks", Tag.TAG_COMPOUND).getCompound(i));
             }
         }
 

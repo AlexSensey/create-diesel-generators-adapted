@@ -6,15 +6,15 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class CDGCreativeTab {
 
     private static final DeferredRegister<CreativeModeTab> TAB_REGISTER =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, "createdieselgenerators");
-    public static final RegistryObject<CreativeModeTab> CREATIVE_TAB = TAB_REGISTER.register("cdg_creative_tab",
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> CREATIVE_TAB = TAB_REGISTER.register("cdg_creative_tab",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.cdg_creative_tab"))
                     .icon(CDGBlocks.DIESEL_ENGINE::asStack)
@@ -64,7 +64,7 @@ public class CDGCreativeTab {
                         output.accept(TrackLayersBagItem.full());
                         MoldType.types.forEach(mt -> {
                             ItemStack moldStack = CDGItems.MOLD.asStack();
-                            moldStack.getOrCreateTag().putString("Mold", mt.getId().toString());
+                            moldStack.set(CDGDataComponents.MOLD_TYPE, mt.getId());
                             output.accept(moldStack);
                         });
                         CDGFluids.CONCRETE.forEach((d, f) -> output.accept(f.getBucket().get()));

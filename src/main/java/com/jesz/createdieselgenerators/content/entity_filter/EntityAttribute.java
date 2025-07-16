@@ -1,8 +1,16 @@
 package com.jesz.createdieselgenerators.content.entity_filter;
 
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.simibubi.create.content.logistics.item.filter.attribute.ItemAttribute;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -11,7 +19,6 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -20,6 +27,27 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public interface EntityAttribute {
+    Codec<EntityAttribute> CODEC = RecordCodecBuilder.create(i -> i.group(
+            ResourceLocation.CODEC.fieldOf("id").forGetter(EntityAttribute::getId),
+            CompoundTag.CODEC.optionalFieldOf("data", new CompoundTag()).forGetter(EntityAttribute::write)
+    ).apply(i,  (id, data) -> {
+        EntityAttribute attribute = EntityAttribute.getById(id);
+        if (attribute == null)
+            return null;
+        return attribute.read(data);
+    }));
+
+    StreamCodec<ByteBuf, EntityAttribute> STREAM_CODEC = StreamCodec.composite(
+            ResourceLocation.STREAM_CODEC, EntityAttribute::getId,
+            ByteBufCodecs.COMPOUND_TAG, EntityAttribute::write,
+            (id, data) -> {
+                EntityAttribute attribute = EntityAttribute.getById(id);
+                if (attribute == null)
+                    return null;
+                return attribute.read(data);
+            }
+    );
+
     List<EntityAttribute> all = new LinkedList<>();
     EntityAttribute STANDARD_TRAITS = register(StandardTraits.IS_HOSTILE);
     EntityAttribute IS_MOB = register(new IsMob(EntityType.PIG));
@@ -29,17 +57,12 @@ public interface EntityAttribute {
         return attribute;
     }
 
-    static EntityAttribute fromNBT(CompoundTag compound) {
+    static EntityAttribute getById(ResourceLocation id) {
         for (EntityAttribute attribute : all){
-            EntityAttribute finalAttribute = attribute.getById(new ResourceLocation(compound.getString("Id")));
-            if(finalAttribute != null)
-                return finalAttribute.read(compound);
+            if(attribute.getId().equals(id))
+                return attribute;
         }
         return null;
-    }
-
-    default EntityAttribute getById(ResourceLocation id){
-        return id.equals(getId()) ? this : null;
     }
 
     ResourceLocation getId();
@@ -67,11 +90,9 @@ public interface EntityAttribute {
 
     static List<EntityType<?>> getAllEntityTypesFromStack(ItemStack stack) {
         List<EntityType<?>> list = new LinkedList();
-        if(stack.getItem() instanceof SpawnEggItem item)
-            list.add(item.getType(stack.getTag()));
-        ForgeRegistries.ENTITY_TYPES.getKeys().forEach(k -> {
-            EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(k);
-        });
+        if (stack.getItem() instanceof SpawnEggItem item)
+            list.add(item.getType(stack));
+
         for (Map.Entry<Item, List<EntityType<?>>> entry : ReverseLootTable.ALL.entrySet()){
             if(entry.getKey() == stack.getItem())
                 list.addAll(entry.getValue());
@@ -138,15 +159,6 @@ public interface EntityAttribute {
         }
 
         @Override
-        public EntityAttribute getById(ResourceLocation id) {
-            for (EntityAttribute attribute : values()){
-                if(attribute.getId().equals(id))
-                    return attribute;
-            }
-            return null;
-        }
-
-        @Override
         public Component format(boolean inverted) {
             return CreateDieselGenerators.lang("entity_attributes."+getId().getPath()+(inverted ? ".inverted" : ""));
         }
@@ -171,12 +183,12 @@ public interface EntityAttribute {
         @Override
         public CompoundTag write() {
             CompoundTag tag = EntityAttribute.super.write();
-            tag.putString("Entity", ForgeRegistries.ENTITY_TYPES.getKey(type).toString());
+            tag.putString("Entity", BuiltInRegistries.ENTITY_TYPE.getKey(type).toString());
             return tag;
         }
         @Override
         public EntityAttribute read(CompoundTag tag) {
-            return new IsMob(ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(tag.getString("Entity"))));
+            return new IsMob(BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(tag.getString("Entity"))));
         }
 
         @Override
@@ -196,5 +208,18 @@ public interface EntityAttribute {
         public Component format(boolean inverted) {
             return CreateDieselGenerators.lang("entity_attributes.is_mob"+(inverted ? ".inverted" : ""), type.getDescription());
         }
+    }
+
+    record EntityAttributeEntry(EntityAttribute attribute, boolean inverted) {
+        public static final Codec<EntityAttribute.EntityAttributeEntry> CODEC = RecordCodecBuilder.create(i -> i.group(
+                EntityAttribute.CODEC.fieldOf("attribute").forGetter(EntityAttributeEntry::attribute),
+                Codec.BOOL.fieldOf("inverted").forGetter(EntityAttributeEntry::inverted)
+        ).apply(i, EntityAttribute.EntityAttributeEntry::new));
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, EntityAttributeEntry> STREAM_CODEC = StreamCodec.composite(
+                EntityAttribute.STREAM_CODEC, EntityAttributeEntry::attribute,
+                ByteBufCodecs.BOOL, EntityAttributeEntry::inverted,
+                EntityAttributeEntry::new
+        );
     }
 }

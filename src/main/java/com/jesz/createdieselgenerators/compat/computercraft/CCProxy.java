@@ -3,6 +3,7 @@ package com.jesz.createdieselgenerators.compat.computercraft;
 import com.simibubi.create.compat.Mods;
 import com.simibubi.create.compat.computercraft.AbstractComputerBehaviour;
 import com.simibubi.create.compat.computercraft.FallbackComputerBehaviour;
+import com.simibubi.create.compat.computercraft.implementation.ComputerBehaviour;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 
 import java.util.function.Function;

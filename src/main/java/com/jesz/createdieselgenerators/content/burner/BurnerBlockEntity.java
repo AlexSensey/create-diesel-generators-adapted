@@ -1,5 +1,6 @@
 package com.jesz.createdieselgenerators.content.burner;
 
+import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGRegistries;
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
@@ -7,6 +8,7 @@ import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.foundation.fluid.SmartFluidTank;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -16,12 +18,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import java.util.List;
 
@@ -133,33 +132,38 @@ public class BurnerBlockEntity extends KineticBlockEntity {
     }
 
     @Override
-    protected void write(CompoundTag compound, boolean clientPacket) {
+    protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(compound, registries, clientPacket);
         compound.putFloat("ValveState", valveState);
         compound.putFloat("Heat", heat);
         compound.putInt("Tick", tick);
-        compound.put("FluidContent", tank.writeToNBT(new CompoundTag()));
-        super.write(compound, clientPacket);
+        compound.put("FluidContent", tank.writeToNBT(registries, new CompoundTag()));
     }
 
     @Override
-    protected void read(CompoundTag compound, boolean clientPacket) {
+    protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(compound, registries, clientPacket);
         valveState = compound.getFloat("ValveState");
         heat = compound.getFloat("Heat");
         tick = compound.getInt("Tick");
-        tank.readFromNBT(compound.getCompound("FluidContent"));
-        super.read(compound, clientPacket);
+        tank.readFromNBT(registries, compound.getCompound("FluidContent"));
     }
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (cap == ForgeCapabilities.FLUID_HANDLER)
-            return LazyOptional.of(() -> tank).cast();
-        return super.getCapability(cap, side);
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                CDGBlockEntityTypes.BURNER.get(),
+                (be, context) -> {
+                    if (context == null || context == Direction.DOWN)
+                        return be.tank;
+                    return null;
+                }
+        );
     }
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        return containedFluidTooltip(tooltip, isPlayerSneaking, LazyOptional.of(() -> tank));
+        return containedFluidTooltip(tooltip, isPlayerSneaking, tank);
     }
 
     public BurnerBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {

@@ -1,19 +1,18 @@
 package com.jesz.createdieselgenerators;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class CDGSoundEvents {
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS =
-            DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, CreateDieselGenerators.ID);
+            DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, CreateDieselGenerators.ID);
 
-    public static RegistryObject<SoundEvent> ENGINE_NORMAL = registerSoundEvent("engine_normal");
+    public static DeferredHolder<SoundEvent, SoundEvent> ENGINE_NORMAL = registerSoundEvent("engine_normal");
 
-    private static RegistryObject<SoundEvent> registerSoundEvent(String name) {
+    private static DeferredHolder<SoundEvent, SoundEvent> registerSoundEvent(String name) {
         return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(CreateDieselGenerators.rl(name)));
     }
 

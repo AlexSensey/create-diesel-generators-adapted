@@ -1,26 +1,38 @@
 package com.jesz.createdieselgenerators.content.molds;
 
+import com.google.common.base.Joiner;
 import com.google.gson.JsonObject;
 import com.jesz.createdieselgenerators.CDGRecipes;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder;
+import com.simibubi.create.content.processing.recipe.ProcessingRecipeParams;
+import com.simibubi.create.content.processing.recipe.StandardProcessingRecipe;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeInput;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CastingRecipe extends ProcessingRecipe<Container> {
+public class CastingRecipe extends StandardProcessingRecipe<RecipeInput> {
     public MoldType moldType;
-    public CastingRecipe(ProcessingRecipeBuilder.ProcessingRecipeParams params) {
+    MoldRecipeParams params;
+
+    public CastingRecipe(MoldRecipeParams params) {
         super(CDGRecipes.CASTING, params);
+        this.moldType = MoldType.findById(params.mold());
+        this.params = params;
     }
 
     @Override
@@ -43,18 +55,17 @@ public class CastingRecipe extends ProcessingRecipe<Container> {
         return 1;
     }
 
-    @Override
-    public boolean matches(Container container, Level level) {
-        return false;
+    public MoldRecipeParams getParams() {
+        return params;
     }
+
     public boolean matches(BasinBlockEntity basin, FluidStack fluidStack) {
         if (moldType == null)
             return false;
         if (getFluidIngredients().size() != 1)
             return false;
 
-        IItemHandler availableItems = basin.getCapability(ForgeCapabilities.ITEM_HANDLER)
-                .orElse(null);
+        IItemHandler availableItems = basin.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, basin.getBlockPos(), null);
 
         if (availableItems == null)
             return false;
@@ -62,8 +73,6 @@ public class CastingRecipe extends ProcessingRecipe<Container> {
         MoldType moldInBasin = null;
         for (int i = 0; i < availableItems.getSlots(); i++) {
             ItemStack stack = availableItems.getStackInSlot(i);
-            if (stack == null)
-                continue;
 
             if (stack.getItem() instanceof MoldItem && MoldItem.getMold(stack) == moldType)
                 moldInBasin = MoldItem.getMold(stack);
@@ -78,33 +87,9 @@ public class CastingRecipe extends ProcessingRecipe<Container> {
 
         return false;
     }
-    @Override
-    public void readAdditional(JsonObject json) {
-        super.readAdditional(json);
-        moldType = MoldType.findById(new ResourceLocation(json.get("mold").getAsString()));
-    }
-
-    @Override
-    public void readAdditional(FriendlyByteBuf buffer) {
-        super.readAdditional(buffer);
-        moldType = MoldType.findById(new ResourceLocation(buffer.readUtf()));
-    }
-
-    @Override
-    public void writeAdditional(JsonObject json) {
-        super.writeAdditional(json);
-        json.addProperty("mold", moldType.getId().toString());
-    }
-
-    @Override
-    public void writeAdditional(FriendlyByteBuf buffer) {
-        super.writeAdditional(buffer);
-        buffer.writeUtf(moldType.getId().toString());
-    }
 
     public int execute(BasinBlockEntity basin, boolean simulate) {
-        IItemHandler availableItems = basin.getCapability(ForgeCapabilities.ITEM_HANDLER)
-                .orElse(null);
+        IItemHandler availableItems = basin.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, basin.getBlockPos(), null);
 
         if (availableItems == null)
             return 0;
@@ -131,4 +116,36 @@ public class CastingRecipe extends ProcessingRecipe<Container> {
         return getFluidIngredients().get(0).getRequiredAmount();
     }
 
+    @Override
+    public boolean matches(RecipeInput input, Level level) {
+        return false;
+    }
+
+    public static class Serializer implements RecipeSerializer<CastingRecipe> {
+        private final MapCodec<CastingRecipe> codec;
+        private final StreamCodec<RegistryFriendlyByteBuf, CastingRecipe> streamCodec;
+
+        public Serializer() {
+            this.codec = MoldRecipeParams.CODEC.xmap(CastingRecipe::new, CastingRecipe::getParams)
+                    .validate(recipe -> {
+                        var errors = recipe.validate();
+                        if (errors.isEmpty())
+                            return DataResult.success(recipe);
+                        errors.add(recipe.getClass().getSimpleName() + " failed validation:");
+                        return DataResult.error(() -> Joiner.on('\n').join(errors), recipe);
+                    });
+            this.streamCodec = MoldRecipeParams.STREAM_CODEC.map(CastingRecipe::new, CastingRecipe::getParams);
+        }
+
+        @Override
+        public MapCodec<CastingRecipe> codec() {
+            return codec;
+        }
+
+        @Override
+        public StreamCodec<RegistryFriendlyByteBuf, CastingRecipe> streamCodec() {
+            return streamCodec;
+        }
+
+    }
 }

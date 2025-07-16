@@ -18,8 +18,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +60,7 @@ public interface EngineUpgrades {
 
     @OnlyIn(Dist.CLIENT)
     default <T extends SmartBlockEntity & IEngine> EngineSoundInstance createSoundInstance(T engine, Vec3 pos) {
-        return new EngineSoundInstance(CDGSoundEvents.ENGINE_NORMAL.get(), SoundSource.BLOCKS, pos, 0.2f);
+        return new EngineSoundInstance(CDGSoundEvents.ENGINE_NORMAL.get(), SoundSource.NEUTRAL, pos, 0.2f);
     }
 
     default <T extends SmartBlockEntity & IEngine> float getPitchMultiplier(T engine) {

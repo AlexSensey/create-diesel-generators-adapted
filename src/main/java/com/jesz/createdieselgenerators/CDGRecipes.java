@@ -5,20 +5,24 @@ import com.jesz.createdieselgenerators.content.bulk_fermenter.BulkFermentingReci
 import com.jesz.createdieselgenerators.content.distillation.DistillationRecipe;
 import com.jesz.createdieselgenerators.content.molds.CastingRecipe;
 import com.jesz.createdieselgenerators.content.molds.CompressionMoldingRecipe;
+import com.jesz.createdieselgenerators.content.molds.MoldRecipeParams;
 import com.jesz.createdieselgenerators.content.tools.hammer.HammerRecipe;
 import com.jesz.createdieselgenerators.content.tools.wire_cutters.WireCuttingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeSerializer;
+import com.simibubi.create.content.kinetics.deployer.ItemApplicationRecipe;
+import com.simibubi.create.content.kinetics.deployer.ItemApplicationRecipeParams;
+import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
+import com.simibubi.create.content.processing.recipe.StandardProcessingRecipe;
 import com.simibubi.create.foundation.recipe.IRecipeTypeInfo;
 import com.simibubi.create.foundation.utility.CreateLang;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
@@ -28,15 +32,15 @@ public enum CDGRecipes implements IRecipeTypeInfo {
     BASIN_FERMENTING(BasinFermentingRecipe::new),
     BULK_FERMENTING(BulkFermentingRecipe::new),
     DISTILLATION(DistillationRecipe::new),
-    COMPRESSION_MOLDING(CompressionMoldingRecipe::new),
-    CASTING(CastingRecipe::new),
+    COMPRESSION_MOLDING(CompressionMoldingRecipe.Serializer::new),
+    CASTING(CastingRecipe.Serializer::new),
     WIRE_CUTTING(WireCuttingRecipe::new),
     HAMMERING(HammerRecipe::new);
 
     private final ResourceLocation id;
-    private final RegistryObject<RecipeSerializer<?>> serializerObject;
+    private final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> serializerObject;
     @Nullable
-    private final RegistryObject<RecipeType<?>> typeObject;
+    private final DeferredHolder<RecipeType<?>, RecipeType<?>> typeObject;
     private final Supplier<RecipeType<?>> type;
 
     CDGRecipes(Supplier<RecipeSerializer<?>> serializerSupplier) {
@@ -47,8 +51,8 @@ public enum CDGRecipes implements IRecipeTypeInfo {
         type = typeObject;
     }
 
-    CDGRecipes(ProcessingRecipeBuilder.ProcessingRecipeFactory<?> processingFactory) {
-        this(() -> new ProcessingRecipeSerializer<>(processingFactory));
+    CDGRecipes(StandardProcessingRecipe.Factory<?> processingFactory) {
+        this(() -> new StandardProcessingRecipe.Serializer<>(processingFactory));
     }
 
     public static void register(IEventBus modEventBus) {
@@ -67,12 +71,12 @@ public enum CDGRecipes implements IRecipeTypeInfo {
     }
 
     @Override
-    public <T extends RecipeType<?>> T getType() {
-        return (T) type.get();
+    public <I extends RecipeInput, R extends Recipe<I>> RecipeType<R> getType() {
+        return (RecipeType<R>) type.get();
     }
 
     private static class Registers {
-        private static final DeferredRegister<RecipeSerializer<?>> SERIALIZER_REGISTER = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, "createdieselgenerators");
-        private static final DeferredRegister<RecipeType<?>> TYPE_REGISTER = DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, "createdieselgenerators");
+        private static final DeferredRegister<RecipeSerializer<?>> SERIALIZER_REGISTER = DeferredRegister.create(BuiltInRegistries.RECIPE_SERIALIZER, CreateDieselGenerators.ID);
+        private static final DeferredRegister<RecipeType<?>> TYPE_REGISTER = DeferredRegister.create(BuiltInRegistries.RECIPE_TYPE, CreateDieselGenerators.ID);
     }
 }

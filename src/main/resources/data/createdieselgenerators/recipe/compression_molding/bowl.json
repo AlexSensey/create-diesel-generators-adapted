@@ -1,0 +1,23 @@
+{
+  "type": "createdieselgenerators:compression_molding",
+  "ingredients": [
+    {
+      "item": "createdieselgenerators:wood_chip"
+    },
+    {
+      "item": "createdieselgenerators:wood_chip"
+    },
+    {
+      "item": "createdieselgenerators:wood_chip"
+    },
+    {
+      "item": "createdieselgenerators:wood_chip"
+    }
+  ],
+  "mold": "createdieselgenerators:bowl",
+  "results": [
+    {
+      "id": "minecraft:bowl"
+    }
+  ]
+}

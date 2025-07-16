@@ -10,6 +10,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
@@ -28,8 +29,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.common.util.ForgeSoundType;
+import net.neoforged.neoforge.common.util.DeferredSoundType;
 
 import java.util.Locale;
 
@@ -90,14 +90,13 @@ public class OilBarrelBlock extends Block implements IBE<OilBarrelBlockEntity>, 
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        ItemStack stack = player.getItemInHand(hand);
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (!(stack.getItem() instanceof DyeItem di))
-            return InteractionResult.PASS;
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         OilBarrelColor color = OilBarrelColor.getForDyeColor(di.getDyeColor());
 
         if (state.getValue(OIL_BARREL_COLOR) == color) {
-            if(level.getBlockEntity(pos) instanceof OilBarrelBlockEntity be){
+            if (level.getBlockEntity(pos) instanceof OilBarrelBlockEntity be){
                 OilBarrelBlockEntity controllerBE = be.getControllerBE();
                 if (controllerBE != null) {
                     boolean successful = false;
@@ -118,16 +117,16 @@ public class OilBarrelBlock extends Block implements IBE<OilBarrelBlockEntity>, 
                         }
                     }
                     if (successful)
-                        return InteractionResult.SUCCESS;
+                        return ItemInteractionResult.SUCCESS;
                 }
             }
         } else {
             level.setBlockAndUpdate(pos, state.setValue(OIL_BARREL_COLOR, color));
             if (!player.isCreative())
                 stack.shrink(1);
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
         }
-        return InteractionResult.PASS;
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     @Override
@@ -142,7 +141,7 @@ public class OilBarrelBlock extends Block implements IBE<OilBarrelBlockEntity>, 
 
     // Tanks are less noisy when placed in batch
     public static final SoundType SILENCED_METAL =
-            new ForgeSoundType(0.1F, 1.5F, () -> SoundEvents.METAL_BREAK, () -> SoundEvents.METAL_STEP,
+            new DeferredSoundType(0.1F, 1.5F, () -> SoundEvents.METAL_BREAK, () -> SoundEvents.METAL_STEP,
                     () -> SoundEvents.METAL_PLACE, () -> SoundEvents.METAL_HIT, () -> SoundEvents.METAL_FALL);
 
     @Override

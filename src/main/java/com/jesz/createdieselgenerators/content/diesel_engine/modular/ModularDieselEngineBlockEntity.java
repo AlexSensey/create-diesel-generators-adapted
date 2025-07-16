@@ -1,5 +1,6 @@
 package com.jesz.createdieselgenerators.content.diesel_engine.modular;
 
+import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGBlocks;
 import com.jesz.createdieselgenerators.CDGConfig;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineSoundInstance;
@@ -15,9 +16,12 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.fluid.SmartFluidTank;
 import com.simibubi.create.foundation.utility.CreateLang;
+import net.createmod.catnip.nbt.NBTHelper;
+import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
@@ -27,15 +31,13 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -49,8 +51,8 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
     protected int length = 1;
     @NotNull
     protected EngineUpgrades upgrade = EngineUpgrades.EMPTY;
-    protected LazyOptional<IFluidHandler> fluidCapability = LazyOptional.empty();
-    protected FluidTank tankInventory = new SmartFluidTank(1000, f -> { sendData();});
+    protected IFluidHandler fluidCapability;
+    protected FluidTank tankInventory = new SmartFluidTank(0, f -> sendData());
     protected BlockPos controller;
     protected BlockPos lastKnownPos;
     protected boolean updateConnectivity = false;
@@ -71,13 +73,16 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
         super.addBehaviours(behaviours);
     }
 
-    @Override
-    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (!fluidCapability.isPresent())
-            refreshCapability();
-        if (side == null || (side == Direction.UP && getBlockState().getValue(PIPE)))
-            return fluidCapability.cast();
-        return super.getCapability(cap, side);
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK,
+                CDGBlockEntityTypes.MODULAR_DIESEL_ENGINE.get(),
+                (be, side) -> {
+                    if (be.fluidCapability == null)
+                        be.refreshCapability();
+                    if (side == null || (side == Direction.UP && be.getBlockState().getValue(PIPE)))
+                        return be.fluidCapability;
+                    return null;
+                });
     }
 
     @Override
@@ -86,7 +91,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
             if (getGeneratedSpeed() == 0)
                 return false;
             super.addToGoggleTooltip(tooltip, isPlayerSneaking);
-            containedFluidTooltip(tooltip, isPlayerSneaking, fluidCapability.cast());
+            containedFluidTooltip(tooltip, isPlayerSneaking, fluidCapability);
             return true;
         }
         ModularDieselEngineBlockEntity controller = getControllerBE();
@@ -159,7 +164,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
         }
 
         if (level.isClientSide) {
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::tickClient);
+            CatnipServices.PLATFORM.executeOnClientOnly(() -> this::tickClient);
         }
     }
 
@@ -168,6 +173,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
 
     @OnlyIn(Dist.CLIENT)
     protected void tickClient() {
+
         if (enabled()) {
             Vec3 pos = Vec3.atCenterOf(getBlockPos());
             if (getBlockState().getValue(FACING).getAxis() == Direction.Axis.X)
@@ -192,19 +198,15 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
     }
 
     void refreshCapability() {
-        LazyOptional<IFluidHandler> oldCap = fluidCapability;
-        fluidCapability = LazyOptional.of(this::handlerForCapability);
-        oldCap.invalidate();
+        fluidCapability = handlerForCapability();
+        invalidateCapabilities();
     }
-
     private IFluidHandler handlerForCapability() {
         return isController() ? (tankInventory)
                 : ((getControllerBE() != null) ? getControllerBE().handlerForCapability() : new FluidTank(0));
     }
 
     public void updateConnectivity() {
-        if (soundInstance != null)
-            soundInstance = null;
         updateConnectivity = false;
         if (level.isClientSide)
             return;
@@ -285,26 +287,26 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
     }
 
     @Override
-    protected void read(CompoundTag tag, boolean clientPacket) {
-        super.read(tag, clientPacket);
+    protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(compound, registries, clientPacket);
 
         BlockPos controllerBefore = controller;
         int prevHeight = length;
 
-        updateConnectivity = tag.contains("Uninitialized");
-        upgrade = EngineUpgrades.get(new ResourceLocation(tag.getString("Upgrade")));
-        remainingTicks = tag.getFloat("remainingTicks");
+        updateConnectivity = compound.contains("Uninitialized");
+        upgrade = EngineUpgrades.get(ResourceLocation.parse(compound.getString("Upgrade")));
+        remainingTicks = compound.getFloat("remainingTicks");
         controller = null;
         lastKnownPos = null;
 
-        if (tag.contains("LastKnownPos"))
-            lastKnownPos = NbtUtils.readBlockPos(tag.getCompound("LastKnownPos"));
-        if (tag.contains("Controller"))
-            controller = NbtUtils.readBlockPos(tag.getCompound("Controller"));
+        if (compound.contains("LastKnownPos"))
+            lastKnownPos = NBTHelper.readBlockPos(compound, "LastKnownPos");
+        if (compound.contains("Controller"))
+            controller = NBTHelper.readBlockPos(compound, "Controller");
 
         if (isController()) {
-            length = tag.getInt("Height");
-            tankInventory.readFromNBT(tag.getCompound("TankContent"));
+            length = compound.getInt("Height");
+            tankInventory.readFromNBT(registries, compound.getCompound("TankContent"));
             if (tankInventory.getSpace() < 0)
                 tankInventory.drain(-tankInventory.getSpace(), IFluidHandler.FluidAction.EXECUTE);
         }
@@ -325,8 +327,9 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
     }
 
     @Override
-    public void write(CompoundTag compound, boolean clientPacket) {
-        super.write(compound, clientPacket);
+    protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(compound, registries, clientPacket);
+
         if (updateConnectivity)
             compound.putBoolean("Uninitialized", true);
         if (lastKnownPos != null)
@@ -336,7 +339,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
         if (isController()) {
             compound.putString("Upgrade", upgrade.getId().toString());
             compound.putFloat("remainingTicks", remainingTicks);
-            compound.put("TankContent", tankInventory.writeToNBT(new CompoundTag()));
+            compound.put("TankContent", tankInventory.writeToNBT(registries, new CompoundTag()));
             compound.putInt("Height", length);
         }
     }

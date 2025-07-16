@@ -23,45 +23,45 @@ public class PumpjackBearingBlock extends BearingBlock implements IBE<PumpjackBe
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn,
-                                 BlockHitResult hit) {
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!player.mayBuild())
             return InteractionResult.FAIL;
         if (player.isShiftKeyDown())
             return InteractionResult.FAIL;
-        if (player.getItemInHand(handIn)
-                .isEmpty()) {
-            if (worldIn.isClientSide)
-                return InteractionResult.SUCCESS;
-            withBlockEntityDo(worldIn, pos, be -> {
-                if (be.isRunning()) {
-                    be.disassemble();
-                    return;
-                }
-                be.assembleNextTick();
-            });
+        if (level.isClientSide)
             return InteractionResult.SUCCESS;
-        }
-        return InteractionResult.PASS;
+
+        withBlockEntityDo(level, pos, be -> {
+            if (be.isRunning())
+                be.disassemble();
+            else
+                be.assembleNextTick();
+        });
+        return InteractionResult.SUCCESS;
     }
+
     @Override
     public Direction.Axis getRotationAxis(BlockState state) {
         return state.getValue(FACING).getAxis();
     }
+
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
         return false;
     }
+
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
         context.getLevel().setBlock(context.getClickedPos(), CDGBlocks.PUMPJACK_BEARING_B.getDefaultState().setValue(PumpjackBearingBBlock.FACING, state.getValue(FACING).getAxis() != Direction.Axis.Y ? state.getValue(FACING) : Direction.NORTH), 2);
 
         return InteractionResult.SUCCESS;
     }
+
     @Override
     public Class<PumpjackBearingBlockEntity> getBlockEntityClass() {
         return PumpjackBearingBlockEntity.class;
     }
+
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction preferred = context.getHorizontalDirection();
@@ -69,6 +69,7 @@ public class PumpjackBearingBlock extends BearingBlock implements IBE<PumpjackBe
             return defaultBlockState().setValue(FACING, preferred.getOpposite());
         return defaultBlockState().setValue(FACING, preferred);
     }
+
     @Override
     public BlockEntityType<? extends PumpjackBearingBlockEntity> getBlockEntityType() {
         return CDGBlockEntityTypes.PUMPJACK_BEARING.get();

@@ -1,22 +1,22 @@
 package com.jesz.createdieselgenerators.content.canister;
 
+import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGConfig;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
+import net.createmod.catnip.codecs.CatnipCodecUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 import java.util.List;
 
@@ -24,20 +24,18 @@ public class CanisterBlockEntity extends SmartBlockEntity implements IHaveGoggle
     CapacityEnchantedFluidTankBehaviour tank;
     BlockState state;
 
-    private Component customName;
-
     public int capacityEnchantLevel;
-    private ListTag enchantmentTag;
+
+    private DataComponentPatch componentPatch = DataComponentPatch.EMPTY;
 
     public CanisterBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
         this.state = state;
-
     }
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        return containedFluidTooltip(tooltip, isPlayerSneaking, getCapability(ForgeCapabilities.FLUID_HANDLER, Direction.DOWN));
+        return containedFluidTooltip(tooltip, isPlayerSneaking, level.getCapability(Capabilities.FluidHandler.BLOCK, worldPosition, null));
     }
 
     @Override
@@ -46,55 +44,27 @@ public class CanisterBlockEntity extends SmartBlockEntity implements IHaveGoggle
         behaviours.add(tank);
     }
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap) {
-        if(cap == ForgeCapabilities.FLUID_HANDLER)
-            return tank.getCapability().cast();
-        return super.getCapability(cap);
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                CDGBlockEntityTypes.CANISTER.get(),
+                (be, context) -> be.tank.getCapability()
+        );
     }
 
     @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-
-        if(cap == ForgeCapabilities.FLUID_HANDLER)
-            return tank.getCapability().cast();
-        return super.getCapability(cap, side);
-    }
-
-    @Override
-    protected void write(CompoundTag compound, boolean clientPacket) {
-        super.write(compound, clientPacket);
+    protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(compound, registries, clientPacket);
         compound.putInt("CapacityEnchantment", capacityEnchantLevel);
-        if (this.customName != null)
-            compound.putString("CustomName", Component.Serializer.toJson(this.customName));
-        if(this.enchantmentTag != null)
-            compound.put("Enchantments", enchantmentTag);
+        compound.put("Components", CatnipCodecUtils.encode(DataComponentPatch.CODEC, registries, componentPatch)
+                .orElse(new CompoundTag()));
     }
 
     @Override
-    protected void read(CompoundTag compound, boolean clientPacket) {
-        super.read(compound, clientPacket);
+    protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(compound, registries, clientPacket);
         capacityEnchantLevel = compound.getInt("CapacityEnchantment");
-        if(compound.contains("Enchantments"))
-            enchantmentTag = compound.getList("Enchantments", Tag.TAG_COMPOUND);
-        if (compound.contains("CustomName", 8))
-            this.customName = Component.Serializer.fromJson(compound.getString("CustomName"));
-    }
-
-    public void setCustomName(Component customName) {
-        this.customName = customName;
-    }
-
-    public Component getCustomName() {
-        return customName;
-    }
-
-    public ListTag getEnchantmentTag() {
-        return enchantmentTag;
-    }
-
-    public void setEnchantmentTag(ListTag enchantmentTag) {
-        this.enchantmentTag = enchantmentTag;
+        componentPatch = CatnipCodecUtils.decode(DataComponentPatch.CODEC, registries, compound.getCompound("Components")).orElse(DataComponentPatch.EMPTY);
     }
 
     public void setCapacityEnchantLevel(int capacityEnchantLevel) {
@@ -102,7 +72,16 @@ public class CanisterBlockEntity extends SmartBlockEntity implements IHaveGoggle
         tank.getPrimaryHandler().setCapacity(tank.baseCapacity + tank.capacityAddition * capacityEnchantLevel);
     }
 
+    public void setComponentPatch(DataComponentPatch componentPatch) {
+        this.componentPatch = componentPatch;
+    }
+
+    public DataComponentPatch getComponentPatch() {
+        return componentPatch;
+    }
     public static class CapacityEnchantedFluidTankBehaviour extends SmartFluidTankBehaviour{
+
+
         int capacityAddition;
         int baseCapacity;
 
@@ -111,12 +90,14 @@ public class CanisterBlockEntity extends SmartBlockEntity implements IHaveGoggle
             this.capacityAddition = capacityAddition;
             this.baseCapacity = tankCapacity;
         }
+
         public static CapacityEnchantedFluidTankBehaviour single(SmartBlockEntity be, int capacity, int capacityAddition) {
             return new CapacityEnchantedFluidTankBehaviour(TYPE, be, 1, capacity, false, capacityAddition);
         }
+
         @Override
-        public void read(CompoundTag compound, boolean clientPacket) {
-            super.read(compound, clientPacket);
+        public void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+            super.read(compound, registries, clientPacket);
             if(compound.contains("CapacityEnchantment"))
                 getPrimaryHandler().setCapacity(baseCapacity + compound.getInt("CapacityEnchantment") * capacityAddition);
         }

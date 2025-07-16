@@ -1,0 +1,29 @@
+{
+  "type": "create:crushing",
+  "ingredients": [
+    [
+      {
+        "tag": "create:casing"
+      },
+      {
+        "item": "create:linear_chassis"
+      },
+      {
+        "item": "create:secondary_linear_chassis"
+      },
+      {
+        "item": "create:radial_chassis"
+      }
+    ]
+  ],
+  "results": [
+    {
+      "id": "createdieselgenerators:wood_chip",
+      "count": 31
+    },
+    {
+      "id": "createdieselgenerators:wood_chip",
+      "chance": 0.5
+    }
+  ]
+}

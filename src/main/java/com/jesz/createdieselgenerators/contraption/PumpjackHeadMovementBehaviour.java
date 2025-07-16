@@ -11,6 +11,7 @@ import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices;
 import com.simibubi.create.foundation.virtualWorld.VirtualRenderWorld;
 import net.createmod.catnip.animation.AnimationTickHolder;
+import net.createmod.catnip.nbt.NBTHelper;
 import net.createmod.catnip.render.CachedBuffers;
 import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -19,8 +20,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import static com.jesz.createdieselgenerators.CDGPartialModels.PUMPJACK_ROPE;
@@ -45,7 +46,7 @@ public class PumpjackHeadMovementBehaviour implements MovementBehaviour {
     @OnlyIn(Dist.CLIENT)
     @Override
     public void renderInContraption(MovementContext context, VirtualRenderWorld renderWorld, ContraptionMatrices matrices, MultiBufferSource buffer) {
-        BlockPos hole = NbtUtils.readBlockPos(context.data.getCompound("HolePos"));
+        BlockPos hole = NBTHelper.readBlockPos(context.data, "HolePos");
         if (!(context.world.getBlockEntity(hole) instanceof PumpjackHoleBlockEntity))
             return;
         PumpjackBearingBlockEntity bearing = null;
