@@ -20,10 +20,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 
 public interface EntityAttribute {
@@ -221,5 +218,19 @@ public interface EntityAttribute {
                 ByteBufCodecs.BOOL, EntityAttributeEntry::inverted,
                 EntityAttributeEntry::new
         );
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(inverted, attribute.write());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof EntityAttributeEntry entry))
+                return false;
+            if (entry.inverted != inverted())
+                return false;
+            return entry.attribute.write().equals(attribute.write());
+        }
     }
 }

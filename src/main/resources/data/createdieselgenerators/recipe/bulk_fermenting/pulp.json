@@ -14,6 +14,7 @@
       "tag": "create:pulpifiable"
     },
     {
+      "type": "fluid_stack",
       "fluid": "minecraft:water",
       "amount": 250
     }

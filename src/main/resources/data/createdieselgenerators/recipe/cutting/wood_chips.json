@@ -2,7 +2,7 @@
   "type": "create:cutting",
   "ingredients": [
     {
-      "item": "c:stick"
+      "tag": "c:stick"
     }
   ],
   "results": [

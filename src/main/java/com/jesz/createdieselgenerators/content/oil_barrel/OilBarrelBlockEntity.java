@@ -87,6 +87,7 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
 
         if (lastKnownPos == null)
             lastKnownPos = getBlockPos();
+
         else if (!lastKnownPos.equals(worldPosition)) {
             onPositionChanged();
             return;
@@ -249,8 +250,8 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
             height = tag.getInt("Height");
             tankInventory.setCapacity(getTotalTankSize() * getCapacityMultiplier());
             tankInventory.readFromNBT(registries, tag.getCompound("TankContent"));
-            if (tankInventory.getSpace() < 0)
-                tankInventory.drain(-tankInventory.getSpace(), IFluidHandler.FluidAction.EXECUTE);
+//            if (tankInventory.getSpace() < 0)
+//                tankInventory.drain(-tankInventory.getSpace(), IFluidHandler.FluidAction.EXECUTE);
         }
 
         updateCapability = true;

@@ -5,6 +5,7 @@
       "item": "minecraft:slime_ball"
     },
     {
+      "type": "fluid_stack",
       "fluid": "minecraft:lava",
       "amount": 150
     }

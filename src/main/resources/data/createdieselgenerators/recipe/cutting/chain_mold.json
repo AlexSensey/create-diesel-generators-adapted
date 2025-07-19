@@ -7,9 +7,9 @@
   ],
   "results": [
     {
-      "item": "createdieselgenerators:mold",
-      "nbt": {
-        "Mold": "createdieselgenerators:chain"
+      "id": "createdieselgenerators:mold",
+      "components": {
+        "createdieselgenerators:mold_type": "createdieselgenerators:chain"
       }
     }
   ]

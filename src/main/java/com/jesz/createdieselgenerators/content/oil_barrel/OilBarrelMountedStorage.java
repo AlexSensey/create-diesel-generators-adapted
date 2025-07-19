@@ -23,7 +23,7 @@ public class OilBarrelMountedStorage extends WrapperMountedFluidStorage<OilBarre
 
     public static final MapCodec<OilBarrelMountedStorage> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
             ExtraCodecs.NON_NEGATIVE_INT.fieldOf("capacity").forGetter(OilBarrelMountedStorage::getCapacity),
-            FluidStack.CODEC.fieldOf("fluid").forGetter(OilBarrelMountedStorage::getFluid)
+            FluidStack.OPTIONAL_CODEC.fieldOf("fluid").forGetter(OilBarrelMountedStorage::getFluid)
     ).apply(i, OilBarrelMountedStorage::new));
 
     private boolean dirty;

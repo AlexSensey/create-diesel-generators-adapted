@@ -41,6 +41,6 @@ public record EntityFilterScreenPacket(FilterScreenPacket.Option option, EntityA
 
     @Override
     public PacketTypeProvider getTypeProvider() {
-        return null;
+        return CDGPackets.ENTITY_FILTER_SCREEN;
     }
 }

@@ -12,11 +12,11 @@
     ],
     "results": [
         {
-           "fluid": "createdieselgenerators:orange_cement",
+           "id": "createdieselgenerators:orange_cement",
            "amount": 1000
         },
         {
-           "item": "minecraft:orange_concrete_powder",
+           "id": "minecraft:orange_concrete_powder",
            "chance": 0.25
         }
     ]

@@ -3,6 +3,8 @@
   "ingredient": {
     "item": "createdieselgenerators:asphalt_block"
   },
-  "result": "createdieselgenerators:asphalt_stairs",
+  "result": {
+    "id": "createdieselgenerators:asphalt_stairs"
+  },
   "count": 1
 }

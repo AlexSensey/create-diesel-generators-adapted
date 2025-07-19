@@ -105,10 +105,13 @@ public class EntityFilterItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stackInHand = player.getItemInHand(hand);
+        if (player.isShiftKeyDown() || hand != InteractionHand.MAIN_HAND)
+            return InteractionResultHolder.pass(stackInHand);
         if (level.isClientSide || !(player instanceof ServerPlayer sp))
-            return InteractionResultHolder.consume(stackInHand);
+            return InteractionResultHolder.success(stackInHand);
+
         sp.openMenu(new SimpleMenuProvider((int id, Inventory inventory, Player player1) ->
-                new EntityFilterMenu(CDGMenuTypes.ENTITY_FILTER.get(), id, inventory, stackInHand), getDescription()), buf -> {
+                new EntityFilterMenu(CDGMenuTypes.ENTITY_FILTER.get(), id, inventory, player1.getMainHandItem()), getDescription()), buf -> {
             ItemStack.STREAM_CODEC.encode(buf, stackInHand);
         });
         return InteractionResultHolder.success(stackInHand);

@@ -2,6 +2,7 @@
   "type": "createdieselgenerators:casting",
   "ingredients": [
     {
+      "type": "fluid_stack",
       "fluid": "create:chocolate",
       "amount": 250
     }

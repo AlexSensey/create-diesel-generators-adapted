@@ -21,6 +21,7 @@
       "item": "minecraft:dried_kelp"
     }
   },
+  "accept_mirrored": true,
   "result": {
     "id": "createdieselgenerators:chemical_sprayer",
     "count": 1

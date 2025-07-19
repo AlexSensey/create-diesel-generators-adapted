@@ -35,6 +35,8 @@ import net.minecraft.world.level.block.CandleCakeBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
@@ -67,7 +69,7 @@ public class LighterItem extends Item implements FueledToolItem {
 
         boolean flammable = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fStack.getFluid()).normal().speed() != 0;
         Integer state = stack.get(CDGDataComponents.LIGHTER_STATE);
-        if (flammable && state != null && state == 2){
+        if (!flammable && state != null && state == 2){
             stack.set(CDGDataComponents.LIGHTER_STATE, 1);
         }
     }
@@ -82,7 +84,7 @@ public class LighterItem extends Item implements FueledToolItem {
             return InteractionResultHolder.success(stackInHand);
         }
 
-        if (stackInHand.get(CDGDataComponents.LIGHTER_STATE) == 0){
+        if (stackInHand.get(CDGDataComponents.LIGHTER_STATE) == 0) {
             if (player.isShiftKeyDown()) {
                 stackInHand.set(CDGDataComponents.LIGHTER_STATE, 1);
                 return InteractionResultHolder.success(stackInHand);
@@ -174,6 +176,7 @@ public class LighterItem extends Item implements FueledToolItem {
         return Math.round(13 * (float) getCurrentFillLevel(stack) / getCapacity(stack));
     }
 
+    @OnlyIn(Dist.CLIENT)
     public void registerExtension(RegisterClientExtensionsEvent event) {
         event.registerItem(SimpleCustomRenderer.create(this, new LighterItemRenderer()), this);
     }

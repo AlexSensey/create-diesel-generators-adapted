@@ -10,7 +10,7 @@
       "count": 2
     },
     {
-      "type": "fluid_stack",
+      "type": "fluid_tag",
       "fluid_tag": "c:crude_oil",
       "amount": 100
     }

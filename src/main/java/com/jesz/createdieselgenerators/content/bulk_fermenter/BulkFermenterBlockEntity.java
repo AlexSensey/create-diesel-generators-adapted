@@ -120,7 +120,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
         ConnectivityHandler.formMulti(this);
     }
 
-    private void startProcessing(){
+    private void startProcessing() {
         if(currentRecipe == null)
             return;
         processingTime = (currentRecipe.getProcessingDuration());
@@ -570,7 +570,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
         IItemHandler items = level.getCapability(Capabilities.ItemHandler.BLOCK, controller.getBlockPos(), null);
         IFluidHandler fluids = level.getCapability(Capabilities.FluidHandler.BLOCK, controller.getBlockPos(), null);
 
-        if(items == null || fluids == null)
+        if (items == null || fluids == null)
             return false;
 
         boolean isEmpty = true;

@@ -117,7 +117,7 @@ public class EntityFilterMenu extends AbstractFilterMenu {
         super.initAndReadInventory(filterItem);
         selectedAttributes = new ArrayList<>();
         whitelistMode = filterItem.getOrDefault(AllDataComponents.ATTRIBUTE_FILTER_WHITELIST_MODE, AttributeFilterWhitelistMode.WHITELIST_DISJ);
-        selectedAttributes = EntityFilterItem.getEntries(filterItem);
+        selectedAttributes = new ArrayList<>(EntityFilterItem.getEntries(filterItem));
     }
 
     @Override

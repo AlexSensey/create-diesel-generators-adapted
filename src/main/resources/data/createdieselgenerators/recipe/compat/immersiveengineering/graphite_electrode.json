@@ -9,8 +9,7 @@
   "mold": "createdieselgenerators:lines",
   "results": [
     {
-      "id": "immersiveengineering:graphite_electrode",
-      "nbt":"{graphDmg:48000}"
+      "id": "immersiveengineering:graphite_electrode"
     }
   ],
 

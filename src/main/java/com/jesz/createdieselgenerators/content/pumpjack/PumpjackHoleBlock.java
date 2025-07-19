@@ -3,6 +3,7 @@ package com.jesz.createdieselgenerators.content.pumpjack;
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.IBE;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
@@ -25,7 +26,12 @@ public class PumpjackHoleBlock extends Block implements IBE<PumpjackHoleBlockEnt
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
         if(context.getClickedFace().getAxis().isHorizontal()){
-            context.getLevel().setBlock(context.getClickedPos(), state.setValue(BooleanProperty.create(context.getClickedFace().getName()), !state.getValue(BooleanProperty.create(context.getClickedFace().getName()))), 3);
+            Direction side = context.getClickedFace();
+            context.getLevel().setBlock(context.getClickedPos(), state.cycle(
+                    side == Direction.NORTH ? NORTH :
+                    side == Direction.EAST ? EAST :
+                    side == Direction.WEST ? WEST : SOUTH
+            ), 3);
             IWrenchable.playRotateSound(context.getLevel(), context.getClickedPos());
 
             return InteractionResult.SUCCESS;

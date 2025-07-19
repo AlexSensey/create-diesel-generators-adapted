@@ -8,8 +8,8 @@
   "results": [
     {
       "id": "createdieselgenerators:mold",
-      "nbt": {
-        "Mold": "createdieselgenerators:bar"
+      "components": {
+        "createdieselgenerators:mold_type": "createdieselgenerators:bar"
       }
     }
   ]

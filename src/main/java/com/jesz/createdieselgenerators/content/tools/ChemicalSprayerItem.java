@@ -22,6 +22,8 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluids;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 
@@ -115,6 +117,7 @@ public class ChemicalSprayerItem extends Item implements CustomArmPoseItem, Fuel
         return Math.round(13 * (getCurrentFillLevel(stack) / (float) getCapacity(stack)));
     }
 
+    @OnlyIn(Dist.CLIENT)
     public void registerExtension(RegisterClientExtensionsEvent event) {
         event.registerItem(SimpleCustomRenderer.create(this, new WireCuttersItemRenderer()), this);
     }

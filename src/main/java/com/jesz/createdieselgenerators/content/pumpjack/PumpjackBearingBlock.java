@@ -52,7 +52,7 @@ public class PumpjackBearingBlock extends BearingBlock implements IBE<PumpjackBe
 
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
-        context.getLevel().setBlock(context.getClickedPos(), CDGBlocks.PUMPJACK_BEARING_B.getDefaultState().setValue(PumpjackBearingBBlock.FACING, state.getValue(FACING).getAxis() != Direction.Axis.Y ? state.getValue(FACING) : Direction.NORTH), 2);
+        context.getLevel().setBlockAndUpdate(context.getClickedPos(), CDGBlocks.PUMPJACK_BEARING_B.getDefaultState().setValue(PumpjackBearingBBlock.FACING, state.getValue(FACING).getAxis() != Direction.Axis.Y ? state.getValue(FACING) : Direction.NORTH));
 
         return InteractionResult.SUCCESS;
     }

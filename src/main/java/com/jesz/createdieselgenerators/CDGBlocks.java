@@ -22,6 +22,7 @@ import com.jesz.createdieselgenerators.content.distillation.DistillationTankGene
 import com.jesz.createdieselgenerators.content.distillation.DistillationTankModel;
 import com.jesz.createdieselgenerators.content.items.MultiBlockContainerBlockItem;
 import com.jesz.createdieselgenerators.content.oil_barrel.OilBarrelBlock;
+import com.jesz.createdieselgenerators.content.oil_barrel.OilBarrelCTBehavior;
 import com.jesz.createdieselgenerators.content.pumpjack.*;
 import com.jesz.createdieselgenerators.content.sheetmetal.SheetMetalPanelBlock;
 import com.jesz.createdieselgenerators.content.sheetmetal.SheetMetalPanelModel;
@@ -30,6 +31,7 @@ import com.jesz.createdieselgenerators.contraption.DieselEngineMovementBehaviour
 import com.jesz.createdieselgenerators.contraption.PumpjackBearingBMovementBehaviour;
 import com.jesz.createdieselgenerators.contraption.PumpjackHeadMovementBehaviour;
 import com.simibubi.create.AllBlocks;
+import com.simibubi.create.AllMountedStorageTypes;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.api.behaviour.display.DisplaySource;
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
@@ -62,6 +64,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.jesz.createdieselgenerators.CreateDieselGenerators.REGISTRATE;
+import static com.simibubi.create.api.contraption.storage.fluid.MountedFluidStorageType.mountedFluidStorage;
 import static com.simibubi.create.foundation.data.CreateRegistrate.connectedTextures;
 import static com.simibubi.create.foundation.data.TagGen.axeOnly;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
@@ -242,6 +245,8 @@ public class CDGBlocks {
             .transform(pickaxeOnly())
             .tag(AllTags.AllBlockTags.COPYCAT_ALLOW.tag)
             .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.standardModel(c, p)))
+            .transform(mountedFluidStorage(CDGMountedStorageTypes.OIL_BARREL))
+            .onRegister(CreateRegistrate.connectedTextures(OilBarrelCTBehavior::new))
             .item(MultiBlockContainerBlockItem::new)
             .build()
             .register();

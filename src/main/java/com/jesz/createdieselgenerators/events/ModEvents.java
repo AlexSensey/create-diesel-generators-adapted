@@ -119,6 +119,7 @@ public class ModEvents {
         event.register(TrackLayersBagComponent.class,
                 c -> c);
     }
+
     @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
     public static void addEntityRendererLayers(EntityRenderersEvent.AddLayers event) {

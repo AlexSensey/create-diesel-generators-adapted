@@ -159,6 +159,7 @@ public class HammerItem extends Item {
         return 90;
     }
 
+    @OnlyIn(Dist.CLIENT)
     public void registerExtension(RegisterClientExtensionsEvent event) {
         event.registerItem(SimpleCustomRenderer.create(this, new HammerItemRenderer()), this);
     }

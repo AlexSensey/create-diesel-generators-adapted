@@ -126,8 +126,8 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
         CompoundTag tag = new CompoundTag();
         tag.putBoolean("Fire", fire);
         tag.putBoolean("Cooling", cooling);
-        tag.put("FluidStack", new CompoundTag());
-        FluidStack.EMPTY.save(level().registryAccess(), tag.getCompound("FluidStack"));
+        //tag.put("FluidStack", new CompoundTag());
+        //stack.save(level().registryAccess(), tag.getCompound("FluidStack"));
         builder.define(DATA, tag);
     }
 

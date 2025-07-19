@@ -22,6 +22,8 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
 import java.util.Optional;
@@ -128,6 +130,7 @@ public class WireCuttersItem extends Item {
         return 90;
     }
 
+    @OnlyIn(Dist.CLIENT)
     public void registerExtension(RegisterClientExtensionsEvent event) {
         event.registerItem(SimpleCustomRenderer.create(this, new WireCuttersItemRenderer()), this);
     }
