@@ -60,8 +60,8 @@ public class CDGCreativeTab {
                         output.accept(CDGItems.CHEMICAL_SPRAYER.get());
                         output.accept(CDGItems.CHEMICAL_SPRAYER_LIGHTER.get());
                         output.accept(CDGItems.TRACK_LAYERS_BAG.get());
-                        output.accept(CDGItems.ENTITY_FILTER.get());
                         output.accept(TrackLayersBagItem.full());
+                        output.accept(CDGItems.ENTITY_FILTER.get());
                         MoldType.types.forEach(mt -> {
                             ItemStack moldStack = CDGItems.MOLD.asStack();
                             moldStack.set(CDGDataComponents.MOLD_TYPE, mt.getId());

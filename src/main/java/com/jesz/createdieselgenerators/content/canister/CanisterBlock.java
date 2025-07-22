@@ -66,7 +66,7 @@ public class CanisterBlock extends Block implements IBE<CanisterBlockEntity>, Pr
             be.setCapacityEnchantLevel(stack.getEnchantmentLevel(level.holderOrThrow(AllEnchantments.CAPACITY)));
         });
 
-        if(stack.getEnchantmentLevel(level.holderOrThrow(AllEnchantments.CAPACITY)) != 0)
+        if (stack.getEnchantmentLevel(level.holderOrThrow(AllEnchantments.CAPACITY)) != 0)
             level.setBlock(pos, state.setValue(ENCHANTED, true), 2);
     }
 

@@ -2,6 +2,7 @@
   "type": "createdieselgenerators:bulk_fermenting",
   "ingredients": [
     {
+      "type": "fluid_stack",
       "fluid": "minecraft:water",
       "amount": 250
     },

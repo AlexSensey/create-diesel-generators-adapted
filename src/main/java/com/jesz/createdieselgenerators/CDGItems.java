@@ -49,6 +49,7 @@ public class CDGItems {
             .register();
 
     public static final ItemEntry<TrackLayersBagItem> TRACK_LAYERS_BAG = REGISTRATE.item("track_layers_bag", TrackLayersBagItem::new)
+            .lang("Track Layer's Bag")
             .onRegister(TrackLayersBagItem::registerModelOverrides)
             .model(TrackLayersBagItem::addOverrideModels)
             .register();

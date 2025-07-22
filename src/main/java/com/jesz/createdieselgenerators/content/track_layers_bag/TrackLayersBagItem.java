@@ -5,16 +5,13 @@ import com.jesz.createdieselgenerators.CDGItems;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.mixins.UseOnContextInvoker;
 import com.simibubi.create.AllBlocks;
-import com.simibubi.create.content.equipment.sandPaper.SandPaperItemComponent;
 import com.simibubi.create.content.trains.track.TrackBlock;
 import com.simibubi.create.content.trains.track.TrackBlockItem;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateItemModelProvider;
 import net.createmod.catnip.platform.CatnipServices;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
@@ -26,7 +23,6 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -37,7 +33,6 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 
-import java.util.List;
 import java.util.Optional;
 
 public class TrackLayersBagItem extends Item {
@@ -52,10 +47,6 @@ public class TrackLayersBagItem extends Item {
         return Optional.of(new TrackLayersBagComponent(track));
     }
 
-    public void appendHoverText(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("item.minecraft.bundle.fullness", getTracks(stack).getCount(), 1024).withStyle(ChatFormatting.GRAY));
-    }
-
     int add(ItemStack bag, ItemStack stack) {
         if (!stack.isEmpty() && stack.getItem() instanceof TrackBlockItem) {
             ItemStack stackInBag = getTracks(bag);
@@ -68,8 +59,7 @@ public class TrackLayersBagItem extends Item {
             else
                 stackInBag.setCount(Math.min(oldCount + stack.getCount(), 1024));
 
-            stack.set(CDGDataComponents.TRACK_AMOUNT, stackInBag.getCount());
-            stack.set(CDGDataComponents.TRACK_TYPE, new SandPaperItemComponent(stackInBag));
+            bag.set(CDGDataComponents.TRACKS, new TrackLayersBagItemDataComponent(stackInBag));
             return Math.min(stack.getCount(), 1024 - oldCount);
         }
         return 0;
@@ -81,19 +71,15 @@ public class TrackLayersBagItem extends Item {
         if (stackInBag.isEmpty())
             return ItemStack.EMPTY;
 
-        ItemStack extractedStack = getTracks(bag);
-
-        ItemStack savedStack = extractedStack.copy();
+        ItemStack savedStack = stackInBag.copy();
+        int amount = savedStack.getCount();
         savedStack.shrink(64);
-        bag.set(CDGDataComponents.TRACK_AMOUNT, stackInBag.getCount());
-        bag.set(CDGDataComponents.TRACK_TYPE, new SandPaperItemComponent(stackInBag));
-        extractedStack.setCount(Math.min(64, extractedStack.getCount()));
+        bag.set(CDGDataComponents.TRACKS, new TrackLayersBagItemDataComponent(savedStack));
 
-        if(savedStack.getCount() == 0){
-            bag.remove(CDGDataComponents.TRACK_AMOUNT);
-            bag.remove(CDGDataComponents.TRACK_TYPE);
-        }
-        return extractedStack;
+        if (savedStack.getCount() == 0)
+            bag.remove(CDGDataComponents.TRACKS);
+
+        return stackInBag.copyWithCount(Math.min(amount, 64));
     }
 
     @Override
@@ -113,15 +99,15 @@ public class TrackLayersBagItem extends Item {
 
     @Override
     public boolean overrideStackedOnOther(ItemStack stack, Slot slot, ClickAction click, Player player) {
-        if(stack.getCount() != 1 || click != ClickAction.SECONDARY)
+        if (stack.getCount() != 1 || click != ClickAction.SECONDARY)
             return false;
 
         ItemStack stackInSlot = slot.getItem();
 
-        if(stackInSlot.isEmpty() && slot.mayPlace(getTracks(stack))){
+        if (stackInSlot.isEmpty() && slot.mayPlace(getTracks(stack))) {
             player.playSound(SoundEvents.BUNDLE_REMOVE_ONE, 0.8F, 0.8F + player.level().getRandom().nextFloat() * 0.4F);
             slot.set(removeOne(stack));
-        }else if(!stackInSlot.isEmpty() && slot.mayPickup(player)){
+        } else if(!stackInSlot.isEmpty() && slot.mayPickup(player)){
             int added = add(stack, stackInSlot);
             if(added > 0) {
                 player.playSound(SoundEvents.BUNDLE_INSERT, 0.8F, 0.8F + player.level().getRandom().nextFloat() * 0.4F);
@@ -152,30 +138,25 @@ public class TrackLayersBagItem extends Item {
     }
 
     public static ItemStack getTracks(ItemStack stack) {
-        SandPaperItemComponent existingTypeComponent = stack.get(CDGDataComponents.TRACK_TYPE);
-        ItemStack existingType;
-        if (existingTypeComponent == null)
-            existingType = ItemStack.EMPTY;
+        TrackLayersBagItemDataComponent component = stack.get(CDGDataComponents.TRACKS);
+        ItemStack trackStack;
+        if (component == null)
+            trackStack = ItemStack.EMPTY;
         else
-            existingType = existingTypeComponent.item();
-        Integer amount = stack.get(CDGDataComponents.TRACK_AMOUNT);
-        existingType.setCount(amount == null ? 0 : amount);
-        return existingType;
+            trackStack = component.stack().copyWithCount(component.count());
+        return trackStack;
     }
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
         ItemStack stack = context.getItemInHand();
         ItemStack tracks = getTracks(stack);
-        if(tracks.isEmpty())
+        if (tracks.isEmpty())
             return super.useOn(context);
         BlockState clickedState = context.getLevel().getBlockState(context.getClickedPos());
 
         if (!(clickedState.getBlock() instanceof TrackBlock)) {
-            Integer amount = stack.get(CDGDataComponents.TRACK_AMOUNT);
-            if (amount == null)
-                amount = 0;
-            stack.set(CDGDataComponents.TRACK_AMOUNT, Math.max(0, amount - 1));
+            stack.set(CDGDataComponents.TRACKS, new TrackLayersBagItemDataComponent(tracks.copyWithCount(Math.max(0, tracks.getCount() - 1))));
 
 
             return ((TrackBlockItem) tracks.getItem()).place(new BlockPlaceContext(
@@ -229,7 +210,7 @@ public class TrackLayersBagItem extends Item {
         return builder;
     }
 
-    public static ItemStack full(){
+    public static ItemStack full() {
         ItemStack stack = CDGItems.TRACK_LAYERS_BAG.asStack();
         ((TrackLayersBagItem)stack.getItem()).add(stack, AllBlocks.TRACK.asStack(1024));
         return stack;

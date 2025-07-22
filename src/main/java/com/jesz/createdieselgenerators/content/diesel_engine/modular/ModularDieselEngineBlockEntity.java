@@ -52,7 +52,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
     @NotNull
     protected EngineUpgrades upgrade = EngineUpgrades.EMPTY;
     protected IFluidHandler fluidCapability;
-    protected FluidTank tankInventory = new SmartFluidTank(0, f -> sendData());
+    protected FluidTank tankInventory = new SmartFluidTank(1000, f -> sendData());
     protected BlockPos controller;
     protected BlockPos lastKnownPos;
     protected boolean updateConnectivity = false;

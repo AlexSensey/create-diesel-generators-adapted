@@ -2,7 +2,7 @@
   "type": "create:cutting",
   "ingredients": [
     {
-      "tag": "c:stick"
+      "tag": "c:rods/wooden"
     }
   ],
   "results": [

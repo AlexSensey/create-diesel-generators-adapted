@@ -8,7 +8,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -23,13 +25,15 @@ public class PumpjackBearingBlock extends BearingBlock implements IBE<PumpjackBe
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (!stack.isEmpty())
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         if (!player.mayBuild())
-            return InteractionResult.FAIL;
+            return ItemInteractionResult.FAIL;
         if (player.isShiftKeyDown())
-            return InteractionResult.FAIL;
+            return ItemInteractionResult.FAIL;
         if (level.isClientSide)
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
 
         withBlockEntityDo(level, pos, be -> {
             if (be.isRunning())
@@ -37,7 +41,7 @@ public class PumpjackBearingBlock extends BearingBlock implements IBE<PumpjackBe
             else
                 be.assembleNextTick();
         });
-        return InteractionResult.SUCCESS;
+        return ItemInteractionResult.SUCCESS;
     }
 
     @Override
@@ -51,10 +55,8 @@ public class PumpjackBearingBlock extends BearingBlock implements IBE<PumpjackBe
     }
 
     @Override
-    public InteractionResult onWrenched(BlockState state, UseOnContext context) {
-        context.getLevel().setBlockAndUpdate(context.getClickedPos(), CDGBlocks.PUMPJACK_BEARING_B.getDefaultState().setValue(PumpjackBearingBBlock.FACING, state.getValue(FACING).getAxis() != Direction.Axis.Y ? state.getValue(FACING) : Direction.NORTH));
-
-        return InteractionResult.SUCCESS;
+    public BlockState getRotatedBlockState(BlockState originalState, Direction targetedFace) {
+        return CDGBlocks.PUMPJACK_BEARING_B.getDefaultState().setValue(PumpjackBearingBBlock.FACING, originalState.getValue(FACING).getAxis() != Direction.Axis.Y ? originalState.getValue(FACING) : Direction.NORTH);
     }
 
     @Override

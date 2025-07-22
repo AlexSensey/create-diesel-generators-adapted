@@ -2,7 +2,7 @@
   "type": "createdieselgenerators:hammering",
   "ingredients": [
     {
-      "tag": "forge:ingots/nickel"
+      "tag": "c:ingots/nickel"
     }
   ],
   "results": [

@@ -86,7 +86,7 @@ public class WireCuttersItem extends Item {
     @Override
     public void onUseTick(Level level, LivingEntity entity, ItemStack stack, int tick) {
         if (AnimationTickHolder.getTicks() % 10 == 0) {
-            level.playLocalSound(entity.xo, entity.yo, entity.zo, SoundEvents.ANVIL_PLACE, SoundSource.PLAYERS, 0.3f, 1f, true);
+            level.playLocalSound(entity.xo, entity.yo, entity.zo, SoundEvents.SHEEP_SHEAR, SoundSource.PLAYERS, 0.3f, 1f, true);
 
             if (!stack.has(CDGDataComponents.PROCESSING_ITEM)) {
                 super.onUseTick(level, entity, stack, tick);

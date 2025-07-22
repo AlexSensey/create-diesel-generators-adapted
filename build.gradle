@@ -99,8 +99,8 @@ dependencies {
     implementation("com.tterrag.registrate:Registrate:${registrate_version}")
 //    implementation("curse.maven:createaddition-439890:6445614")
 
-//    compileOnly("curse.maven:kubejs-238086:5810100")
-    implementation("dev.latvian.mods:kubejs-neoforge:2101.7.2-build.200")
+    compileOnly("curse.maven:kubejs-238086:5810100")
+//    implementation("dev.latvian.mods:kubejs-neoforge:2101.7.2-build.200")
 
 //    implementation("curse.maven:rhino-416294:6184623")
     implementation("dev.latvian.mods:rhino:2101.2.7-build.74")
@@ -126,7 +126,8 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_license            : mod_license,
             mod_version            : mod_version,
             mod_authors            : mod_authors,
-            mod_description        : mod_description
+            mod_description        : mod_description,
+            create_version_range   : create_version_range
     ]
     inputs.properties replaceProperties
     expand replaceProperties

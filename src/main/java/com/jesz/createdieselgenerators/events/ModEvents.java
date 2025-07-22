@@ -136,7 +136,8 @@ public class ModEvents {
                 (item, c) -> CDGItems.LIGHTER.get().getFluidHandler(item),
                 CDGItems.LIGHTER,
                 CDGItems.CHEMICAL_SPRAYER,
-                CDGItems.CHEMICAL_SPRAYER_LIGHTER);
+                CDGItems.CHEMICAL_SPRAYER_LIGHTER,
+                CDGBlocks.CANISTER);
         BulkFermenterBlockEntity.registerCapabilities(event);
         BurnerBlockEntity.registerCapabilities(event);
         CanisterBlockEntity.registerCapabilities(event);

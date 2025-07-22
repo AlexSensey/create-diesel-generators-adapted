@@ -4,6 +4,7 @@ import com.jesz.createdieselgenerators.CDGBlocks;
 import com.simibubi.create.content.contraptions.bearing.BearingBlock;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -23,10 +24,10 @@ public class PumpjackBearingBBlock extends Block implements IWrenchable {
     public PumpjackBearingBBlock(Properties properties) {
         super(properties);
     }
+
     @Override
-    public InteractionResult onWrenched(BlockState state, UseOnContext context) {
-        context.getLevel().setBlock(context.getClickedPos(), CDGBlocks.PUMPJACK_BEARING.getDefaultState().setValue(BearingBlock.FACING, state.getValue(FACING)), 2);
-        return InteractionResult.SUCCESS;
+    public BlockState getRotatedBlockState(BlockState originalState, Direction targetedFace) {
+        return CDGBlocks.PUMPJACK_BEARING.getDefaultState().setValue(BearingBlock.FACING, originalState.getValue(FACING));
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.jesz.createdieselgenerators.content.canister;
 
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGConfig;
+import com.jesz.createdieselgenerators.CDGDataComponents;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
@@ -17,8 +18,10 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
 
 import java.util.List;
+import java.util.Optional;
 
 public class CanisterBlockEntity extends SmartBlockEntity implements IHaveGoggleInformation {
     CapacityEnchantedFluidTankBehaviour tank;
@@ -74,13 +77,18 @@ public class CanisterBlockEntity extends SmartBlockEntity implements IHaveGoggle
 
     public void setComponentPatch(DataComponentPatch componentPatch) {
         this.componentPatch = componentPatch;
+        Optional<? extends SimpleFluidContent> content = componentPatch.get(CDGDataComponents.FLUID_CONTENTS);
+        if (content == null || content.isEmpty())
+            return;
+
+        this.tank.getPrimaryHandler().setFluid(content.get().copy());
     }
 
     public DataComponentPatch getComponentPatch() {
         return componentPatch;
     }
-    public static class CapacityEnchantedFluidTankBehaviour extends SmartFluidTankBehaviour{
 
+    public static class CapacityEnchantedFluidTankBehaviour extends SmartFluidTankBehaviour {
 
         int capacityAddition;
         int baseCapacity;

@@ -2,8 +2,16 @@
   "type": "createdieselgenerators:compression_molding",
   "ingredients": [
     {
-      "tag": "c:ingots/hop_graphite",
-      "count": 4
+      "tag": "c:ingots/hop_graphite"
+    },
+    {
+      "tag": "c:ingots/hop_graphite"
+    },
+    {
+      "tag": "c:ingots/hop_graphite"
+    },
+    {
+      "tag": "c:ingots/hop_graphite"
     }
   ],
   "mold": "createdieselgenerators:lines",

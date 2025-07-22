@@ -1,18 +1,15 @@
 package com.jesz.createdieselgenerators;
 
 import com.jesz.createdieselgenerators.content.entity_filter.EntityAttribute;
+import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagItemDataComponent;
 import com.simibubi.create.content.equipment.sandPaper.SandPaperItemComponent;
-import com.simibubi.create.content.logistics.item.filter.attribute.ItemAttribute;
 import net.createmod.catnip.codecs.stream.CatnipStreamCodecBuilders;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.ApiStatus;
@@ -29,11 +26,8 @@ public class CDGDataComponents {
     public static final DataComponentType<SimpleFluidContent> FLUID_CONTENTS = register("fluid_contents",
             builder -> builder.persistent(SimpleFluidContent.CODEC).networkSynchronized(SimpleFluidContent.STREAM_CODEC));
 
-    public static final DataComponentType<SandPaperItemComponent> TRACK_TYPE = register("track_type",
-            builder -> builder.persistent(SandPaperItemComponent.CODEC).networkSynchronized(SandPaperItemComponent.STREAM_CODEC));
-
-    public static final DataComponentType<Integer> TRACK_AMOUNT = register("track_amount",
-            builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+    public static final DataComponentType<TrackLayersBagItemDataComponent> TRACKS = register("tracks",
+            builder -> builder.persistent(TrackLayersBagItemDataComponent.CODEC).networkSynchronized(TrackLayersBagItemDataComponent.STREAM_CODEC));
 
     public static final DataComponentType<ResourceLocation> MOLD_TYPE = register("mold_type",
             builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC));

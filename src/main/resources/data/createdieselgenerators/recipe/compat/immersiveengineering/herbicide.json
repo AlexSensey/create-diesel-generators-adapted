@@ -2,14 +2,15 @@
   "type": "createdieselgenerators:bulk_fermenting",
   "ingredients": [
     {
-      "fluidTag": "forge:ethanol",
+      "type": "fluid_tag",
+      "fluidTag": "c:ethanol",
       "amount": 500
     },
     {
-      "tag": "forge:dusts/sulfur"
+      "tag": "c:dusts/sulfur"
     },
     {
-      "tag": "forge:dusts/copper"
+      "tag": "c:dusts/copper"
     }
   ],
   "processingTime": 400,
