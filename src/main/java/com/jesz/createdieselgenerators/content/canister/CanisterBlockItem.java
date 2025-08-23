@@ -66,6 +66,7 @@ public class CanisterBlockItem extends BlockItem implements FueledToolItem {
     public boolean isBarVisible(ItemStack stack) {
         return getCurrentFillLevel(stack) > 0;
     }
+
     @Override
     public int getBarWidth(ItemStack stack) {
         return Math.round(13 * (float) getCurrentFillLevel(stack) / getCapacity(stack));

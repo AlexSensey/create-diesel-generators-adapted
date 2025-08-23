@@ -5,7 +5,6 @@ import com.jesz.createdieselgenerators.CDGRecipes;
 import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.fluids.tank.FluidTankBlock;
-import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer;
@@ -36,7 +35,6 @@ import net.neoforged.neoforge.fluids.IFluidTank;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
@@ -64,7 +62,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
 
     // For rendering purposes only
     private LerpedFloat fluidLevel;
-    BlazeBurnerBlock.HeatLevel currentHeating = BlazeBurnerBlock.HeatLevel.NONE;
+    BlazeBurnerBlock.HeatLevel highestHeatLevel = BlazeBurnerBlock.HeatLevel.NONE;
 
     public DistillationTankBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -81,18 +79,18 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
     protected SmartFluidTank createInventory() {return new SmartFluidTank(getCapacityMultiplier(), this::onFluidStackChanged);}
     public BlazeBurnerBlock.HeatLevel getHeat() {
         int width = getControllerBE().width;
-        BlazeBurnerBlock.HeatLevel lowestHeat = BlazeBurnerBlock.HeatLevel.SEETHING;
+        BlazeBurnerBlock.HeatLevel highestHeat = BlazeBurnerBlock.HeatLevel.NONE;
 
         for (int xOffset = 0; xOffset < width; xOffset++) {
             for (int zOffset = 0; zOffset < width; zOffset++) {
                 BlockPos pos = getController().offset(xOffset, -1, zOffset);
                 BlockState blockState = level.getBlockState(pos);
                 BlazeBurnerBlock.HeatLevel heat = BasinBlockEntity.getHeatLevelOf(blockState);
-                if(!heat.isAtLeast(lowestHeat))
-                    lowestHeat = heat;
+                if(!highestHeat.isAtLeast(heat))
+                    highestHeat = heat;
             }
         }
-        return lowestHeat;
+        return highestHeat;
     }
     public void updateConnectivity() {
         updateConnectivity = false;
@@ -137,13 +135,13 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
                 if (canFill)
                     processingTime--;
 
-                if (!(tankInventory.getFluid().getAmount() >= currentRecipe.getFluidIngredients().get(0).getRequiredAmount() && currentRecipe.getRequiredHeat().testBlazeBurner(currentHeating))) {
+                if (!(tankInventory.getFluid().getAmount() >= currentRecipe.getFluidIngredients().get(0).getRequiredAmount() && currentRecipe.getRequiredHeat().testBlazeBurner(highestHeatLevel))) {
                     currentRecipe = null;
                     processingTime = -1;
                 }
             }
             if (processingTime == 0 && currentRecipe != null) {
-                if (tankInventory.getFluid().getAmount() >= currentRecipe.getFluidIngredients().get(0).getRequiredAmount()  && currentRecipe.getRequiredHeat().testBlazeBurner(currentHeating)) {
+                if (tankInventory.getFluid().getAmount() >= currentRecipe.getFluidIngredients().get(0).getRequiredAmount()  && currentRecipe.getRequiredHeat().testBlazeBurner(highestHeatLevel)) {
                     tankInventory.drain(currentRecipe.getFluidIngredients().get(0).getRequiredAmount(), IFluidHandler.FluidAction.EXECUTE);
                     if (currentRecipe != null)
                         for (int i = 0; i < currentRecipe.getFluidResults().size(); i++) {
@@ -227,7 +225,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
                 })
                 .filter(r ->{
                             if(r instanceof DistillationRecipe recipe){
-                                if(!recipe.getRequiredHeat().testBlazeBurner(currentHeating))
+                                if(!recipe.getRequiredHeat().testBlazeBurner(highestHeatLevel))
                                     return false;
                                 return recipe.getFluidIngredients().get(0).test(tankInventory.getFluid());
                             }
@@ -714,7 +712,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
         if (!isBottom())
             return;
         if (isController()) {
-            currentHeating = getHeat();
+            highestHeatLevel = getHeat();
             sendData();
             checkForRecipes();
             return;

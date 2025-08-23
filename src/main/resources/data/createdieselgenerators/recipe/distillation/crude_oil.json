@@ -8,7 +8,7 @@
     }
   ],
   "heat_requirement": "heated",
-  "processing_time": 100,
+  "processing_time": 60,
   "results": [
     {
       "id": "createdieselgenerators:diesel",

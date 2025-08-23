@@ -43,7 +43,6 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -73,7 +72,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     public int processingTime = -1;
     BulkFermentingRecipe currentRecipe;
 
-    BlazeBurnerBlock.HeatLevel lowestHeatLevel = BlazeBurnerBlock.HeatLevel.NONE;
+    BlazeBurnerBlock.HeatLevel highestHeatLevel = BlazeBurnerBlock.HeatLevel.NONE;
     public BulkFermenterBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
         tankInventory = createInventory();
@@ -354,7 +353,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
             public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
                 for (int i = 0; i < getSlots(); i++) {
                     if (ItemStack.isSameItemSameComponents(getStackInSlot(i), stack)) {
-                        int space = getSlotLimit(i) - getStackInSlot(i).getCount();
+                        int space = Math.min(stack.getMaxStackSize(), getSlotLimit(i)) - getStackInSlot(i).getCount();
                         if (space == 0)
                             return stack;
                         return super.insertItem(i, stack, simulate)
@@ -402,7 +401,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
         if (isController()) {
             width = tag.getInt("Size");
             height = tag.getInt("Height");
-            lowestHeatLevel = BlazeBurnerBlock.HeatLevel.values()[tag.getInt("Heat")];
+            highestHeatLevel = BlazeBurnerBlock.HeatLevel.values()[tag.getInt("Heat")];
             tankInventory.setCapacity(getTotalTankSize() * getCapacityMultiplier());
             tankInventory.readFromNBT(registries, tag.getCompound("TankContent"));
 
@@ -443,7 +442,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
             tag.putInt("Size", width);
             tag.putInt("Height", height);
             tag.putInt("ProcessingTime", processingTime);
-            tag.putInt("Heat", lowestHeatLevel.ordinal());
+            tag.putInt("Heat", highestHeatLevel.ordinal());
         }
         tag.put("Inventory", inventory.serializeNBT(registries));
 
@@ -480,7 +479,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     }
 
     public static int getCapacityMultiplier() {
-        return AllConfigs.server().fluids.fluidTankCapacity.get() * 1000;
+        return 1000;
     }
 
     @Override
@@ -620,26 +619,31 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
 
         return true;
     }
-    public void updateHeat(){
+    public void updateHeat() {
         BulkFermenterBlockEntity controller = getControllerBE();
         int width;
-        if(controller == null)
+        if (controller == null)
             width = 1;
-        else
+        else {
+            if (controller != this) {
+                controller.updateHeat();
+                return;
+            }
             width = controller.width;
+        }
 
-        BlazeBurnerBlock.HeatLevel lowestHeat = BlazeBurnerBlock.HeatLevel.SEETHING;
+        BlazeBurnerBlock.HeatLevel highestHeat = BlazeBurnerBlock.HeatLevel.NONE;
 
         for (int xOffset = 0; xOffset < width; xOffset++) {
             for (int zOffset = 0; zOffset < width; zOffset++) {
                 BlockPos pos = getController().offset(xOffset, -1, zOffset);
                 BlockState blockState = level.getBlockState(pos);
                 BlazeBurnerBlock.HeatLevel heat = BasinBlockEntity.getHeatLevelOf(blockState);
-                if(!heat.isAtLeast(lowestHeat))
-                    lowestHeat = heat;
+                if(!highestHeat.isAtLeast(heat))
+                    highestHeat = heat;
             }
         }
-        lowestHeatLevel = lowestHeat;
+        highestHeatLevel = highestHeat;
 
         List<Recipe<?>> r = getMatchingRecipes();
         if (!r.contains(currentRecipe)) {

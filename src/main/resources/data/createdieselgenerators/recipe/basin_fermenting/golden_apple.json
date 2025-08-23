@@ -22,10 +22,12 @@
     {
       "type": "fluid_stack",
       "fluid": "create:potion",
-      "nbt": {
-        "Potion": "minecraft:mundane"
+      "components": {
+        "minecraft:potion_contents": {
+          "potion": "minecraft:awkward"
+        }
       },
-      "amount": 100
+      "amount": 250
     }
   ],
   "processing_time": 400,
@@ -35,10 +37,12 @@
     },
     {
       "id": "create:potion",
-      "nbt": {
-        "Potion": "minecraft:thick"
+      "components": {
+        "minecraft:potion_contents": {
+          "potion": "minecraft:awkward"
+        }
       },
-      "amount": 100
+      "amount": 250
     }
   ]
 }

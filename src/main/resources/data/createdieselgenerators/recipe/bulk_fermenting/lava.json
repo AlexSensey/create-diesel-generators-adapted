@@ -2,7 +2,7 @@
   "type": "createdieselgenerators:bulk_fermenting",
   "ingredients": [
     {
-      "tag": "c:cobblestone"
+      "tag": "c:cobblestones"
     }
   ],
   "heat_requirement": "superheated",

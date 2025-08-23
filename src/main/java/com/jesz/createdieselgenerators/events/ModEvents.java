@@ -18,6 +18,7 @@ import com.jesz.createdieselgenerators.content.molds.BasinSpoutCasting;
 import com.jesz.createdieselgenerators.content.molds.MoldType;
 import com.jesz.createdieselgenerators.content.oil_barrel.OilBarrelBlockEntity;
 import com.jesz.createdieselgenerators.content.pumpjack.PumpjackHoleBlockEntity;
+import com.jesz.createdieselgenerators.content.tools.FueledToolItem;
 import com.jesz.createdieselgenerators.content.tools.lighter.LighterItem;
 import com.jesz.createdieselgenerators.content.tools.lighter.LighterModel;
 import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagComponent;
@@ -133,7 +134,7 @@ public class ModEvents {
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerItem(
                 Capabilities.FluidHandler.ITEM,
-                (item, c) -> CDGItems.LIGHTER.get().getFluidHandler(item),
+                (item, c) -> ((FueledToolItem)item.getItem()).getFluidHandler(item),
                 CDGItems.LIGHTER,
                 CDGItems.CHEMICAL_SPRAYER,
                 CDGItems.CHEMICAL_SPRAYER_LIGHTER,

@@ -71,7 +71,7 @@ public class BulkFermentingRecipe extends StandardProcessingRecipe<SmartInventor
             return false;
 
 
-        BlazeBurnerBlock.HeatLevel heat = be.lowestHeatLevel;
+        BlazeBurnerBlock.HeatLevel heat = be.highestHeatLevel;
         if (!getRequiredHeat().testBlazeBurner(heat))
             return false;
 
