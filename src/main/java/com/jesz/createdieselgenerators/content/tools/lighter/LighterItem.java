@@ -1,19 +1,15 @@
 package com.jesz.createdieselgenerators.content.tools.lighter;
 
 import com.jesz.createdieselgenerators.CDGDataComponents;
-import com.jesz.createdieselgenerators.CDGItems;
 import com.jesz.createdieselgenerators.CDGRegistries;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.content.tools.FueledToolItem;
-import com.jesz.createdieselgenerators.content.tools.wire_cutters.WireCuttersItemRenderer;
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.IntTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -37,8 +33,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 
@@ -46,7 +40,7 @@ import java.util.List;
 
 public class LighterItem extends Item implements FueledToolItem {
     public LighterItem(Properties properties) {
-        super(properties.stacksTo(1));
+        super(properties);
     }
 
     @Override

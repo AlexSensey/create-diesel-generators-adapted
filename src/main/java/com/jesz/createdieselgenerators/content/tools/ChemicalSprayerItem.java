@@ -33,7 +33,7 @@ import java.util.Random;
 public class ChemicalSprayerItem extends Item implements CustomArmPoseItem, FueledToolItem {
     boolean lighter;
     public ChemicalSprayerItem(Properties properties, boolean lighter) {
-        super(properties.stacksTo(1));
+        super(properties);
         this.lighter = lighter;
     }
 

@@ -154,7 +154,7 @@ public class BurnerBlockEntity extends KineticBlockEntity {
                 Capabilities.FluidHandler.BLOCK,
                 CDGBlockEntityTypes.BURNER.get(),
                 (be, context) -> {
-                    if (context == null || context == Direction.DOWN)
+                    if (context != Direction.UP)
                         return be.tank;
                     return null;
                 }
