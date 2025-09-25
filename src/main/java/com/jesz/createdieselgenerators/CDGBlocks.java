@@ -137,6 +137,7 @@ public class CDGBlocks {
             .initialProperties(SharedProperties::stone)
             .properties(p -> p.mapColor(MapColor.METAL))
             .transform(pickaxeOnly())
+            .loot((p, b) -> p.dropOther(b, AllBlocks.SHAFT))
             .blockstate(BlockStateGen.axisBlockProvider(false))
             .register();
 
