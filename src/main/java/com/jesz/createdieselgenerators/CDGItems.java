@@ -13,7 +13,9 @@ import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagIt
 import com.simibubi.create.AllTags;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.tterrag.registrate.util.entry.ItemEntry;
+import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Tiers;
 
 import static com.jesz.createdieselgenerators.CreateDieselGenerators.REGISTRATE;
 
@@ -62,6 +64,8 @@ public class CDGItems {
 
     public static final ItemEntry<HammerItem> HAMMER = REGISTRATE.item("hammer", HammerItem::new)
             .properties(p -> p.durability(128))
+            .properties(p -> p.attributes(AxeItem.createAttributes(Tiers.IRON, 6.0F, -3.1F)))
+            .model((c, p) -> p.handheldItem(c.getEntry()))
             .register();
 
     public static final ItemEntry<WireCuttersItem> WIRE_CUTTERS = REGISTRATE.item("wire_cutters", WireCuttersItem::new)
