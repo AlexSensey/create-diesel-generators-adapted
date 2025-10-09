@@ -3,7 +3,6 @@ package com.jesz.createdieselgenerators.compat.computercraft;
 import com.simibubi.create.compat.Mods;
 import com.simibubi.create.compat.computercraft.AbstractComputerBehaviour;
 import com.simibubi.create.compat.computercraft.FallbackComputerBehaviour;
-import com.simibubi.create.compat.computercraft.implementation.ComputerBehaviour;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 
 import java.util.function.Function;
@@ -15,7 +14,7 @@ public class CCProxy {
     }
 
     private static void registerWithDependency() {
-        computerFactory = ComputerBehaviour::new;
+        computerFactory = CDGComputerBehaviour::new;
     }
 
     private static Function<SmartBlockEntity, ? extends AbstractComputerBehaviour> fallbackFactory;

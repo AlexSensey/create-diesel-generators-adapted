@@ -5,11 +5,14 @@ import com.jesz.createdieselgenerators.CDGRegistries;
 import com.jesz.createdieselgenerators.compat.computercraft.CCProxy;
 import com.jesz.createdieselgenerators.content.tools.ChemicalSprayerProjectileEntity;
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
+import com.simibubi.create.AllBlockEntityTypes;
 import com.simibubi.create.AllSoundEvents;
+import com.simibubi.create.compat.Mods;
 import com.simibubi.create.compat.computercraft.AbstractComputerBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
+import dan200.computercraft.api.peripheral.PeripheralCapability;
 import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -60,6 +63,14 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
                     return null;
                 }
         );
+
+        if (Mods.COMPUTERCRAFT.isLoaded()) {
+            event.registerBlockEntity(
+                    PeripheralCapability.get(),
+                    CDGBlockEntityTypes.CHEMICAL_TURRET.get(),
+                    (be, context) -> be.computerBehaviour.getPeripheralCapability()
+            );
+        }
     }
 
     @Override
