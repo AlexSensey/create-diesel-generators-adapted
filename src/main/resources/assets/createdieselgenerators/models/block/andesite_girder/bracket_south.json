@@ -4,6 +4,7 @@
 	"textures": {
 		"0": "createdieselgenerators:block/andesite_girder"
 	},
+	"render_type": "cutout",
 	"elements": [
 		{
 			"from": [2.95, 0.95, 15],

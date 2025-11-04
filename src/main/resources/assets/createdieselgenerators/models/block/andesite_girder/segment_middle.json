@@ -4,6 +4,7 @@
 		"0": "createdieselgenerators:block/andesite_girder",
 		"particle": "create:block/industrial_iron_block"
 	},
+	"render_type": "cutout",
 	"elements": [
 		{
 			"from": [-2, -4, 0],

@@ -5,7 +5,7 @@
       "tag": "c:cobblestones"
     }
   ],
-  "heat_requirement": "superheated",
+  "heat_requirement": "heated",
   "processing_time": 900,
   "results": [
     {
