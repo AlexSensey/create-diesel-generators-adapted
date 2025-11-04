@@ -1,14 +1,12 @@
 package com.jesz.createdieselgenerators.compat.jei;
 
 import com.jesz.createdieselgenerators.content.distillation.DistillationRecipe;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.compat.jei.category.animations.AnimatedBlazeBurner;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.recipe.HeatCondition;
-import com.simibubi.create.foundation.fluid.FluidIngredient;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.foundation.utility.CreateLang;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -18,6 +16,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -36,7 +35,7 @@ public class DistillationCategory extends CreateRecipeCategory<DistillationRecip
 
         if(recipe.getFluidIngredients().isEmpty())
             return;
-        FluidIngredient fluidIngredient = recipe.getFluidIngredients().get(0);
+        SizedFluidIngredient fluidIngredient = recipe.getFluidIngredients().get(0);
         addFluidSlot(builder, 17, 145, fluidIngredient);
 
 

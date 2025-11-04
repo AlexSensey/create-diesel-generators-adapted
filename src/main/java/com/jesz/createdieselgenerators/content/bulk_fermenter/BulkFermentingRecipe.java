@@ -5,17 +5,17 @@ import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.recipe.StandardProcessingRecipe;
-import com.simibubi.create.foundation.fluid.FluidIngredient;
-import com.simibubi.create.foundation.item.SmartInventory;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class BulkFermentingRecipe extends StandardProcessingRecipe<SmartInventory> {
+public class BulkFermentingRecipe extends StandardProcessingRecipe<RecipeInput> {
     public BulkFermentingRecipe(ProcessingRecipeParams params){
         super(CDGRecipes.BULK_FERMENTING, params);
     }
@@ -58,7 +58,7 @@ public class BulkFermentingRecipe extends StandardProcessingRecipe<SmartInventor
     }
 
     @Override
-    public boolean matches(SmartInventory inventory, Level level) {
+    public boolean matches(RecipeInput inventory, Level level) {
         return false;
     }
 
@@ -79,7 +79,7 @@ public class BulkFermentingRecipe extends StandardProcessingRecipe<SmartInventor
         List<FluidStack> recipeOutputFluids = new ArrayList<>();
 
         List<Ingredient> ingredients = new LinkedList<>(getIngredients());
-        List<FluidIngredient> fluidIngredients = getFluidIngredients();
+        List<SizedFluidIngredient> fluidIngredients = getFluidIngredients();
 
         for (boolean simulate : Iterate.trueAndFalse) {
 
@@ -110,8 +110,8 @@ public class BulkFermentingRecipe extends StandardProcessingRecipe<SmartInventor
 
             boolean fluidsAffected = false;
             FluidIngredients:
-            for (FluidIngredient fluidIngredient : fluidIngredients) {
-                int amountRequired = fluidIngredient.getRequiredAmount();
+            for (SizedFluidIngredient fluidIngredient : fluidIngredients) {
+                int amountRequired = fluidIngredient.amount();
 
                 for (int tank = 0; tank < availableFluids.getTanks(); tank++) {
                     FluidStack fluidStack = availableFluids.getFluidInTank(tank);
@@ -138,7 +138,7 @@ public class BulkFermentingRecipe extends StandardProcessingRecipe<SmartInventor
                 be.onFluidStackChanged();
 
             if (simulate) {
-                recipeOutputItems.addAll(rollResults());
+                recipeOutputItems.addAll(rollResults(be.getLevel().random));
 
                 for (FluidStack fluidStack : getFluidResults())
                     if (!fluidStack.isEmpty())

@@ -5,15 +5,16 @@ import com.jesz.createdieselgenerators.CDGItems;
 import com.jesz.createdieselgenerators.content.molds.CastingRecipe;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;
-import com.simibubi.create.foundation.fluid.FluidIngredient;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
+
+import java.util.List;
 
 public class CastingCategory extends CreateRecipeCategory<CastingRecipe> {
 
@@ -31,7 +32,7 @@ public class CastingCategory extends CreateRecipeCategory<CastingRecipe> {
                 .setBackground(getRenderedSlot(), -1, -1)
                 .addItemStack(stack);
 
-        for (FluidIngredient fluidIngredient : recipe.getFluidIngredients()) {
+        for (SizedFluidIngredient fluidIngredient : recipe.getFluidIngredients()) {
             addFluidSlot(builder, 36, 51, fluidIngredient);
 
         }
@@ -58,6 +59,6 @@ public class CastingCategory extends CreateRecipeCategory<CastingRecipe> {
 
         if (vRows <= 2)
             AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 136, -19 * (vRows - 1) + 32);
-        spout.withFluids(recipe.getFluidIngredients().get(0).getMatchingFluidStacks()).draw(graphics, getBackground().getWidth() / 2 + 3, 34);
+        spout.withFluids(List.of(recipe.getFluidIngredients().get(0).getFluids())).draw(graphics, getBackground().getWidth() / 2 + 3, 34);
     }
 }

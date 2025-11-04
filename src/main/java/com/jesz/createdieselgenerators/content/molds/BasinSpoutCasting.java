@@ -24,7 +24,7 @@ public class BasinSpoutCasting implements BlockSpoutingBehaviour {
 
         List<Recipe<RecipeInput>> recipes = level.getRecipeManager().getAllRecipesFor(CDGRecipes.CASTING.getType()).stream()
                 .map(RecipeHolder::value)
-                .filter(r -> r instanceof CastingRecipe cr && cr.matches(basin, availableFluid) && cr.getFluidIngredients().get(0).getRequiredAmount() <= availableFluid.getAmount())
+                .filter(r -> r instanceof CastingRecipe cr && cr.matches(basin, availableFluid) && cr.getFluidIngredients().get(0).amount() <= availableFluid.getAmount())
                 .toList();
 
         if (recipes.isEmpty())

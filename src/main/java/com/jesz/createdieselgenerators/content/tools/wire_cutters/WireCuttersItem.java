@@ -75,7 +75,7 @@ public class WireCuttersItem extends Item {
                 player.getInventory().placeItemBackInInventory(processingItem);
                 return stack;
             }
-            recipe.get().value().rollResults();
+            recipe.get().value().rollResults(level.random);
             player.getInventory().placeItemBackInInventory(recipe.get().value().assemble(inv, level.registryAccess()).copy());
             if (level instanceof ServerLevel sl)
                 stack.hurtAndBreak(1, sl, player, i -> {});

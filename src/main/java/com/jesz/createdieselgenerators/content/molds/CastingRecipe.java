@@ -108,12 +108,12 @@ public class CastingRecipe extends StandardProcessingRecipe<RecipeInput> {
         List<ItemStack> recipeOutputItems = new ArrayList<>();
 
         if (!simulate)
-            recipeOutputItems.addAll(rollResults());
+            recipeOutputItems.addAll(rollResults(basin.getLevel().random));
 
         if (!basin.acceptOutputs(recipeOutputItems, List.of(), false))
             return 0;
 
-        return getFluidIngredients().get(0).getRequiredAmount();
+        return getFluidIngredients().get(0).amount();
     }
 
     @Override

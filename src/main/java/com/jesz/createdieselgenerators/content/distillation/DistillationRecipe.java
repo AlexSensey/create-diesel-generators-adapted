@@ -9,7 +9,7 @@ import com.simibubi.create.foundation.item.SmartInventory;
 import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.level.Level;
 
-public class DistillationRecipe extends StandardProcessingRecipe<SmartInventory> {
+public class DistillationRecipe extends StandardProcessingRecipe<RecipeInput> {
     public DistillationRecipe(ProcessingRecipeParams params){
         super(CDGRecipes.DISTILLATION, params);
 
@@ -45,7 +45,7 @@ public class DistillationRecipe extends StandardProcessingRecipe<SmartInventory>
     }
 
     @Override
-    public boolean matches(SmartInventory input, Level level) {
+    public boolean matches(RecipeInput input, Level level) {
         return false;
     }
 }

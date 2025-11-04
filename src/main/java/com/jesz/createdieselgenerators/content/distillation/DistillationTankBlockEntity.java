@@ -135,14 +135,14 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
                 if (canFill)
                     processingTime--;
 
-                if (!(tankInventory.getFluid().getAmount() >= currentRecipe.getFluidIngredients().get(0).getRequiredAmount() && currentRecipe.getRequiredHeat().testBlazeBurner(highestHeatLevel))) {
+                if (!(tankInventory.getFluid().getAmount() >= currentRecipe.getFluidIngredients().get(0).amount() && currentRecipe.getRequiredHeat().testBlazeBurner(highestHeatLevel))) {
                     currentRecipe = null;
                     processingTime = -1;
                 }
             }
             if (processingTime == 0 && currentRecipe != null) {
-                if (tankInventory.getFluid().getAmount() >= currentRecipe.getFluidIngredients().get(0).getRequiredAmount()  && currentRecipe.getRequiredHeat().testBlazeBurner(highestHeatLevel)) {
-                    tankInventory.drain(currentRecipe.getFluidIngredients().get(0).getRequiredAmount(), IFluidHandler.FluidAction.EXECUTE);
+                if (tankInventory.getFluid().getAmount() >= currentRecipe.getFluidIngredients().get(0).amount()  && currentRecipe.getRequiredHeat().testBlazeBurner(highestHeatLevel)) {
+                    tankInventory.drain(currentRecipe.getFluidIngredients().get(0).amount(), IFluidHandler.FluidAction.EXECUTE);
                     if (currentRecipe != null)
                         for (int i = 0; i < currentRecipe.getFluidResults().size(); i++) {
                             if (level.getBlockEntity(getBlockPos().above(i+1)) instanceof DistillationTankBlockEntity be) {
