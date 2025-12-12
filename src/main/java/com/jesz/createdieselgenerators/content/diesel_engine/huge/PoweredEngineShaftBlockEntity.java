@@ -53,8 +53,12 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
             }
 
         List<Pair<BlockPos, Couple<Float>>> newEngines = new ArrayList<>(engines);
-        if (found != null)
+        if (found != null) {
+            Couple<Float> status = found.getSecond();
+            if (status.getFirst() == stress && status.getSecond() == speed)
+                return;
             newEngines.remove(found);
+        }
         newEngines.add(Pair.of(sourcePos, Couple.create(stress, speed)));
         engines = newEngines;
 
@@ -68,6 +72,7 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
 
         this.speed = maxSpeed.get();
         this.movementDirection = direction;
+
         reActivateSource = true;
     }
 

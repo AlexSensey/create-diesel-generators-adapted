@@ -39,6 +39,8 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
     float remainingTicks = 0;
     EngineUpgrades upgrade = EngineUpgrades.EMPTY;
     SmartFluidTankBehaviour tank;
+    private float lastCapacity;
+    private float lastSpeed;
 
     public DieselEngineBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
@@ -116,7 +118,12 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
     public void tick() {
         super.tick();
 
-        reActivateSource = true;
+        float fuelCapacity = upgrade.getCapacity(getFuelCapacity() * (1 / upgrade.getSpeed(getFuelSpeed(), this)) * getFuelSpeed(), this);
+        if (lastSpeed != getGeneratedSpeed() || lastCapacity != fuelCapacity) {
+            reActivateSource = true;
+            lastSpeed = getGeneratedSpeed();
+            lastCapacity = fuelCapacity;
+        }
 
         if (enabled()) {
             if (remainingTicks < 2) {
