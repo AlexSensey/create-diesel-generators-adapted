@@ -119,7 +119,7 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
         super.tick();
 
         float fuelCapacity = upgrade.getCapacity(getFuelCapacity() * (1 / upgrade.getSpeed(getFuelSpeed(), this)) * getFuelSpeed(), this);
-        if (lastSpeed != getGeneratedSpeed() || lastCapacity != fuelCapacity) {
+        if (!level.isClientSide && (lastSpeed != getGeneratedSpeed() || lastCapacity != fuelCapacity)) {
             reActivateSource = true;
             lastSpeed = getGeneratedSpeed();
             lastCapacity = fuelCapacity;

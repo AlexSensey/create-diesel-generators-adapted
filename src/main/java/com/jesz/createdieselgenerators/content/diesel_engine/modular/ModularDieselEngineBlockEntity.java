@@ -154,7 +154,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
             return;
         }
         float fuelCapacity = upgrade.getCapacity(getFuelCapacity() * getHeight() * (1 / upgrade.getSpeed(getFuelSpeed(), this)) * getFuelSpeed(), this);
-        if (lastSpeed != getGeneratedSpeed() || lastCapacity != fuelCapacity) {
+        if (!level.isClientSide && (lastSpeed != getGeneratedSpeed() || lastCapacity != fuelCapacity)) {
             reActivateSource = true;
             lastSpeed = getGeneratedSpeed();
             lastCapacity = fuelCapacity;
