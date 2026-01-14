@@ -2,12 +2,16 @@
   "type": "create:mixing",
   "ingredients": [
     {
-      "item": "minecraft:gravel",
-      "count": 2
+      "item": "minecraft:gravel"
     },
     {
-      "item": "minecraft:sand",
-      "count": 2
+      "item": "minecraft:gravel"
+    },
+    {
+      "item": "minecraft:sand"
+    },
+    {
+      "item": "minecraft:sand"
     },
     {
       "type": "fluid_tag",
