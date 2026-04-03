@@ -8,6 +8,7 @@ import com.jesz.createdieselgenerators.content.entity_filter.EntityFilteringRend
 import com.jesz.createdieselgenerators.content.entity_filter.ReverseLootTable;
 import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagPlacement;
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
+import com.jesz.createdieselgenerators.mixins.LootItemAccessor;
 import com.jesz.createdieselgenerators.mixins.LootPoolAccessor;
 import com.jesz.createdieselgenerators.mixins.LootTableAccessor;
 import com.simibubi.create.content.equipment.goggles.GogglesItem;
@@ -40,14 +41,13 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.common.NeoForgeMod;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.LootTableLoadEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
@@ -61,7 +61,7 @@ import java.util.*;
 import static net.minecraft.ChatFormatting.DARK_GRAY;
 import static net.minecraft.ChatFormatting.GRAY;
 
-@EventBusSubscriber(modid = CreateDieselGenerators.ID, bus = EventBusSubscriber.Bus.GAME)
+@EventBusSubscriber(modid = CreateDieselGenerators.ID)
 public class GameEvents {
 
     @SubscribeEvent
@@ -73,20 +73,19 @@ public class GameEvents {
     public static void loadLootTable(LootTableLoadEvent event){
         LootTable table = event.getTable();
         ResourceLocation tableId = table.getLootTableId();
-        if(!tableId.getPath().startsWith("entities/"))
+        if (!tableId.getPath().startsWith("entities/"))
                 return;
-        List<ItemStack> results = new LinkedList<>();
+
         ((LootTableAccessor)table).getPools().forEach(pool -> {
             List.of(((LootPoolAccessor) pool).getEntries()).forEach(e -> {
-                if(e instanceof LootItem lootItem){
-                    lootItem.createItemStack(stack -> {
+                for (LootPoolEntryContainer c : e)
+                    if (c instanceof LootItemAccessor lootItem) {
                         String path = tableId.getPath();
                         path = path.replaceAll("entities/", "");
                         EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.fromNamespaceAndPath(tableId.getNamespace(), path));
-                        ReverseLootTable.ALL.computeIfAbsent(stack.getItem(), s -> new ArrayList<>()).add(type);
+                        ReverseLootTable.ALL.computeIfAbsent(lootItem.getItem().value(), s -> new ArrayList<>()).add(type);
 
-                    },null);
-                }
+                    }
             });
         });
     }
@@ -94,11 +93,6 @@ public class GameEvents {
     @SubscribeEvent
     public static void playerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
 
-    }
-
-    @SubscribeEvent
-    public static void addReloadListeners(AddReloadListenerEvent event){
-        event.addListener(ReverseLootTable.INSTANCE);
     }
 
     @SubscribeEvent

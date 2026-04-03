@@ -1,11 +1,9 @@
 package com.jesz.createdieselgenerators.content.entity_filter;
 
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
-import com.jesz.createdieselgenerators.packets.CDGPackets;
 import com.jesz.createdieselgenerators.packets.EntityFilterScreenPacket;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.content.logistics.filter.AbstractFilterScreen;
-import com.simibubi.create.content.logistics.filter.AttributeFilterMenu;
 import com.simibubi.create.content.logistics.filter.AttributeFilterWhitelistMode;
 import com.simibubi.create.content.logistics.filter.FilterScreenPacket;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
@@ -14,7 +12,6 @@ import com.simibubi.create.foundation.gui.widget.IconButton;
 import com.simibubi.create.foundation.gui.widget.Indicator;
 import com.simibubi.create.foundation.gui.widget.Label;
 import com.simibubi.create.foundation.gui.widget.SelectionScrollInput;
-import net.createmod.catnip.data.Pair;
 import net.createmod.catnip.gui.element.GuiGameElement;
 import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.ChatFormatting;
@@ -138,7 +135,7 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
                 .plainCopy()
                 .append("..."));
         attributesOfItem.clear();
-        for (EntityAttribute entityAttribute : EntityAttribute.all)
+        for (EntityAttribute entityAttribute : EntityAttribute.ALL)
             attributesOfItem.addAll(entityAttribute.listAttributesOf(stack));
         List<Component> options = attributesOfItem.stream()
                 .map(a -> a.format(false))

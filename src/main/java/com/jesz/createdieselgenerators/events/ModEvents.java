@@ -30,6 +30,7 @@ import com.simibubi.create.AllBlockEntityTypes;
 import com.simibubi.create.api.behaviour.spouting.BlockSpoutingBehaviour;
 import com.simibubi.create.foundation.utility.FilesHelper;
 import com.tterrag.registrate.providers.ProviderType;
+import com.tterrag.registrate.util.entry.FluidEntry;
 import net.createmod.ponder.foundation.PonderIndex;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -37,6 +38,7 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.world.item.Item;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.EventPriority;
@@ -51,13 +53,15 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.fluids.BaseFlowingFluid;
+import net.neoforged.neoforge.fluids.capability.wrappers.FluidBucketWrapper;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
-@EventBusSubscriber(modid = CreateDieselGenerators.ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = CreateDieselGenerators.ID)
 public class ModEvents {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -134,11 +138,19 @@ public class ModEvents {
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerItem(
                 Capabilities.FluidHandler.ITEM,
-                (item, c) -> ((FueledToolItem)item.getItem()).getFluidHandler(item),
+                (stack, c) -> ((FueledToolItem)stack.getItem()).getFluidHandler(stack),
                 CDGItems.LIGHTER,
                 CDGItems.CHEMICAL_SPRAYER,
                 CDGItems.CHEMICAL_SPRAYER_LIGHTER,
                 CDGBlocks.CANISTER);
+
+        for (FluidEntry<BaseFlowingFluid.Flowing> e : CDGFluids.CONCRETE.values()) {
+            event.registerItem(
+                    Capabilities.FluidHandler.ITEM,
+                    (stack, c) -> new FluidBucketWrapper(stack),
+                    e.getBucket().get()
+            );
+        }
         BulkFermenterBlockEntity.registerCapabilities(event);
         BurnerBlockEntity.registerCapabilities(event);
         CanisterBlockEntity.registerCapabilities(event);

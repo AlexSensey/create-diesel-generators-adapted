@@ -1,6 +1,7 @@
 package com.jesz.createdieselgenerators.content.pumpjack;
 
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
+import com.jesz.createdieselgenerators.CDGTags;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.content.concrete.ConcreteEncasedFluidPipeBlock;
 import com.jesz.createdieselgenerators.world.OilChunksSavedData;
@@ -124,9 +125,9 @@ public class PumpjackHoleBlockEntity extends SmartBlockEntity implements IHaveGo
                 } else if(bs.getBlock() instanceof GlassFluidPipeBlock) {
                     if (!(bs.getValue(AXIS) == Direction.Axis.Y))
                         break;
-                } else if (bs.is(optionalTag(BuiltInRegistries.BLOCK, CreateDieselGenerators.rl("pumpjack_pipe")))){
+                } else if (bs.is(CDGTags.PUMPJACK_PIPE)){
                     continue;
-                } else if (bs.is(optionalTag(BuiltInRegistries.BLOCK, CreateDieselGenerators.rl("oil_deposit")))) {
+                } else if (bs.is(CDGTags.OIL_DEPOSIT)) {
                     valid = true;
                     break;
                 } else

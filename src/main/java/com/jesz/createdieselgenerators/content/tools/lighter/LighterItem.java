@@ -113,7 +113,7 @@ public class LighterItem extends Item implements FueledToolItem {
         if (!stack.has(CDGDataComponents.LIGHTER_STATE) || stack.get(CDGDataComponents.LIGHTER_STATE) != 2)
             return use(context.getLevel(), context.getPlayer(), context.getHand()).getResult();
         if (!CampfireBlock.canLight(blockstate) && !CandleBlock.canLight(blockstate) &&
-                !CandleCakeBlock.canLight(blockstate) && !blockstate.is(AllTags.optionalTag(BuiltInRegistries.BLOCK, CreateDieselGenerators.rl("lighter_")))) {
+                !CandleCakeBlock.canLight(blockstate) && !blockstate.is(CDGTags.LIGHTER_LIGHTABLE)) {
             BlockPos blockpos1 = blockpos.relative(context.getClickedFace());
             if (BaseFireBlock.canBePlacedAt(level, blockpos1, context.getHorizontalDirection())) {
                 level.playSound(player, blockpos1, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.4F + 0.8F);

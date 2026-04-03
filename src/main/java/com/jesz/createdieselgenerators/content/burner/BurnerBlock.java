@@ -51,6 +51,25 @@ public class BurnerBlock extends HorizontalAxisKineticBlock implements IBE<Burne
     }
 
     @Override
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos otherPos, boolean moved) {
+        if (level.getBlockEntity(pos) instanceof BurnerBlockEntity be)
+            be.redstonePower = level.hasNeighborSignal(pos);
+    }
+
+    @Override
+    public boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    @Override
+    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof BurnerBlockEntity be)
+            return be.redstoneOutput;
+
+        return 0;
+    }
+
+    @Override
     public Class<BurnerBlockEntity> getBlockEntityClass() {
         return BurnerBlockEntity.class;
     }

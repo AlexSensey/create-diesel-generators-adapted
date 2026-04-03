@@ -35,6 +35,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -279,6 +280,14 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
         return null;
     }
 
+    @Override
+    protected AABB createRenderBoundingBox() {
+        if (isController())
+            return super.createRenderBoundingBox().expandTowards(width - 1, 0, width - 1);
+        else
+            return super.createRenderBoundingBox();
+    }
+
     public void applyFluidTankSize(int blocks) {
         tankInventory.setCapacity(blocks * getCapacityMultiplier());
     }
@@ -421,8 +430,10 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
         if (hasLevel() && (changeOfController || prevSize != width || prevHeight != height)) {
             level.setBlocksDirty(getBlockPos(), Blocks.AIR.defaultBlockState(), getBlockState());
 
-            if (isController())
+            if (isController()) {
                 tankInventory.setCapacity(getCapacityMultiplier() * getTotalTankSize());
+                invalidateRenderBoundingBox();
+            }
         }
 
     }

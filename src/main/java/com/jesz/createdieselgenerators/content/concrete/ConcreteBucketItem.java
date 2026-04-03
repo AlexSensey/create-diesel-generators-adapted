@@ -4,13 +4,19 @@ import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.simibubi.create.AllBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+
+import javax.annotation.Nullable;
+import java.util.function.Consumer;
 
 public class ConcreteBucketItem extends BucketItem {
     DyeColor color;

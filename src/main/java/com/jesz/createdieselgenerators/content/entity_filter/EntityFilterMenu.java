@@ -124,21 +124,6 @@ public class EntityFilterMenu extends AbstractFilterMenu {
     protected void saveData(ItemStack filterItem) {
 
         filterItem.set(AllDataComponents.ATTRIBUTE_FILTER_WHITELIST_MODE, whitelistMode);
-//        ListTag attributes = new ListTag();
-//        selectedAttributes.forEach(at -> {
-//            if (at == null)
-//                return;
-//            if(at.getFirst() == null)
-//                return;
-//            CompoundTag tag = at.getFirst().write();
-//            tag.putBoolean("Inverted", at.getSecond());
-//            attributes.add(tag);
-//        });
-//        filterItem.getTag()
-//                .put("MatchedAttributes", attributes);
-//
-//        if (attributes.isEmpty() && whitelist == AttributeFilterMenu.WhitelistMode.WHITELIST_DISJ)
-//            filterItem.setTag(null);
 
         List<EntityAttribute.EntityAttributeEntry> attributes = new ArrayList<>();
 

@@ -36,7 +36,8 @@ public class BulkFermenterRenderer extends SafeBlockEntityRenderer<BulkFermenter
         float dialPivotZ = 8f / 16;
         BulkFermentingRecipe r = be.currentRecipe;
 
-        float progress = Mth.clamp((float)be.processingTime/(r == null ? 1 : r.getProcessingDuration()), 0, 1);
+        float progress = be.currentRecipe == null ? 0 :
+                (float) Mth.clamp(Mth.lerp(partialTicks, be.processingTime + Math.sqrt(be.width * be.height), be.processingTime) / be.currentRecipe.getProcessingDuration(), 0, 1);
 
         for (Direction d : Iterate.horizontalDirections) {
             ms.pushPose();

@@ -3,7 +3,6 @@ package com.jesz.createdieselgenerators.content.entity_filter;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import com.simibubi.create.content.logistics.item.filter.attribute.ItemAttribute;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -45,17 +44,17 @@ public interface EntityAttribute {
             }
     );
 
-    List<EntityAttribute> all = new LinkedList<>();
+    List<EntityAttribute> ALL = new ArrayList<>();
     EntityAttribute STANDARD_TRAITS = register(StandardTraits.IS_HOSTILE);
     EntityAttribute IS_MOB = register(new IsMob(EntityType.PIG));
 
     static EntityAttribute register(EntityAttribute attribute) {
-        all.add(attribute);
+        ALL.add(attribute);
         return attribute;
     }
 
     static EntityAttribute getById(ResourceLocation id) {
-        for (EntityAttribute attribute : all){
+        for (EntityAttribute attribute : ALL) {
             if(attribute.getId().equals(id))
                 return attribute;
         }
@@ -81,17 +80,17 @@ public interface EntityAttribute {
     Component format(boolean inverted);
 
     default EntityAttribute register() {
-        all.add(this);
+        ALL.add(this);
         return this;
     }
 
     static List<EntityType<?>> getAllEntityTypesFromStack(ItemStack stack) {
-        List<EntityType<?>> list = new LinkedList();
+        List<EntityType<?>> list = new ArrayList<>();
         if (stack.getItem() instanceof SpawnEggItem item)
             list.add(item.getType(stack));
 
-        for (Map.Entry<Item, List<EntityType<?>>> entry : ReverseLootTable.ALL.entrySet()){
-            if(entry.getKey() == stack.getItem())
+        for (Map.Entry<Item, List<EntityType<?>>> entry : ReverseLootTable.ALL.entrySet()) {
+            if (entry.getKey() == stack.getItem())
                 list.addAll(entry.getValue());
         }
         return list;
