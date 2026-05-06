@@ -1,14 +1,12 @@
 package com.jesz.createdieselgenerators.content.distillation;
 
 import com.jesz.createdieselgenerators.CDGBlocks;
+import com.jesz.createdieselgenerators.CDGConfig;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllSoundEvents;
-import com.simibubi.create.AllSpecialTextures;
 import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
-import com.simibubi.create.foundation.item.TooltipHelper;
 import net.createmod.catnip.math.VecHelper;
-import net.createmod.catnip.outliner.Outliner;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -21,7 +19,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -43,6 +40,16 @@ public class DistillationControllerItem extends Item {
         BlockPos controllerPos = ftbe.getController();
         int width = ftbe.getControllerBE().getWidth();
         int height = ftbe.getControllerBE().getHeight();
+
+        if (height < CDGConfig.DISTILLATION_MIN_HEIGHT.get()) {
+            if (context.getPlayer() instanceof ServerPlayer sp)
+                sp.connection.send(new ClientboundSetActionBarTextPacket(
+                        Component.translatable("createdieselgenerators.actionbar.distillation_controller.too_short",
+                                        CDGConfig.DISTILLATION_MIN_HEIGHT.get())
+                                .withStyle(ChatFormatting.RED)));
+            return InteractionResult.FAIL;
+        }
+
         IFluidHandler tank = context.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, ftbe.getBlockPos(), null);
         FluidStack fluidInTank = tank.getFluidInTank(0);
         List<BlockPos> positions = new ArrayList<>();
