@@ -14,6 +14,8 @@
   "item.createdieselgenerators.lighter.tooltip.behaviour1": "_Closes_ or _opens_ and tries to _ignite_.",
   "item.createdieselgenerators.lighter.tooltip.condition2": "When Shift R-Clicked.",
   "item.createdieselgenerators.lighter.tooltip.behaviour2": "_Closes_ or _opens_ without _ignition_.",
+  "item.createdieselgenerators.lighter.tooltip.condition3": "When Renamed.",
+  "item.createdieselgenerators.lighter.tooltip.behaviour3": "Changes the lighter _skin_.",
   "item.createdieselgenerators.chemical_sprayer.tooltip.summary": "Fill with any _fluid_ using a _spout_ to spray your _friends_ or _enemies_ with it!",
   "item.createdieselgenerators.chemical_sprayer.tooltip.condition1": "When R-Clicked.",
   "item.createdieselgenerators.chemical_sprayer.tooltip.behaviour1": "Starts _spraying_ with the _Fluid_ in its _Tank_.",

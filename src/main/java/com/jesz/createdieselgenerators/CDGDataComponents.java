@@ -1,8 +1,10 @@
 package com.jesz.createdieselgenerators;
 
 import com.jesz.createdieselgenerators.content.entity_filter.EntityAttribute;
+import com.jesz.createdieselgenerators.content.tools.lighter.LighterState;
 import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagItemDataComponent;
 import com.simibubi.create.content.equipment.sandPaper.SandPaperItemComponent;
+import net.createmod.catnip.codecs.CatnipCodecs;
 import net.createmod.catnip.codecs.stream.CatnipStreamCodecBuilders;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -20,8 +22,8 @@ import java.util.function.UnaryOperator;
 public class CDGDataComponents {
     private static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, CreateDieselGenerators.ID);
 
-    public static final DataComponentType<Integer> LIGHTER_STATE = register("lighter_state",
-            builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+    public static final DataComponentType<LighterState> LIGHTER_STATE = register("lighter_state",
+            builder -> builder.persistent(LighterState.CODEC).networkSynchronized(LighterState.STREAM_CODEC));
 
     public static final DataComponentType<SimpleFluidContent> FLUID_CONTENTS = register("fluid_contents",
             builder -> builder.persistent(SimpleFluidContent.CODEC).networkSynchronized(SimpleFluidContent.STREAM_CODEC));

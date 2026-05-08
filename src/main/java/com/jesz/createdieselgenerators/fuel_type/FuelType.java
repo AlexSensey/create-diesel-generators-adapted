@@ -56,11 +56,15 @@ public record FuelType(HolderSet<Fluid> fluid, PerEngineProperties normal, PerEn
     }
 
     public PerEngineProperties getGenerated(EngineTypes currentEngine) {
-        if(currentEngine == EngineTypes.HUGE)
+        if (currentEngine == EngineTypes.HUGE)
             return huge;
-        if(currentEngine == EngineTypes.MODULAR)
+        if (currentEngine == EngineTypes.MODULAR)
             return modular;
         return normal;
+    }
+
+    public boolean isFlammable() {
+        return normal().speed() != 0;
     }
 
     public record PerEngineProperties(float speed, float strength, float burn) {

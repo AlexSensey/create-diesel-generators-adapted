@@ -3,7 +3,7 @@
   "ingredients": [
     {
       "type": "fluid_tag",
-      "fluidTag": "c:ethanol",
+      "fluid_tag": "c:ethanol",
       "amount": 500
     },
     {

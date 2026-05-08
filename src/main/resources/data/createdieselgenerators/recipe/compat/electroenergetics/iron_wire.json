@@ -2,12 +2,12 @@
   "type": "createdieselgenerators:wire_cutting",
   "ingredients": [
     {
-      "tag": "c:plates/copper"
+      "tag": "c:plates/iron"
     }
   ],
   "results": [
     {
-      "id": "electroenergetics:copper_wire",
+      "id": "electroenergetics:iron_wire",
       "count": 3
     }
   ],

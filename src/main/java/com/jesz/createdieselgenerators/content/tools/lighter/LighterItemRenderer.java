@@ -17,22 +17,22 @@ public class LighterItemRenderer extends CustomRenderedItemModelRenderer {
         try {
             if (stack.has(CDGDataComponents.LIGHTER_STATE) && LighterModel.lighterSkinIDs.containsKey(stack.getHoverName().getString().toLowerCase(Locale.ROOT))) {
                 if (LighterModel.lighterSkinModels.containsKey(LighterModel.lighterSkinIDs.get(stack.getHoverName().getString().toLowerCase(Locale.ROOT)))) {
-                    if (stack.get(CDGDataComponents.LIGHTER_STATE) == 0)
+                    if (stack.get(CDGDataComponents.LIGHTER_STATE) == LighterState.CLOSED)
                         renderer.render(LighterModel.lighterSkinModels.get(LighterModel.lighterSkinIDs.get(stack.getHoverName().getString().toLowerCase(Locale.ROOT))).closedModel().get(), light);
-                    else if (stack.get(CDGDataComponents.LIGHTER_STATE) == 1)
+                    else if (stack.get(CDGDataComponents.LIGHTER_STATE) == LighterState.OPEN)
                         renderer.render(LighterModel.lighterSkinModels.get(LighterModel.lighterSkinIDs.get(stack.getHoverName().getString().toLowerCase(Locale.ROOT))).openModel().get(), light);
                     else
                         renderer.render(LighterModel.lighterSkinModels.get(LighterModel.lighterSkinIDs.get(stack.getHoverName().getString().toLowerCase(Locale.ROOT))).ignitedModel().get(), light);
                     return;
                 }
             }
-            if (!stack.has(CDGDataComponents.LIGHTER_STATE) || stack.get(CDGDataComponents.LIGHTER_STATE) == 0)
+            if (!stack.has(CDGDataComponents.LIGHTER_STATE) || stack.get(CDGDataComponents.LIGHTER_STATE) == LighterState.CLOSED)
                 renderer.render(LighterModel.lighterSkinModels.get("standard").closedModel().get(), light);
-            else if (stack.get(CDGDataComponents.LIGHTER_STATE) == 1)
+            else if (stack.get(CDGDataComponents.LIGHTER_STATE) == LighterState.OPEN)
                 renderer.render(LighterModel.lighterSkinModels.get("standard").openModel().get(), light);
             else
                 renderer.render(LighterModel.lighterSkinModels.get("standard").ignitedModel().get(), light);
-        }catch (NullPointerException e) {
+        } catch (NullPointerException e) {
             renderer.render(model.getOriginalModel(), light);
         }
     }

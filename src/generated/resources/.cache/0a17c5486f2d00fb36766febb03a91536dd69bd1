@@ -1,4 +1,4 @@
-// 1.21.1	2026-04-03T21:56:02.535934112	Registrate Provider for createdieselgenerators [Registries, Data Maps, Recipes, Advancements, Loot Tables, Tags (blocks), Tags (enchantments), Tags (items), Tags (fluids), Tags (entity_types), generic_server_provider, Blockstates, Item models, Lang (en_us/en_ud), generic_client_provider]
+// 1.21.1	2026-05-06T15:06:51.360323228	Registrate Provider for createdieselgenerators [Registries, Data Maps, Recipes, Advancements, Loot Tables, Tags (blocks), Tags (enchantments), Tags (items), Tags (fluids), Tags (entity_types), generic_server_provider, Blockstates, Item models, Lang (en_us/en_ud), generic_client_provider]
 515c47692d269b683b2f71229a92f9dda098148f assets/createdieselgenerators/blockstates/andesite_girder.json
 c04c217c8303f8e9da156ff8fd1e03579667db9f assets/createdieselgenerators/blockstates/andesite_girder_encased_shaft.json
 c30a00b0f2722bc05d96cdcd9b1418a8eeda6fdd assets/createdieselgenerators/blockstates/asphalt_block.json
@@ -63,8 +63,8 @@ c9583193ce370c2d338f8300dd35a08de1174e74 assets/createdieselgenerators/blockstat
 cf38db33d42cfa06ccc89b53b6ed8ef05d06e356 assets/createdieselgenerators/blockstates/white_concrete_encased_fluid_pipe.json
 36119964183cbbf22c9c0e63b37fc5ffb3ea618b assets/createdieselgenerators/blockstates/yellow_cement.json
 c7a73129fc436da16afaeb04bd907e1ff3cc9dbf assets/createdieselgenerators/blockstates/yellow_concrete_encased_fluid_pipe.json
-f31954103f5f284df86c4effe7815455c5ae9549 assets/createdieselgenerators/lang/en_ud.json
-dc7ca5f42c9d45fbf21f93b1064b446875585742 assets/createdieselgenerators/lang/en_us.json
+be9001bb7437f1942e5e7eec995ccf7dcfccbefe assets/createdieselgenerators/lang/en_ud.json
+534d93ef425e1bb79c3ad020a76c8ecad878cb33 assets/createdieselgenerators/lang/en_us.json
 997203a32a2e62db78f3624d060fad2ad06a9132 assets/createdieselgenerators/models/block/asphalt_block.json
 4d907dc0faf4c118976f6fba52c0f995ab060ef2 assets/createdieselgenerators/models/block/asphalt_slab.json
 d30e1a719495f71720c975064c9f0fe84b783550 assets/createdieselgenerators/models/block/asphalt_slab_top.json
@@ -215,4 +215,5 @@ dc63574372fb2abd81a04613250ecc45eaf7cbd9 data/minecraft/tags/block/mineable/axe.
 9b036888dfd0647fd2d5bd5595c46adb8aeecb39 data/minecraft/tags/block/mineable/pickaxe.json
 e0e36787f0fe20c9a3943af18cc1e375ac16be12 data/minecraft/tags/block/planks.json
 e0e36787f0fe20c9a3943af18cc1e375ac16be12 data/minecraft/tags/item/planks.json
-0f7e0f75977b38f5b4b033edb4749b57541a7d17 data/minecraft/tags/item/wooden_stairs.json
+fc452f0161fea2305d21fe652e84a28f4b65a85a data/minecraft/tags/item/wooden_slabs.json
+644dd34a0fad991486ead3f718efccd5f49af71a data/minecraft/tags/item/wooden_stairs.json

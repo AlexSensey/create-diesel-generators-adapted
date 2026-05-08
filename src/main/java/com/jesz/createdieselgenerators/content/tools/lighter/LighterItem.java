@@ -3,11 +3,10 @@ package com.jesz.createdieselgenerators.content.tools.lighter;
 import com.jesz.createdieselgenerators.*;
 import com.jesz.createdieselgenerators.content.tools.FueledToolItem;
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
-import com.simibubi.create.AllTags;
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -63,10 +62,12 @@ public class LighterItem extends Item implements FueledToolItem {
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int p_41407_, boolean p_41408_) {
         FluidStack fStack = readFluid(stack);
 
-        boolean flammable = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fStack.getFluid()).normal().speed() != 0;
-        Integer state = stack.get(CDGDataComponents.LIGHTER_STATE);
-        if (!flammable && state != null && state == 2){
-            stack.set(CDGDataComponents.LIGHTER_STATE, 1);
+        var registry = level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE);
+
+        boolean flammable = FuelType.getTypeFor(registry, fStack.getFluid()).isFlammable();
+        LighterState state = stack.get(CDGDataComponents.LIGHTER_STATE);
+        if (!flammable && state == LighterState.OPEN_IGNITED){
+            stack.set(CDGDataComponents.LIGHTER_STATE, LighterState.OPEN);
         }
     }
 
@@ -75,20 +76,19 @@ public class LighterItem extends Item implements FueledToolItem {
         ItemStack stackInHand = player.getItemInHand(hand);
 
         level.playSound(player, player.blockPosition(), SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.4F + 0.8F);
-        if (!stackInHand.has(CDGDataComponents.LIGHTER_STATE)) {
-            stackInHand.set(CDGDataComponents.LIGHTER_STATE, 1);
-            return InteractionResultHolder.success(stackInHand);
-        }
 
-        if (stackInHand.get(CDGDataComponents.LIGHTER_STATE) == 0) {
+        if (!stackInHand.has(CDGDataComponents.LIGHTER_STATE) ||
+                stackInHand.get(CDGDataComponents.LIGHTER_STATE) == LighterState.CLOSED) {
             if (player.isShiftKeyDown()) {
-                stackInHand.set(CDGDataComponents.LIGHTER_STATE, 1);
+                stackInHand.set(CDGDataComponents.LIGHTER_STATE, LighterState.OPEN);
                 return InteractionResultHolder.success(stackInHand);
             }
             FluidStack fStack = readFluid(stackInHand);
 
-            boolean flammable = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fStack.getFluid()).normal().speed() != 0;
-            stackInHand.set(CDGDataComponents.LIGHTER_STATE, flammable ? 2 : 1);
+            var registry = level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE);
+
+            boolean flammable = FuelType.getTypeFor(registry, fStack.getFluid()).isFlammable();
+            stackInHand.set(CDGDataComponents.LIGHTER_STATE, flammable ? LighterState.OPEN_IGNITED : LighterState.OPEN);
 
             if (flammable) {
                 fStack.setAmount(fStack.getAmount() - 1);
@@ -96,7 +96,7 @@ public class LighterItem extends Item implements FueledToolItem {
             }
             return InteractionResultHolder.success(stackInHand);
         }
-        stackInHand.set(CDGDataComponents.LIGHTER_STATE, 0);
+        stackInHand.set(CDGDataComponents.LIGHTER_STATE, LighterState.CLOSED);
 
         return InteractionResultHolder.success(stackInHand);
 
@@ -105,13 +105,18 @@ public class LighterItem extends Item implements FueledToolItem {
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Player player = context.getPlayer();
+        if (player == null)
+            return InteractionResult.PASS;
         Level level = context.getLevel();
         BlockPos blockpos = context.getClickedPos();
         BlockState blockstate = level.getBlockState(blockpos);
         ItemStack stack = context.getItemInHand();
 
-        if (!stack.has(CDGDataComponents.LIGHTER_STATE) || stack.get(CDGDataComponents.LIGHTER_STATE) != 2)
+        if (stack.get(CDGDataComponents.LIGHTER_STATE) != LighterState.OPEN_IGNITED)
             return use(context.getLevel(), context.getPlayer(), context.getHand()).getResult();
+
+        var registry = level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE);
+
         if (!CampfireBlock.canLight(blockstate) && !CandleBlock.canLight(blockstate) &&
                 !CandleCakeBlock.canLight(blockstate) && !blockstate.is(CDGTags.LIGHTER_LIGHTABLE)) {
             BlockPos blockpos1 = blockpos.relative(context.getClickedFace());
@@ -126,12 +131,12 @@ public class LighterItem extends Item implements FueledToolItem {
 
                 FluidStack fStack = readFluid(stack);
                 if (fStack.getAmount() == 0) {
-                    stack.set(CDGDataComponents.LIGHTER_STATE, 1);
+                    stack.set(CDGDataComponents.LIGHTER_STATE, LighterState.OPEN);
                     return InteractionResult.FAIL;
                 }
 
-                boolean flammable = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fStack.getFluid()).normal().speed() != 0;
-                if (flammable && stack.get(CDGDataComponents.LIGHTER_STATE) == 2) {
+                boolean flammable = FuelType.getTypeFor(registry, fStack.getFluid()).normal().speed() != 0;
+                if (flammable && stack.get(CDGDataComponents.LIGHTER_STATE) == LighterState.OPEN_IGNITED) {
                     fStack.setAmount(fStack.getAmount()-1);
                     writeFluid(stack, fStack);
                 }
@@ -147,13 +152,13 @@ public class LighterItem extends Item implements FueledToolItem {
 
             FluidStack fStack = readFluid(stack);
             if (fStack.getAmount() == 0){
-                stack.set(CDGDataComponents.LIGHTER_STATE, 1);
+                stack.set(CDGDataComponents.LIGHTER_STATE, LighterState.OPEN);
                 return InteractionResult.FAIL;
             }
 
-            boolean flammable = FuelType.getTypeFor(level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fStack.getFluid()).normal().speed() != 0;
+            boolean flammable = FuelType.getTypeFor(registry, fStack.getFluid()).normal().speed() != 0;
 
-            if (flammable && stack.get(CDGDataComponents.LIGHTER_STATE) == 2){
+            if (flammable && stack.get(CDGDataComponents.LIGHTER_STATE) == LighterState.OPEN_IGNITED) {
                 fStack.setAmount(fStack.getAmount()-1);
                 writeFluid(stack, fStack);
             }
@@ -175,19 +180,20 @@ public class LighterItem extends Item implements FueledToolItem {
     @Override
     public boolean onEntityItemUpdate(ItemStack stack, ItemEntity itemEntity) {
         ItemStack item = itemEntity.getItem();
-        if (item.is(CDGItems.LIGHTER.get()) && CDGConfig.COMBUSTIBLES_BLOW_UP.get() && item.has(CDGDataComponents.LIGHTER_STATE)) {
-            if (item.get(CDGDataComponents.LIGHTER_STATE) == 2) {
-                Vec3 entityPos = itemEntity.getPosition(1);
-                FluidState fState = itemEntity.level().getFluidState(new BlockPos(BlockPos.containing(entityPos)));
-                if (fState.is(Fluids.WATER) || fState.is(Fluids.FLOWING_WATER)) {
-                    item.set(CDGDataComponents.LIGHTER_STATE, 1);
-                    itemEntity.level().playLocalSound(itemEntity.getPosition(1).x, itemEntity.getPosition(1).y, itemEntity.getPosition(1).z, SoundEvents.CANDLE_EXTINGUISH, SoundSource.BLOCKS, 1f, 1f, false);
-                } else {
-                    boolean flammable = FuelType.getTypeFor(itemEntity.level().registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fState.getType()).normal().speed() != 0;
-                    if (flammable)
-                        itemEntity.level().explode(null, null, null, itemEntity.getPosition(1).x, itemEntity.getPosition(1).y, itemEntity.getPosition(1).z, 1, true, Level.ExplosionInteraction.BLOCK);
-                }
-            }
+        if (!item.is(CDGItems.LIGHTER.get()) ||
+                !CDGConfig.COMBUSTIBLES_BLOW_UP.get() ||
+                item.get(CDGDataComponents.LIGHTER_STATE) != LighterState.OPEN_IGNITED)
+            return false;
+
+        Vec3 entityPos = itemEntity.getPosition(1);
+        FluidState fState = itemEntity.level().getFluidState(new BlockPos(BlockPos.containing(entityPos)));
+        if (fState.is(Fluids.WATER) || fState.is(Fluids.FLOWING_WATER)) {
+            item.set(CDGDataComponents.LIGHTER_STATE, LighterState.OPEN);
+            itemEntity.level().playLocalSound(entityPos.x, entityPos.y, entityPos.z, SoundEvents.CANDLE_EXTINGUISH, SoundSource.BLOCKS, 1f, 1f, false);
+        } else {
+            boolean flammable = FuelType.getTypeFor(itemEntity.level().registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fState.getType()).normal().speed() != 0;
+            if (flammable)
+                itemEntity.level().explode(null, null, null, entityPos.x, entityPos.y, entityPos.z, 1, true, Level.ExplosionInteraction.BLOCK);
         }
         return false;
     }

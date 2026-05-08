@@ -143,7 +143,8 @@ public class PumpjackCrankBlockEntity extends KineticBlockEntity {
         boolean isActive = getSpeed() != 0 && getBearing() != null;
 
         if (isActive) {
-            if (rumbleInstance == null || rumbleInstance.isStopped()) {
+            if (rumbleInstance == null || rumbleInstance.isStopped() ||
+                    !Minecraft.getInstance().getSoundManager().isActive(rumbleInstance)) {
                 rumbleInstance = new CrankSoundInstance(
                         SoundEvents.MINECART_RIDING, 0.3f, 0.4f,
                         Vec3.atCenterOf(getBlockPos()));
