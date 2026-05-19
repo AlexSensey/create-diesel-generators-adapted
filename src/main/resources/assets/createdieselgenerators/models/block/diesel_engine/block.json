@@ -1,8 +1,10 @@
 {
+	"format_version": "1.21.11",
 	"credit": "Made with Blockbench",
 	"render_type": "cutout",
 	"texture_size": [32, 32],
 	"textures": {
+		"1": "createdieselgenerators:block/diesel_engine_base",
 		"2": "createdieselgenerators:block/diesel_engine",
 		"particle": "createdieselgenerators:block/diesel_engine"
 	},
@@ -11,12 +13,12 @@
 			"from": [0, 0, 0],
 			"to": [16, 4, 16],
 			"faces": {
-				"north": {"uv": [8, 10, 16, 12], "texture": "#2", "cullface": "north"},
-				"east": {"uv": [8, 8, 16, 10], "texture": "#2", "cullface": "east"},
-				"south": {"uv": [8, 10, 16, 12], "texture": "#2", "cullface": "south"},
-				"west": {"uv": [8, 8, 16, 10], "texture": "#2", "cullface": "west"},
-				"up": {"uv": [8, 0, 16, 8], "texture": "#2"},
-				"down": {"uv": [8, 0, 16, 8], "texture": "#2", "cullface": "down"}
+				"north": {"uv": [8, 10, 16, 12], "texture": "#1", "cullface": "north"},
+				"east": {"uv": [8, 8, 16, 10], "texture": "#1", "cullface": "east"},
+				"south": {"uv": [8, 10, 16, 12], "texture": "#1", "cullface": "south"},
+				"west": {"uv": [8, 8, 16, 10], "texture": "#1", "cullface": "west"},
+				"up": {"uv": [0, 0, 8, 8], "texture": "#1"},
+				"down": {"uv": [8, 0, 16, 8], "texture": "#1", "cullface": "down"}
 			}
 		},
 		{
@@ -133,7 +135,7 @@
 			"scale": [0.4, 0.4, 0.4]
 		},
 		"firstperson_lefthand": {
-			"rotation": [0, 225, 0],
+			"rotation": [0, -135, 0],
 			"scale": [0.4, 0.4, 0.4]
 		},
 		"ground": {
@@ -141,7 +143,7 @@
 			"scale": [0.25, 0.25, 0.25]
 		},
 		"gui": {
-			"rotation": [30, 225, 0],
+			"rotation": [30, -135, 0],
 			"scale": [0.625, 0.625, 0.625]
 		},
 		"fixed": {

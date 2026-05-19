@@ -1,10 +1,11 @@
 {
+	"format_version": "1.21.11",
 	"credit": "Made with Blockbench",
 	"render_type": "cutout",
 	"texture_size": [32, 32],
 	"textures": {
 		"2": "createdieselgenerators:block/diesel_engine",
-		"3": "createdieselgenerators:block/diesel_engine_big",
+		"3": "createdieselgenerators:block/diesel_engine_big_pipe",
 		"particle": "createdieselgenerators:block/diesel_engine"
 	},
 	"elements": [
@@ -82,14 +83,6 @@
 				"west": {"uv": [0, 0, 7, 4], "texture": "#3"},
 				"up": {"uv": [11, 7, 7, 0], "rotation": 180, "texture": "#3"},
 				"down": {"uv": [11, 7, 7, 14], "rotation": 180, "texture": "#3"}
-			}
-		},
-		{
-			"from": [3, 16.01, 3],
-			"to": [13, 16.01, 13],
-			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 8]},
-			"faces": {
-				"up": {"uv": [9.5, 1.5, 14.5, 6.5], "rotation": 180, "texture": "#2"}
 			}
 		},
 		{

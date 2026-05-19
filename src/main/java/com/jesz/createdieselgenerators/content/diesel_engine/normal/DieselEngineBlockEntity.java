@@ -43,7 +43,7 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
     SmartFluidTankBehaviour tank;
     private float lastCapacity;
     private float lastSpeed;
-    private int analogSignal = 15;
+    private int analogSignal = 0;
     private boolean signalChanged = false;
     private float fuelDebt = 0f;
     private FuelType cachedFuelType = FuelType.EMPTY;
@@ -88,7 +88,7 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(tag, registries, clientPacket);
         upgrade = EngineUpgrades.get(ResourceLocation.parse(tag.getString("Upgrade")));
-        analogSignal = tag.contains("AnalogSignal") ? tag.getInt("AnalogSignal") : 0;
+        analogSignal = tag.getInt("AnalogSignal");
         fuelDebt = 0f;
         invalidateFuelCache();
     }
@@ -143,33 +143,30 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
             sendData();
         }
 
-        if (!level.isClientSide && validFS()) {
-            float throttle = getThrottle();
+        if (!level.isClientSide) {
+            float currentCapacity = 0;
+            float currentSpeed = 0;
 
-            if (throttle != 0f || lastSpeed != 0f) {
-                float currentSpeed = getGeneratedSpeed();
+            if (validFS()) {
+                float throttle = getThrottle();
 
-                float baseSpeed = upgrade.getSpeed(getFuelSpeed(), this) * throttle;
-                float currentCapacity = upgrade.getCapacity(
-                        getFuelCapacity() * (1 / Math.max(baseSpeed, 0.001f)) * baseSpeed,
-                        this
-                );
+                if (throttle != 0f || lastSpeed != 0f) {
+                    float baseSpeed = upgrade.getSpeed(getFuelSpeed(), this) * throttle;
 
-                if (lastSpeed != currentSpeed || lastCapacity != currentCapacity) {
-                    reActivateSource = true;
-                    lastSpeed = currentSpeed;
-                    lastCapacity = currentCapacity;
+                    currentCapacity = upgrade.getCapacity(
+                            getFuelCapacity() * (1 / Math.max(baseSpeed, 0.001f)) * baseSpeed,
+                            this
+                    );
+
+                    currentSpeed = getGeneratedSpeed();
                 }
             }
-        }
 
-        boolean effectivelyOff = getThrottle() == 0f || !validFS();
-        if (effectivelyOff) {
-            if (hasNetwork())
-                getOrCreateNetwork().remove(this);
-            detachKinetics();
-            removeSource();
-            return;
+            if (lastSpeed != currentSpeed || lastCapacity != currentCapacity) {
+                reActivateSource = true;
+                lastSpeed = currentSpeed;
+                lastCapacity = currentCapacity;
+            }
         }
 
         if (enabled() && !isOverStressed()) {

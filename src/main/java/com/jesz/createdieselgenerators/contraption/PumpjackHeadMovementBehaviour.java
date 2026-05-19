@@ -19,7 +19,9 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
@@ -54,25 +56,37 @@ public class PumpjackHeadMovementBehaviour implements MovementBehaviour {
             bearing = be;
         if (bearing == null)
             return;
+        float partialTicks = AnimationTickHolder.getPartialTicks();
+
         SuperByteBuffer cover = CachedBuffers.partial(PUMPJACK_ROPE, context.state);
         if (((BearingContraption) context.contraption).getFacing().getOpposite().getAxis() == Direction.Axis.X) {
-            double zDst = context.position.z - hole.getZ()-0.5f;
-            double yDst = context.position.y - hole.getY()-0.8f;
+            Vec3 prevPos = context.position.subtract(context.motion);
+
+            double zDst = Mth.lerp(partialTicks, prevPos.z, context.position.z) - hole.getZ()-0.5f;
+            double yDst = Mth.lerp(partialTicks, prevPos.y, context.position.y) - hole.getY()-0.8f;
             float distanceFromHole = (float) Math.sqrt(zDst*zDst + yDst*yDst);
-            double angle = -((ControlledContraptionEntity) context.contraption.entity).getAngle(AnimationTickHolder.getPartialTicks())-(180 * Math.atan2(yDst,zDst)/Math.PI)+90;
+            double angle = -((ControlledContraptionEntity) context.contraption.entity).getAngle(partialTicks)-(180 * Math.atan2(yDst,zDst)/Math.PI)+90;
             PoseStack ms = matrices.getModel();
-            cover.transform(ms).translate(0.5, 0.5,  0.5).rotateXDegrees((float) angle)
+            cover.transform(ms)
+                    .translate(0.5, 0.5,  0.5)
+                    .rotateXDegrees((float) angle)
                     .scale(1, distanceFromHole, 1)
                     .useLevelLight(context.world, matrices.getWorld())
                     .renderInto(matrices.getViewProjection(), buffer.getBuffer(RenderType.cutoutMipped()));
             return;
         }
-        double xDst = context.position.x - hole.getX()-0.5;
-        double yDst = context.position.y - hole.getY()-0.8f;
+
+        Vec3 prevPos = context.position.subtract(context.motion);
+
+        double xDst = Mth.lerp(partialTicks, prevPos.x, context.position.x) - hole.getX()-0.5;
+        double yDst = Mth.lerp(partialTicks, prevPos.y, context.position.y) - hole.getY()-0.8f;
+
         float distanceFromHole = (float) Math.sqrt(xDst*xDst + yDst*yDst);
-        double angle = -((ControlledContraptionEntity) context.contraption.entity).getAngle(AnimationTickHolder.getPartialTicks())+(180 * Math.atan2(yDst,xDst)/Math.PI)-90;
+        double angle = -((ControlledContraptionEntity) context.contraption.entity).getAngle(partialTicks)+(180 * Math.atan2(yDst,xDst)/Math.PI)-90;
         PoseStack ms = matrices.getModel();
-        cover.transform(ms).translate(0.5, 0.5,  0.5).rotateZDegrees((float) angle)
+        cover.transform(ms)
+                .translate(0.5, 0.5,  0.5)
+                .rotateZDegrees((float) angle)
                 .scale(1, distanceFromHole, 1)
                 .useLevelLight(context.world, matrices.getWorld())
                 .renderInto(matrices.getViewProjection(), buffer.getBuffer(RenderType.cutoutMipped()));

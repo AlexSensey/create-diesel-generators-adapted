@@ -53,7 +53,6 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.simibubi.create.AllTags.optionalTag;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.*;
 
 public class PumpjackHoleBlockEntity extends SmartBlockEntity implements IHaveGoggleInformation, IHaveHoveringInformation {
@@ -205,7 +204,7 @@ public class PumpjackHoleBlockEntity extends SmartBlockEntity implements IHaveGo
 
         List<Fluid> stackList = new ArrayList<>();
         BuiltInRegistries.FLUID.getTags()
-                .filter(p -> p.getFirst().equals(optionalTag(BuiltInRegistries.FLUID, CreateDieselGenerators.rl("pumpjack_output"))))
+                .filter(p -> p.getFirst().equals(CDGTags.PUMPJACK_OUTPUT))
                 .map(Pair::getSecond)
                 .forEach(s -> stackList.addAll(s.stream().map(Holder::value).toList()));
 

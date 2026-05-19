@@ -1,9 +1,11 @@
 {
+	"format_version": "1.21.11",
 	"credit": "Made with Blockbench",
 	"render_type": "cutout",
 	"texture_size": [32, 32],
 	"textures": {
 		"2": "createdieselgenerators:block/diesel_engine",
+		"3": "createdieselgenerators:block/diesel_engine_base",
 		"4": "create:block/axis",
 		"5": "create:block/axis_top",
 		"particle": "createdieselgenerators:block/diesel_engine"
@@ -13,12 +15,12 @@
 			"from": [0, 0, 0],
 			"to": [16, 4, 16],
 			"faces": {
-				"north": {"uv": [8, 10, 16, 12], "texture": "#2", "cullface": "north"},
-				"east": {"uv": [8, 8, 16, 10], "texture": "#2", "cullface": "east"},
-				"south": {"uv": [8, 10, 16, 12], "texture": "#2", "cullface": "south"},
-				"west": {"uv": [8, 8, 16, 10], "texture": "#2", "cullface": "west"},
-				"up": {"uv": [8, 0, 16, 8], "texture": "#2"},
-				"down": {"uv": [8, 0, 16, 8], "texture": "#2", "cullface": "down"}
+				"north": {"uv": [8, 10, 16, 12], "texture": "#3", "cullface": "north"},
+				"east": {"uv": [8, 8, 16, 10], "texture": "#3", "cullface": "east"},
+				"south": {"uv": [8, 10, 16, 12], "texture": "#3", "cullface": "south"},
+				"west": {"uv": [8, 8, 16, 10], "texture": "#3", "cullface": "west"},
+				"up": {"uv": [0, 0, 8, 8], "texture": "#3"},
+				"down": {"uv": [8, 0, 16, 8], "texture": "#3", "cullface": "down"}
 			}
 		},
 		{
@@ -148,7 +150,7 @@
 			"scale": [0.4, 0.4, 0.4]
 		},
 		"firstperson_lefthand": {
-			"rotation": [0, 225, 0],
+			"rotation": [0, -135, 0],
 			"scale": [0.4, 0.4, 0.4]
 		},
 		"ground": {

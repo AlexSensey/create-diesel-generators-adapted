@@ -58,7 +58,7 @@ public class DieselEngineScenes {
 
         scene.overlay().showText(70)
                 .attachKeyFrame()
-                .text("Diesel Engines are a compact way of generating kinetic energy.")
+                .text("Diesel Engines provide a compact way of generating kinetic energy.")
                 .pointAt(util.vector().blockSurface(util.grid().at(1, 1, 2), Direction.NORTH))
                 .placeNearTarget();
         scene.idle(80);

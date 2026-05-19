@@ -180,21 +180,17 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
             sendData();
         }
 
-        boolean effectivelyOff = getThrottle() == 0f || !validFS();
-        if (effectivelyOff) {
-            if (hasNetwork())
-                getOrCreateNetwork().remove(this);
-            detachKinetics();
-            removeSource();
-            return;
-        }
+        if (!level.isClientSide) {
+            float currentCapacity = 0;
+            float currentSpeed = 0;
+            if (validFS()) {
+                float throttle = getThrottle();
+                currentSpeed = getGeneratedSpeed();
+                currentCapacity = upgrade.getCapacity(
+                        getFuelCapacity() * getHeight() * (1 / Math.max(upgrade.getSpeed(getFuelSpeed(), this) * throttle, 0.001f))
+                                * upgrade.getSpeed(getFuelSpeed(), this) * throttle, this);
+            }
 
-        if (!level.isClientSide && validFS()) {
-            float throttle = getThrottle();
-            float currentSpeed = getGeneratedSpeed();
-            float currentCapacity = upgrade.getCapacity(
-                    getFuelCapacity() * getHeight() * (1 / Math.max(upgrade.getSpeed(getFuelSpeed(), this) * throttle, 0.001f))
-                            * upgrade.getSpeed(getFuelSpeed(), this) * throttle, this);
             if (lastSpeed != currentSpeed || lastCapacity != currentCapacity) {
                 reActivateSource = true;
                 lastSpeed = currentSpeed;

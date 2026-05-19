@@ -1,11 +1,14 @@
 package com.jesz.createdieselgenerators.compat;
 
+import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import net.mehvahdjukaar.moonlight.api.set.BlockSetAPI;
 import net.mehvahdjukaar.moonlight.api.set.wood.WoodType;
 
 public class EveryCompatCompat {
     public static void init() {
-        BlockSetAPI.addBlockTypeFinder(WoodType.class, WoodType.Finder
-                .simple("createdieselgenerators", "chip_wood", "chip_wood_block", "chip_wood_beam"));
+        BlockSetAPI.addBlockTypeFinder(WoodType.class,
+                new WoodType.Finder(CreateDieselGenerators.rl("chip_wood"))
+                .log("chip_wood_beam")
+                .planks("chip_wood_block"));
     }
 }
