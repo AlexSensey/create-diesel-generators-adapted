@@ -24,7 +24,6 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
     float stressCapacity;
     float speed;
     int movementDirection;
-    int initialTicks;
 
     public PoweredEngineShaftBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
@@ -47,7 +46,7 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
     public void update(BlockPos sourcePos, int direction, float stress, float speed) {
         Pair<BlockPos, Couple<Float>> found = null;
         for (Pair<BlockPos, Couple<Float>> engine : engines)
-            if(engine.getFirst().equals(sourcePos)){
+            if (engine.getFirst().equals(sourcePos)) {
                 found = engine;
                 break;
             }
@@ -76,10 +75,6 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
         reActivateSource = true;
     }
 
-    public boolean canBePoweredBy() {
-        return initialTicks == 0;
-    }
-
     public void removeGenerator(BlockPos sourcePos) {
         List<Pair<BlockPos, Couple<Float>>> newEngines = new ArrayList<>(engines);
         boolean removed = newEngines.removeIf(p -> p.getFirst().equals(sourcePos));
@@ -99,11 +94,9 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
         super.write(compound, registries, clientPacket);
 
         compound.putInt("Direction", movementDirection);
-        if (initialTicks > 0)
-            compound.putInt("Warmup", initialTicks);
         ListTag engineList = new ListTag();
 
-        for (Pair<BlockPos, Couple<Float>> engine : List.copyOf(engines)){
+        for (Pair<BlockPos, Couple<Float>> engine : List.copyOf(engines)) {
             CompoundTag tag = new CompoundTag();
             tag.putFloat("Capacity", engine.getSecond().getFirst());
             tag.putFloat("Speed", engine.getSecond().getSecond());
@@ -118,7 +111,6 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
     protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(compound, registries, clientPacket);
         movementDirection = compound.getInt("Direction");
-        initialTicks = compound.getInt("Warmup");
 
         ListTag engineList = compound.getList("Engines", CompoundTag.TAG_COMPOUND);
         List<Pair<BlockPos, Couple<Float>>> newEngines = new ArrayList<>();

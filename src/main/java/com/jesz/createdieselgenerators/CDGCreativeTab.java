@@ -67,7 +67,8 @@ public class CDGCreativeTab {
                             moldStack.set(CDGDataComponents.MOLD_TYPE, mt.getId());
                             output.accept(moldStack);
                         });
-                        CDGFluids.CONCRETE.forEach((d, f) -> output.accept(f.getBucket().get()));
+                        for (var fluid : CDGFluids.CONCRETE)
+                            output.accept(fluid.getBucket().orElseThrow());
                     })
                     .build());
 

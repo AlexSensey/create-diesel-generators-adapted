@@ -119,6 +119,6 @@ public class ChemicalSprayerItem extends Item implements CustomArmPoseItem, Fuel
 
     @OnlyIn(Dist.CLIENT)
     public void registerExtension(RegisterClientExtensionsEvent event) {
-        event.registerItem(SimpleCustomRenderer.create(this, new WireCuttersItemRenderer()), this);
+        event.registerItem(SimpleCustomRenderer.create(this, new ChemicalSprayerItemRenderer()), this);
     }
 }

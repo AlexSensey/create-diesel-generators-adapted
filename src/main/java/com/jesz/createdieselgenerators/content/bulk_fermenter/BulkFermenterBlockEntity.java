@@ -73,6 +73,8 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     public int processingTime = -1;
     BulkFermentingRecipe currentRecipe;
 
+    public boolean packagerMode;
+
     BlazeBurnerBlock.HeatLevel highestHeatLevel = BlazeBurnerBlock.HeatLevel.NONE;
     public BulkFermenterBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -147,7 +149,11 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
                         currentRecipe = (BulkFermentingRecipe) r.get(0);
                 } else {
                    if (processingTime == 0 && !level.isClientSide) {
-                       currentRecipe.apply(this, false);
+                       for (int i = 0; i < width * width; i++) {
+                            if (!currentRecipe.apply(this, true))
+                                break;
+                           currentRecipe.apply(this, false);
+                       }
 
                        processingTime = -1;
                    } else {
@@ -368,8 +374,11 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
                     if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(existing, stack)) {
                         int limit = Math.min(stack.getMaxStackSize(), getSlotLimit(i));
                         int space = limit - existing.getCount();
-                        if (space <= 0)
+                        if (space <= 0) {
+                            if (!packagerMode)
+                                return stack;
                             continue;
+                        }
 
                         ItemStack toInsert = stack.copyWithCount(Math.min(stack.getCount(), space));
                         ItemStack remainder = super.insertItem(i, toInsert, simulate);
@@ -394,6 +403,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
         itemCapability = itemHandler;
         invalidateCapabilities();
     }
+
     private IFluidHandler handlerForCapability() {
         return isController() ? tankInventory
                 : getControllerBE() != null ? getControllerBE().handlerForCapability() : new BulkFermenterFluidHandler(0, 0, fs -> {});

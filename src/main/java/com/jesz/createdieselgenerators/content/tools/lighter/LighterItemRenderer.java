@@ -12,28 +12,26 @@ import net.minecraft.world.item.ItemStack;
 import java.util.Locale;
 
 public class LighterItemRenderer extends CustomRenderedItemModelRenderer {
+
     @Override
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
-        try {
-            if (stack.has(CDGDataComponents.LIGHTER_STATE) && LighterModel.lighterSkinIDs.containsKey(stack.getHoverName().getString().toLowerCase(Locale.ROOT))) {
-                if (LighterModel.lighterSkinModels.containsKey(LighterModel.lighterSkinIDs.get(stack.getHoverName().getString().toLowerCase(Locale.ROOT)))) {
-                    if (stack.get(CDGDataComponents.LIGHTER_STATE) == LighterState.CLOSED)
-                        renderer.render(LighterModel.lighterSkinModels.get(LighterModel.lighterSkinIDs.get(stack.getHoverName().getString().toLowerCase(Locale.ROOT))).closedModel().get(), light);
-                    else if (stack.get(CDGDataComponents.LIGHTER_STATE) == LighterState.OPEN)
-                        renderer.render(LighterModel.lighterSkinModels.get(LighterModel.lighterSkinIDs.get(stack.getHoverName().getString().toLowerCase(Locale.ROOT))).openModel().get(), light);
-                    else
-                        renderer.render(LighterModel.lighterSkinModels.get(LighterModel.lighterSkinIDs.get(stack.getHoverName().getString().toLowerCase(Locale.ROOT))).ignitedModel().get(), light);
-                    return;
-                }
-            }
-            if (!stack.has(CDGDataComponents.LIGHTER_STATE) || stack.get(CDGDataComponents.LIGHTER_STATE) == LighterState.CLOSED)
-                renderer.render(LighterModel.lighterSkinModels.get("standard").closedModel().get(), light);
-            else if (stack.get(CDGDataComponents.LIGHTER_STATE) == LighterState.OPEN)
-                renderer.render(LighterModel.lighterSkinModels.get("standard").openModel().get(), light);
+        LighterState lighterState = stack.getOrDefault(CDGDataComponents.LIGHTER_STATE, LighterState.CLOSED);
+        LighterSkinEntry lighterSkinEntry = LighterModel.lighterSkinModels.get(LighterModel.lighterSkinIDs.get(stack.getHoverName().getString().toLowerCase(Locale.ROOT)));
+        if (lighterSkinEntry != null) {
+            if (lighterState == LighterState.CLOSED)
+                renderer.render(lighterSkinEntry.closedModel().get(), light);
+            else if (lighterState == LighterState.OPEN)
+                renderer.render(lighterSkinEntry.openModel().get(), light);
             else
-                renderer.render(LighterModel.lighterSkinModels.get("standard").ignitedModel().get(), light);
-        } catch (NullPointerException e) {
-            renderer.render(model.getOriginalModel(), light);
+                renderer.render(lighterSkinEntry.ignitedModel().get(), light);
+            return;
         }
+        LighterSkinEntry standardEntry = LighterSkinEntry.STANDARD;
+        if (lighterState == LighterState.CLOSED)
+            renderer.render(standardEntry.closedModel().get(), light);
+        else if (lighterState == LighterState.OPEN)
+            renderer.render(standardEntry.openModel().get(), light);
+        else
+            renderer.render(standardEntry.ignitedModel().get(), light);
     }
 }

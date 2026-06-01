@@ -104,6 +104,8 @@
 
   "createdieselgenerators.hint.pumpjack_hole_no_pipe.title": "Missing Pipe",
   "createdieselgenerators.hint.pumpjack_hole_no_pipe": "This _Pumpjack_ does not appear to be connected to _bedrock_ below. Ensure the _Pipe_ reaches all the way down to the void.",
+  "createdieselgenerators.hint.distiller_full.title": "Output Tank Full",
+  "createdieselgenerators.hint.distiller_full": "It appears this _Distillation Tower_ has a full output tank. Ensure every _Tank_ has enough space for the outputs.",
   "createdieselgenerators.goggle.oil_amount": "Oil Amount:",
 
   "createdieselgenerators.tooltip.empty": "Empty",

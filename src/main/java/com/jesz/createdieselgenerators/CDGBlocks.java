@@ -39,6 +39,7 @@ import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.BlockStateGen;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.data.SharedProperties;
+import com.tterrag.registrate.providers.loot.RegistrateBlockLootTables;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import net.minecraft.core.Direction;
@@ -126,7 +127,7 @@ public class CDGBlocks {
     public static final BlockEntry<HugeDieselEngineBlock> HUGE_DIESEL_ENGINE = REGISTRATE.block("huge_diesel_engine", HugeDieselEngineBlock::new)
             .initialProperties(SharedProperties::softMetal)
             .properties(p -> p.mapColor(MapColor.COLOR_YELLOW))
-            .properties(p -> p.noOcclusion())
+            .properties(BlockBehaviour.Properties::noOcclusion)
             .transform(pickaxeOnly())
             .blockstate((c, p) -> p.directionalBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
             .item().model((c, p) -> p.blockItem(c, "/item")).build()
@@ -159,7 +160,7 @@ public class CDGBlocks {
     public static final BlockEntry<PumpjackBearingBlock> PUMPJACK_BEARING = REGISTRATE.block("pumpjack_bearing", PumpjackBearingBlock::new)
             .initialProperties(SharedProperties::softMetal)
             .properties(p -> p.mapColor(MapColor.GLOW_LICHEN))
-            .properties(p -> p.noOcclusion())
+            .properties(BlockBehaviour.Properties::noOcclusion)
             .transform(pickaxeOnly())
             .blockstate((c, p) -> p.directionalBlock(c.getEntry(), AssetLookup.standardModel(c, p)))
             .item().model((c, p) -> p.cubeBottomTop("pumpjack_bearing", p.modLoc("block/pumpjack_bearing_side"), p.modLoc("block/pumpjack_bearing_back"), p.modLoc("block/pumpjack_bearing_top"))).build()
@@ -240,7 +241,7 @@ public class CDGBlocks {
             .initialProperties(SharedProperties::softMetal)
             .properties(p -> p.mapColor(MapColor.METAL))
             .properties(p -> p.isRedstoneConductor((p1, p2, p3) -> true))
-            .properties(p -> p.noOcclusion())
+            .properties(BlockBehaviour.Properties::noOcclusion)
             .transform(pickaxeOnly())
             .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.standardModel(c, p)))
             .onRegister(CreateRegistrate.connectedTextures(BulkFermenterCTBehavior::new))
@@ -280,14 +281,17 @@ public class CDGBlocks {
             .initialProperties(() -> Blocks.OAK_SLAB)
             .transform(axeOnly())
             .blockstate((c, p) -> p.slabBlock(c.getEntry(), p.modLoc("block/chip_wood_block"), p.modLoc("block/chip_wood_block_side"), p.modLoc("block/chip_wood_block"), p.modLoc("block/chip_wood_block")))
-            .item().tag(ItemTags.WOODEN_SLABS).build()
+            .loot((lt, b) -> lt.add(b, lt.createSlabItemTable(b)))
+            .item()
+            .tag(ItemTags.WOODEN_SLABS).build()
             .register();
 
     public static final BlockEntry<StairBlock> CHIP_WOOD_STAIRS = REGISTRATE.block("chip_wood_stairs", p -> new StairBlock(Blocks.ANDESITE_STAIRS.defaultBlockState(), p))
             .initialProperties(() -> Blocks.OAK_STAIRS)
             .transform(axeOnly())
             .blockstate((c, p) -> p.stairsBlock(c.getEntry(), p.modLoc("block/chip_wood_block_side"), p.modLoc("block/chip_wood_block"), p.modLoc("block/chip_wood_block")))
-            .item().tag(ItemTags.WOODEN_STAIRS).build()
+            .item()
+            .tag(ItemTags.WOODEN_STAIRS).build()
             .register();
 
     public static final BlockEntry<Block> ASPHALT_BLOCK = REGISTRATE.block("asphalt_block", Block::new)
@@ -306,6 +310,7 @@ public class CDGBlocks {
             .properties(p -> p.speedFactor(1.25f))
             .transform(pickaxeOnly())
             .blockstate((c, p) -> p.slabBlock(c.getEntry(), p.modLoc("block/asphalt_block"), p.modLoc("block/asphalt")))
+            .loot((lt, b) -> lt.add(b, lt.createSlabItemTable(b)))
             .simpleItem()
             .register();
 

@@ -11,6 +11,7 @@ import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.contraptions.bearing.WindmillBearingBlockEntity;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
+import com.simibubi.create.content.kinetics.steamEngine.PoweredShaftBlockEntity;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
@@ -63,7 +64,6 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
     private float cachedFuelSpeed = 0f;
     private float cachedFuelCapacity = 0f;
     private float cachedBurnRate = 0f;
-    private boolean needsShaftRegistration = true;
 
     public HugeDieselEngineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -89,6 +89,14 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
     }
 
     @Override
+    public void remove() {
+        PoweredEngineShaftBlockEntity shaft = getShaft();
+        if (shaft != null)
+            shaft.removeGenerator(worldPosition);
+        super.remove();
+    }
+
+    @Override
     protected AABB createRenderBoundingBox() {
         return super.createRenderBoundingBox().inflate(2);
     }
@@ -103,24 +111,20 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
         if (wasOverStressed && !overStressed)
             signalChanged = true;
 
-        if (!overStressed && enabled() && getThrottle() > 0 && needsShaftRegistration)
-            signalChanged = true;
+        if (shaft != null && enabled() && getThrottle() > 0) {
+            float throttle = getThrottle();
+            shaft.update(worldPosition,
+                    movementDirection.getValue() == 0 ? 1 : -1,
+                    upgrade.getCapacity(getFuelCapacity(), this),
+                    cachedFuelSpeed * throttle);
+        } else if (shaft != null && getThrottle() == 0f) {
+            shaft.removeGenerator(worldPosition);
+        }
 
         if (signalChanged) {
             signalChanged = false;
             setChanged();
             sendData();
-            if (shaft != null && enabled() && getThrottle() > 0) {
-                float throttle = getThrottle();
-                shaft.update(worldPosition,
-                        movementDirection.getValue() == 0 ? 1 : -1,
-                        upgrade.getCapacity(getFuelCapacity(), this),
-                        cachedFuelSpeed * throttle);
-                needsShaftRegistration = false;
-            } else if (shaft != null && getThrottle() == 0f) {
-                shaft.removeGenerator(worldPosition);
-                needsShaftRegistration = true;
-            }
         }
 
         if (overStressed)
@@ -133,7 +137,6 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
             if (shaft.movementDirection != 0 && shaft.movementDirection !=
                     (movementDirection.get() == WindmillBearingBlockEntity.RotationDirection.CLOCKWISE ? 1 : -1)) {
                 shaft.removeGenerator(worldPosition);
-                needsShaftRegistration = true;
                 onDirectionChanged(movementDirection.getValue());
                 return;
             }
@@ -148,7 +151,6 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
                 CatnipServices.PLATFORM.executeOnClientOnly(() -> this::tickClient);
         } else {
             shaft.removeGenerator(worldPosition);
-            needsShaftRegistration = true;
         }
     }
 
@@ -177,17 +179,13 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
 
     public PoweredEngineShaftBlockEntity getShaft() {
         PoweredEngineShaftBlockEntity shaft = target.get();
-        if (shaft == null || shaft.isRemoved() || !shaft.canBePoweredBy()) {
+        if (shaft == null || shaft.isRemoved()) {
             if (shaft != null) {
                 target = new WeakReference<>(null);
-                needsShaftRegistration = true;
-                signalChanged = true;
             }
             BlockEntity anyShaftAt = level.getBlockEntity(worldPosition.relative(getBlockState().getValue(FACING), 2));
-            if (anyShaftAt instanceof PoweredEngineShaftBlockEntity ps && ps.canBePoweredBy()) {
+            if (anyShaftAt instanceof PoweredEngineShaftBlockEntity ps) {
                 target = new WeakReference<>(shaft = ps);
-                needsShaftRegistration = true;
-                signalChanged = true;
             }
         }
         return shaft;

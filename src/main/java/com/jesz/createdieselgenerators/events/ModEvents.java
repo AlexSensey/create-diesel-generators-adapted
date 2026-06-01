@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import com.jesz.createdieselgenerators.*;
 import com.jesz.createdieselgenerators.compat.kubejs.LighterSkinsEventJS;
 import com.jesz.createdieselgenerators.content.bulk_fermenter.BulkFermenterBlockEntity;
+import com.jesz.createdieselgenerators.content.bulk_fermenter.BulkFermenterUnpackingHandler;
 import com.jesz.createdieselgenerators.content.burner.BurnerBlockEntity;
 import com.jesz.createdieselgenerators.content.canister.CanisterBlockEntity;
 import com.jesz.createdieselgenerators.content.canister.SpoutCanisterFilling;
@@ -31,6 +32,8 @@ import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.util.entry.FluidEntry;
 import net.createmod.ponder.foundation.PonderIndex;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
@@ -42,6 +45,7 @@ import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -97,20 +101,20 @@ public class ModEvents {
         LighterModel.lighterSkinIDs.clear();
         Minecraft.getInstance().getResourceManager().getNamespaces().stream().toList().forEach(n -> {
             Optional<Resource> resource = Minecraft.getInstance().getResourceManager().getResource(ResourceLocation.fromNamespaceAndPath(n, "lighter_skins.json"));
-            if(resource.isEmpty())
+            if (resource.isEmpty())
                 return;
-            JsonParser parser = new JsonParser();
             try {
-                JsonElement data = parser.parse(resource.get().openAsReader());
-                data.getAsJsonArray().forEach(jsonElement -> {
-                    LighterModel.lighterSkinIDs.put(jsonElement.getAsJsonObject().getAsJsonPrimitive("name").getAsString(), jsonElement.getAsJsonObject().getAsJsonPrimitive("id").getAsString());
-                });
-            }catch (IOException ignored) {}
+                JsonElement data = JsonParser.parseReader(resource.get().openAsReader());
+                data.getAsJsonArray().forEach(jsonElement ->
+                        LighterModel.lighterSkinIDs.put(jsonElement.getAsJsonObject().getAsJsonPrimitive("name").getAsString(), jsonElement.getAsJsonObject().getAsJsonPrimitive("id").getAsString()));
+            } catch (IOException ignored) {}
         });
+
         if (ModList.get().isLoaded("kubejs")) {
             LighterModel.lighterSkinIDs.putAll(LighterSkinsEventJS.addedIds);
             LighterSkinsEventJS.removedIds.forEach((name, id) -> LighterModel.lighterSkinIDs.remove(name, id));
         }
+
         LighterModel.initSkins();
         LighterModel.onModelRegistry(event);
     }
@@ -141,11 +145,11 @@ public class ModEvents {
                 CDGItems.CHEMICAL_SPRAYER_LIGHTER,
                 CDGBlocks.CANISTER);
 
-        for (FluidEntry<BaseFlowingFluid.Flowing> e : CDGFluids.CONCRETE.values()) {
+        for (FluidEntry<BaseFlowingFluid.Flowing> e : CDGFluids.CONCRETE) {
             event.registerItem(
                     Capabilities.FluidHandler.ITEM,
                     (stack, c) -> new FluidBucketWrapper(stack),
-                    e.getBucket().get()
+                    e.getBucket().orElseThrow()
             );
         }
         BulkFermenterBlockEntity.registerCapabilities(event);
@@ -179,11 +183,22 @@ public class ModEvents {
             type.model = models.get(new ModelResourceLocation(type.getModelId(), ModelResourceLocation.STANDALONE_VARIANT));
     }
 
+    @OnlyIn(Dist.CLIENT)
+    @SubscribeEvent
+    public static void clientInit(FMLClientSetupEvent event) {
+        ItemBlockRenderTypes.setRenderLayer(CDGFluids.PLANT_OIL.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(CDGFluids.PLANT_OIL.getSource(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(CDGFluids.ETHANOL.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(CDGFluids.ETHANOL.getSource(), RenderType.translucent());
+        PonderIndex.addPlugin(new CDGPonderPlugin());
+    }
+
     @SubscribeEvent
     public static void setup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             BlockSpoutingBehaviour.BY_BLOCK_ENTITY.register(CDGBlockEntityTypes.CANISTER.get(), new SpoutCanisterFilling());
             BlockSpoutingBehaviour.BY_BLOCK_ENTITY.register(AllBlockEntityTypes.BASIN.get(), new BasinSpoutCasting());
+            BulkFermenterUnpackingHandler.register();
         });
     }
 
