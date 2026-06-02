@@ -191,6 +191,7 @@ public class ModEvents {
         ItemBlockRenderTypes.setRenderLayer(CDGFluids.ETHANOL.get(), RenderType.translucent());
         ItemBlockRenderTypes.setRenderLayer(CDGFluids.ETHANOL.getSource(), RenderType.translucent());
         PonderIndex.addPlugin(new CDGPonderPlugin());
+        event.enqueueWork(CDGSpriteShifts::init);
     }
 
     @SubscribeEvent

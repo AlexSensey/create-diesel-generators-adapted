@@ -66,7 +66,6 @@ public class CreateDieselGenerators
 
     public static void onClient(IEventBus modEventBus, ModContainer container) {
         CDGPartialModels.init();
-        CDGSpriteShifts.init();
         container.registerConfig(ModConfig.Type.CLIENT, CDGConfig.CLIENT_SPEC, ID + "-client.toml");
         modEventBus.addListener(LighterModel::onModelBake);
     }
