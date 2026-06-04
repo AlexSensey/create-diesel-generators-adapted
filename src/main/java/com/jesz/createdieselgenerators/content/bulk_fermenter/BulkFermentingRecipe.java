@@ -63,10 +63,10 @@ public class BulkFermentingRecipe extends StandardProcessingRecipe<RecipeInput> 
     }
 
     public boolean apply(BulkFermenterBlockEntity be, boolean test) {
-        IItemHandler availableItems = be.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, be.getBlockPos(), null);
-        IFluidHandler fluidCap = be.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, be.getBlockPos(), null);
+        IItemHandler availableItems = be.itemCapability;
+        IFluidHandler fluidCap = be.fluidCapability;
 
-        if (availableItems == null || fluidCap == null ||
+        if (availableItems == null ||
                 !(fluidCap instanceof BulkFermenterBlockEntity.BulkFermenterFluidHandler availableFluids))
             return false;
 
@@ -153,11 +153,10 @@ public class BulkFermentingRecipe extends StandardProcessingRecipe<RecipeInput> 
     }
 
     private boolean applyOutputs(BulkFermenterBlockEntity be, List<ItemStack> outputItems, List<FluidStack> outputFluids, boolean test) {
-        IItemHandler availableItems = be.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, be.getBlockPos(), null);
-        IFluidHandler fluidCap = be.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, be.getBlockPos(), null);
+        IItemHandler availableItems = be.itemCapability;
+        IFluidHandler fluidCap = be.fluidCapability;
 
-        if (availableItems == null || fluidCap == null ||
-                !(fluidCap instanceof BulkFermenterBlockEntity.BulkFermenterFluidHandler availableFluids))
+        if (availableItems == null || !(fluidCap instanceof BulkFermenterBlockEntity.BulkFermenterFluidHandler availableFluids))
             return false;
 
         List<ItemStack> items = new ArrayList<>();

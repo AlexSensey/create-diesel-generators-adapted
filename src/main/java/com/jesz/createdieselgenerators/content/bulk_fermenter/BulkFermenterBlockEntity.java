@@ -363,6 +363,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
             itemCapability = controllerBE.itemCapability;
             return;
         }
+
         IItemHandlerModifiable[] inventories = new IItemHandlerModifiable[height * width * width];
         for (int yOffset = 0; yOffset < height; yOffset++) {
             for (int xOffset = 0; xOffset < width; xOffset++) {
@@ -417,8 +418,9 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
     }
 
     private IFluidHandler handlerForCapability() {
-        return isController() ? tankInventory
-                : getControllerBE() != null ? getControllerBE().handlerForCapability() : new BulkFermenterFluidHandler(0, 0, fs -> {});
+        return isController() ?
+                tankInventory :
+                getControllerBE() != null ? getControllerBE().handlerForCapability() : new BulkFermenterFluidHandler(0, 0, fs -> {});
     }
 
     @Override
@@ -710,7 +712,6 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
             sendData();
         }
     }
-
 
     public static class BulkFermenterFluidHandler extends SmartFluidTank {
         int tankCount;
