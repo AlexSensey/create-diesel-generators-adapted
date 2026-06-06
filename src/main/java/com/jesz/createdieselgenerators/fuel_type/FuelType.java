@@ -39,9 +39,9 @@ public record FuelType(HolderSet<Fluid> fluid, PerEngineProperties normal, PerEn
             new PerEngineProperties(0, 0, 0), 0, 0);
 
     public PerEngineProperties getGenerated(BlockEntity be) {
-        if(be instanceof HugeDieselEngineBlockEntity)
+        if (be instanceof HugeDieselEngineBlockEntity)
             return huge;
-        if(be instanceof ModularDieselEngineBlockEntity)
+        if (be instanceof ModularDieselEngineBlockEntity)
             return modular;
         return normal;
     }
