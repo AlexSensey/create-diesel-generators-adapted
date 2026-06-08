@@ -9,13 +9,13 @@ import com.simibubi.create.foundation.fluid.SmartFluidTank;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -106,13 +106,16 @@ public class BurnerBlockEntity extends KineticBlockEntity {
         );
     }
 
+    private boolean chance(int bound){
+        return level.getRandom().nextInt(bound) != 1;
+    }
+
     @Override
     public void tickAudio() {
         super.tickAudio();
         float valveOrRedstoneState = Math.min(3, redstonePower ? 10 : this.valveState);
         if (valveOrRedstoneState == 0 || heat == -1)
             return;
-        RandomSource random = RandomSource.create();
         if (tick % 20 == 0)
             level.playLocalSound(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), SoundEvents.FIRE_AMBIENT, SoundSource.BLOCKS, heat * 0.3f, 1f, true);
 
@@ -125,18 +128,18 @@ public class BurnerBlockEntity extends KineticBlockEntity {
         switch (tick & 15){ case 5, 6, 9, 10: return; }
 
         addParticle(ParticleTypes.SMOKE, valveOrRedstoneState, 0.75);
-        if (redstonePower) {
-            if (heat >= 1.8f && random.nextInt(0, 1) != 1) {
+        if (redstonePower && heat >= 1.8f) {
+            if (chance(1)) {
                 addParticle(ParticleTypes.LARGE_SMOKE, valveOrRedstoneState, 0.75);
             }
 
-            if (heat >= 1.8f && random.nextInt(0, 1) != 1) {
+            if (chance(1)) {
                 addParticle(ParticleTypes.FLAME, valveOrRedstoneState, 0.75);
                 addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, valveState, 1.75);
             }
         }
 
-        if (heat >= 1.8f && random.nextInt(0, (int) (1+heat*2)) != 1) {
+        if (heat >= 1.8f && chance((int) (1+heat*2))) {
             addParticle(ParticleTypes.SOUL_FIRE_FLAME, valveOrRedstoneState, 0.75);
         } else {
             addParticle(ParticleTypes.FLAME, valveOrRedstoneState, 0.75);
