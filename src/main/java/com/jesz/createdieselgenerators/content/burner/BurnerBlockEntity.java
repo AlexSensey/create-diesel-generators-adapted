@@ -94,6 +94,18 @@ public class BurnerBlockEntity extends KineticBlockEntity {
         }
     }
 
+    private void addParticle(ParticleOptions particle, float velocity, double yOffset){
+        level.addParticle(
+                particle,
+                worldPosition.getX() + 0.3475 + (tick & 3) / 9d,
+                worldPosition.getY() + yOffset,
+                worldPosition.getZ() + 0.3475 + (tick & 12) / 36d,
+                0,
+                0.02 * velocity,
+                0
+        );
+    }
+
     @Override
     public void tickAudio() {
         super.tickAudio();
@@ -112,43 +124,23 @@ public class BurnerBlockEntity extends KineticBlockEntity {
         // We don't want them to spawn in the center (points 5-6/9-10).
         switch (tick & 15){ case 5, 6, 9, 10: return; }
 
-        int x = tick & 3;
-        int y = (tick & 12) >> 2;
-
-        level.addParticle(ParticleTypes.SMOKE,
-                worldPosition.getX() + 0.3475 + (float) x / 9, worldPosition.getY() + 0.75, worldPosition.getZ() + 0.3475 + (float) y / 9,
-                0, 0.02 * valveOrRedstoneState, 0);
-
-
+        addParticle(ParticleTypes.SMOKE, valveOrRedstoneState, 0.75);
         if (redstonePower) {
             if (heat >= 1.8f && random.nextInt(0, 1) != 1) {
-                level.addParticle(ParticleTypes.LARGE_SMOKE,
-                        worldPosition.getX() + 0.3475 + (double) x / 9, worldPosition.getY() + 0.75, worldPosition.getZ() + 0.3475 + (double) y / 9,
-                        0, 0.02 * valveOrRedstoneState, 0);
+                addParticle(ParticleTypes.LARGE_SMOKE, valveOrRedstoneState, 0.75);
             }
 
             if (heat >= 1.8f && random.nextInt(0, 1) != 1) {
-                level.addParticle(ParticleTypes.FLAME,
-                        worldPosition.getX() + 0.3475 + (double) x / 9, worldPosition.getY() + 0.75, worldPosition.getZ() + 0.3475 + (double) y / 9,
-                        0, 0.02 * valveOrRedstoneState, 0);
-
-                level.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE,
-                        worldPosition.getX() + 0.3475 + (double) x / 9, worldPosition.getY() + 1.75, worldPosition.getZ() + 0.3475 + (double) y / 9,
-                        0, 0.02 * valveOrRedstoneState, 0);
+                addParticle(ParticleTypes.FLAME, valveOrRedstoneState, 0.75);
+                addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, valveState, 1.75);
             }
-
         }
 
         if (heat >= 1.8f && random.nextInt(0, (int) (1+heat*2)) != 1) {
-            level.addParticle(ParticleTypes.SOUL_FIRE_FLAME,
-                    worldPosition.getX() + 0.3475 + (double) x / 9, worldPosition.getY() + 0.75, worldPosition.getZ() + 0.3475 + (double) y / 9,
-                    0, 0.02 * valveOrRedstoneState, 0);
-            return;
+            addParticle(ParticleTypes.SOUL_FIRE_FLAME, valveOrRedstoneState, 0.75);
+        } else {
+            addParticle(ParticleTypes.FLAME, valveOrRedstoneState, 0.75);
         }
-        level.addParticle(ParticleTypes.FLAME,
-                worldPosition.getX() + 0.3475 + (float) x / 9, worldPosition.getY() + 0.75, worldPosition.getZ() + 0.3475 + (float) y / 9,
-                0, 0.02 * valveOrRedstoneState, 0);
-
     }
 
     public BlazeBurnerBlock.HeatLevel calculateHeatLevel(float heat) {
