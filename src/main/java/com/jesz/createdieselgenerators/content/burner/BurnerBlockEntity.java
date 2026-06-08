@@ -93,9 +93,6 @@ public class BurnerBlockEntity extends KineticBlockEntity {
             setChanged();
         }
     }
-    int x = 0;
-    int y = 0;
-
 
     @Override
     public void tickAudio() {
@@ -107,12 +104,16 @@ public class BurnerBlockEntity extends KineticBlockEntity {
         if (tick % 20 == 0)
             level.playLocalSound(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), SoundEvents.FIRE_AMBIENT, SoundSource.BLOCKS, heat * 0.3f, 1f, true);
 
-        x = (x + 1) % 4;
-        if (x == 3)
-            y = (y + 1) % 4;
+        // Particles spawn in a square around the top of the burner.
+        //   0 1 2 3
+        //   4 5 6 7
+        //   8 9 A B
+        //   C D E F
+        // We don't want them to spawn in the center (points 5-6/9-10).
+        switch (tick & 15){ case 5, 6, 9, 10: return; }
 
-        if (!(x == 0 || x == 3 || y == 0 || y == 3))
-            return;
+        int x = tick & 3;
+        int y = (tick & 12) >> 2;
 
         level.addParticle(ParticleTypes.SMOKE,
                 worldPosition.getX() + 0.3475 + (float) x / 9, worldPosition.getY() + 0.75, worldPosition.getZ() + 0.3475 + (float) y / 9,
