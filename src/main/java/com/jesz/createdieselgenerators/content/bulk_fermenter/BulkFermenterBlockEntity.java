@@ -57,7 +57,8 @@ import java.util.stream.Collectors;
 public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMultiBlockEntityContainerFluidItem, IHaveGoggleInformation {
 
     private static final int MAX_SIZE = 3;
-    IItemHandler itemCapability;
+    VersionedInventoryWrapper itemHandler;
+    BulkFermenterInventoryWrapper itemCapability = new BulkFermenterInventoryWrapper();
     public ItemStackHandler inventory;
     IFluidHandler fluidCapability;
     BulkFermenterFluidHandler tankInventory;
@@ -360,7 +361,8 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
             if (controllerBE == null)
                 return;
             controllerBE.initCapability();
-            itemCapability = controllerBE.itemCapability;
+            itemHandler = controllerBE.itemHandler;
+            itemCapability.setItemHandler(itemHandler);
             return;
         }
 
@@ -377,7 +379,7 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
             }
         }
 
-        itemCapability = new VersionedInventoryWrapper(new CombinedInvWrapper(inventories) {
+        itemHandler = new VersionedInventoryWrapper(new CombinedInvWrapper(inventories) {
             @Override
             public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
                 if (stack.isEmpty())
@@ -414,7 +416,10 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
                 return stack;
             }
         });
-        invalidateCapabilities();
+
+        // this is a weird way of setting the item handler without invalidating all caps,
+        // in turn invalidating the fluid cap and causing create's pipes to stop extracting
+        itemCapability.setItemHandler(itemHandler);
     }
 
     private IFluidHandler handlerForCapability() {
@@ -815,6 +820,8 @@ public class BulkFermenterBlockEntity extends SmartBlockEntity implements IMulti
 
         @Override
         public @NonNull FluidTank setCapacity(int capacity) {
+            for (FluidTank tank : tanks)
+                tank.setCapacity(capacity);
             return super.setCapacity(capacity);
         }
     }

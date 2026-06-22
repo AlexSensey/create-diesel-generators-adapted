@@ -76,32 +76,20 @@ configurations {
 }
 
 repositories {
-    maven { url = "https://maven.createmod.net" } // Ponder, Flywheel
+    maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
     maven { url = "https://mvn.devos.one/snapshots" } // Registrate
-    maven { url = "https://maven.blamejared.com" } // JEI, Vazkii's Mods
-    maven { url = "https://maven.squiddev.cc" } // CC: Tweaked
-    maven { url = "https://www.cursemaven.com" }
     maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // ForgeConfigAPIPort
+    maven { url = "https://maven.squiddev.cc" } // CC: Tweaked
+    maven { url = "https://maven.theillusivec4.top/" } // Curios API
+    maven { url = "https://maven.blamejared.com/" } // JEI
+    maven { url = "https://maven.ryanhcode.dev/releases" } // Sable, Simulated
+    maven { url = "https://cursemaven.com" }
+    maven { url = "https://api.modrinth.com/maven" }
 
     maven {
         url = "https://maven.latvian.dev/releases"
         content {
             includeGroup "dev.latvian.mods"
-        }
-    }
-    maven {
-        url = "https://api.modrinth.com/maven"
-    }
-
-    exclusiveContent { // Sable
-        forRepository {
-            maven {
-                url = "https://maven.ryanhcode.dev/releases"
-                name = "RyanHCode Maven"
-            }
-        }
-        filter {
-            includeGroup("dev.ryanhcode.sable-companion")
         }
     }
 }
@@ -130,7 +118,12 @@ dependencies {
     implementation "curse.maven:selene-499980:7522321"
     annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
 
-    compileOnly("maven.modrinth:sable:${sable_version}+mc${minecraft_version}-neoforge")
+
+    implementation("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:[${sable_version},)")
+    implementation("dev.eriksonn.aeronautics:aeronautics-neoforge-${minecraft_version}:${aeronautics_version}")
+    implementation("dev.simulated_team.simulated:simulated-neoforge-${minecraft_version}:${simulated_version}")
+    runtimeOnly("dev.ryanhcode.offroad:offroad-neoforge-${minecraft_version}:${offroad_version}")
+
     jarJar(api("dev.ryanhcode.sable-companion:sable-companion-common-${project.minecraft_version}:[${project.sable_companion_version},)")) {
         version {
             prefer project.sable_companion_version
@@ -182,7 +175,7 @@ tasks.withType(JavaCompile).configureEach {
 
 jar {
     manifest.attributes([
-            "MixinConfigs": "${mod_id}.mixins.json,${mod_id}.sable.mixins.json",
+            "MixinConfigs": "${mod_id}.mixins.json",
     ])
 }
 

@@ -26,11 +26,13 @@ public class BurnerRenderer extends ShaftRenderer<BurnerBlockEntity> {
                 .center().rotateYDegrees(state.getValue(HorizontalAxisKineticBlock.HORIZONTAL_AXIS) == Direction.Axis.X ? 90 : 0).uncenter()
                 .translate(0.25, 0.25, 0.5)
                 .rotateXDegrees(rotation)
+                .light(light)
                 .renderInto(ms, buffer.getBuffer(RenderType.solid()));
         CachedBuffers.partial(CDGPartialModels.SMALL_GAUGE_DIAL, state)
                 .center().rotateYDegrees(state.getValue(HorizontalAxisKineticBlock.HORIZONTAL_AXIS) == Direction.Axis.X ? 90 : 0).uncenter()
                 .translate(0.75, 0.25, 0.5)
                 .rotateXDegrees(-rotation)
+                .light(light)
                 .renderInto(ms, buffer.getBuffer(RenderType.solid()));
     }
 }
