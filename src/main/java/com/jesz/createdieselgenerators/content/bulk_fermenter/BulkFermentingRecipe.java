@@ -11,7 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
@@ -63,7 +62,7 @@ public class BulkFermentingRecipe extends StandardProcessingRecipe<RecipeInput> 
     }
 
     public boolean apply(BulkFermenterBlockEntity be, boolean test) {
-        IItemHandler availableItems = be.itemCapability;
+        IItemHandler availableItems = be.itemHandler;
         IFluidHandler fluidCap = be.fluidCapability;
 
         if (availableItems == null ||
@@ -153,7 +152,7 @@ public class BulkFermentingRecipe extends StandardProcessingRecipe<RecipeInput> 
     }
 
     private boolean applyOutputs(BulkFermenterBlockEntity be, List<ItemStack> outputItems, List<FluidStack> outputFluids, boolean test) {
-        IItemHandler availableItems = be.itemCapability;
+        IItemHandler availableItems = be.itemHandler;
         IFluidHandler fluidCap = be.fluidCapability;
 
         if (availableItems == null || !(fluidCap instanceof BulkFermenterBlockEntity.BulkFermenterFluidHandler availableFluids))

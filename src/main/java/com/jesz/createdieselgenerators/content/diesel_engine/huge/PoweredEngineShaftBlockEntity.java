@@ -24,13 +24,29 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
     float stressCapacity;
     float speed;
     int movementDirection;
+    BlockPos lastKnownPos = worldPosition;
 
     public PoweredEngineShaftBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
         movementDirection = 0;
     }
 
-    public boolean isEngineForConnectorDisplay( BlockPos pos ) {
+    @Override
+    public void tick() {
+        super.tick();
+        if (!worldPosition.equals(lastKnownPos)) {
+            BlockPos offset = worldPosition.subtract(lastKnownPos);
+            lastKnownPos = worldPosition;
+
+            for (int i = 0; i < engines.size(); i++) {
+                Pair<BlockPos, Couple<Float>> engine = engines.get(i);
+                if (engine != null)
+                    engines.set(i, Pair.of(engine.getFirst().offset(offset), engine.getSecond()));
+            }
+        }
+    }
+
+    public boolean isEngineForConnectorDisplay(BlockPos pos ) {
 
         Direction.Axis axis = getBlockState().getValue(AXIS);
         for (Direction d : List.of(axis == Direction.Axis.Z ? Direction.UP : Direction.NORTH, axis == Direction.Axis.Z ? Direction.DOWN : Direction.SOUTH, axis == Direction.Axis.X ? Direction.UP : Direction.EAST, axis == Direction.Axis.X ? Direction.DOWN : Direction.WEST)) {
@@ -90,29 +106,30 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
     }
 
     @Override
-    protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
-        super.write(compound, registries, clientPacket);
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
 
-        compound.putInt("Direction", movementDirection);
+        tag.putInt("Direction", movementDirection);
         ListTag engineList = new ListTag();
 
         for (Pair<BlockPos, Couple<Float>> engine : List.copyOf(engines)) {
-            CompoundTag tag = new CompoundTag();
-            tag.putFloat("Capacity", engine.getSecond().getFirst());
-            tag.putFloat("Speed", engine.getSecond().getSecond());
-            tag.put("Pos", NbtUtils.writeBlockPos(engine.getFirst()));
-            engineList.add(tag);
+            CompoundTag engineTag = new CompoundTag();
+            engineTag.putFloat("Capacity", engine.getSecond().getFirst());
+            engineTag.putFloat("Speed", engine.getSecond().getSecond());
+            engineTag.put("Pos", NbtUtils.writeBlockPos(engine.getFirst()));
+            engineList.add(engineTag);
         };
-        compound.putFloat("GeneratedSpeed", speed);
-        compound.put("Engines", engineList);
+        tag.putFloat("GeneratedSpeed", speed);
+        tag.put("Engines", engineList);
+        tag.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
     }
 
     @Override
-    protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
-        super.read(compound, registries, clientPacket);
-        movementDirection = compound.getInt("Direction");
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
+        movementDirection = tag.getInt("Direction");
 
-        ListTag engineList = compound.getList("Engines", CompoundTag.TAG_COMPOUND);
+        ListTag engineList = tag.getList("Engines", CompoundTag.TAG_COMPOUND);
         List<Pair<BlockPos, Couple<Float>>> newEngines = new ArrayList<>();
         for (int i = 0; i < engineList.size(); i++) {
             newEngines.add(Pair.of(NBTHelper.readBlockPos(engineList.getCompound(i), "Pos"),
@@ -121,7 +138,8 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
         }
         engines = newEngines;
 
-        speed = compound.getFloat("GeneratedSpeed");
+        speed = tag.getFloat("GeneratedSpeed");
+        lastKnownPos = NBTHelper.readBlockPos(tag, "LastKnownPos");
     }
 
     @Override

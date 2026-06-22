@@ -35,7 +35,7 @@ public class BurnerBlockEntity extends KineticBlockEntity {
     float multiplier;
     boolean ignited = false;
     int ignitionTries;
-    public boolean redstonePower = false;
+    public int redstonePower = 0;
 
     @Override
     public void tick() {
@@ -44,7 +44,7 @@ public class BurnerBlockEntity extends KineticBlockEntity {
 
         prevValveState = valveState;
         valveState = Mth.clamp(valveState + getSpeed() / 5000, 0, 1);
-        float valveOrRedstoneState = redstonePower ? 20 : this.valveState;
+        float valveOrRedstoneState = Math.max(this.valveState, redstonePower * 4);
 
         boolean containsValidFuel = !tank.getFluid().isEmpty();
         if (containsValidFuel)
@@ -113,7 +113,7 @@ public class BurnerBlockEntity extends KineticBlockEntity {
     @Override
     public void tickAudio() {
         super.tickAudio();
-        float valveOrRedstoneState = Math.min(3, redstonePower ? 10 : this.valveState);
+        float valveOrRedstoneState = Math.min(3, redstonePower != 0 ? 10 : this.valveState);
         if (valveOrRedstoneState == 0 || heat == -1)
             return;
         if (tick % 20 == 0)
@@ -128,7 +128,7 @@ public class BurnerBlockEntity extends KineticBlockEntity {
         switch (tick & 15){ case 5, 6, 9, 10: return; }
 
         addParticle(ParticleTypes.SMOKE, valveOrRedstoneState, 0.75);
-        if (redstonePower && heat >= 1.8f) {
+        if (redstonePower != 0 && heat >= 1.8f) {
             if (chance(1)) {
                 addParticle(ParticleTypes.LARGE_SMOKE, valveOrRedstoneState, 0.75);
             }
@@ -164,7 +164,7 @@ public class BurnerBlockEntity extends KineticBlockEntity {
         tag.putFloat("Heat", heat);
         tag.putInt("Tick", tick);
         tag.put("FluidContent", tank.writeToNBT(registries, new CompoundTag()));
-        tag.putBoolean("RedstonePower", redstonePower);
+        tag.putInt("RedstonePower", redstonePower);
         tag.putByte("RedstoneOutput", (byte) redstoneOutput);
         super.write(tag, registries, clientPacket);
     }
@@ -175,7 +175,9 @@ public class BurnerBlockEntity extends KineticBlockEntity {
         heat = tag.getFloat("Heat");
         tick = tag.getInt("Tick");
         tank.readFromNBT(registries, tag.getCompound("FluidContent"));
-        redstonePower = tag.getBoolean("RedstonePower");
+        redstonePower = tag.getInt("RedstonePower");
+        if (tag.getBoolean("RedstonePower"))
+            redstonePower = 15;
         redstoneOutput = tag.getByte("RedstoneOutput");
         super.read(tag, registries, clientPacket);
     }

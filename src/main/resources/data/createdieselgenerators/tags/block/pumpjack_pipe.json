@@ -3,7 +3,7 @@
   "values": [
     {
       "required": false,
-      "id": "createindustry:industrial_pipe"
+      "id": "tfmg:industrial_pipe"
     }
   ]
 }
