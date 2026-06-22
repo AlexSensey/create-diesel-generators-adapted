@@ -9,13 +9,13 @@ import com.simibubi.create.foundation.fluid.SmartFluidTank;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -93,9 +93,22 @@ public class BurnerBlockEntity extends KineticBlockEntity {
             setChanged();
         }
     }
-    int x = 0;
-    int y = 0;
 
+    private void addParticle(ParticleOptions particle, float velocity, double yOffset){
+        level.addParticle(
+                particle,
+                worldPosition.getX() + 0.3475 + (tick & 3) / 9d,
+                worldPosition.getY() + yOffset,
+                worldPosition.getZ() + 0.3475 + (tick & 12) / 36d,
+                0,
+                0.02 * velocity,
+                0
+        );
+    }
+
+    private boolean chance(int bound){
+        return level.getRandom().nextInt(bound) != 1;
+    }
 
     @Override
     public void tickAudio() {
@@ -103,51 +116,34 @@ public class BurnerBlockEntity extends KineticBlockEntity {
         float valveOrRedstoneState = Math.min(3, redstonePower != 0 ? 10 : this.valveState);
         if (valveOrRedstoneState == 0 || heat == -1)
             return;
-        RandomSource random = RandomSource.create();
         if (tick % 20 == 0)
             level.playLocalSound(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), SoundEvents.FIRE_AMBIENT, SoundSource.BLOCKS, heat * 0.3f, 1f, true);
 
-        x = (x + 1) % 4;
-        if (x == 3)
-            y = (y + 1) % 4;
+        // Particles spawn in a square around the top of the burner.
+        //   0 1 2 3
+        //   4 5 6 7
+        //   8 9 A B
+        //   C D E F
+        // We don't want them to spawn in the center (points 5-6/9-10).
+        switch (tick & 15){ case 5, 6, 9, 10: return; }
 
-        if (!(x == 0 || x == 3 || y == 0 || y == 3))
-            return;
-
-        level.addParticle(ParticleTypes.SMOKE,
-                worldPosition.getX() + 0.3475 + (float) x / 9, worldPosition.getY() + 0.75, worldPosition.getZ() + 0.3475 + (float) y / 9,
-                0, 0.02 * valveOrRedstoneState, 0);
-
-
-        if (redstonePower != 0) {
-            if (heat >= 1.8f && random.nextInt(0, 1) != 1) {
-                level.addParticle(ParticleTypes.LARGE_SMOKE,
-                        worldPosition.getX() + 0.3475 + (double) x / 9, worldPosition.getY() + 0.75, worldPosition.getZ() + 0.3475 + (double) y / 9,
-                        0, 0.02 * valveOrRedstoneState, 0);
+        addParticle(ParticleTypes.SMOKE, valveOrRedstoneState, 0.75);
+        if (redstonePower != 0 && heat >= 1.8f) {
+            if (chance(1)) {
+                addParticle(ParticleTypes.LARGE_SMOKE, valveOrRedstoneState, 0.75);
             }
 
-            if (heat >= 1.8f && random.nextInt(0, 1) != 1) {
-                level.addParticle(ParticleTypes.FLAME,
-                        worldPosition.getX() + 0.3475 + (double) x / 9, worldPosition.getY() + 0.75, worldPosition.getZ() + 0.3475 + (double) y / 9,
-                        0, 0.02 * valveOrRedstoneState, 0);
-
-                level.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE,
-                        worldPosition.getX() + 0.3475 + (double) x / 9, worldPosition.getY() + 1.75, worldPosition.getZ() + 0.3475 + (double) y / 9,
-                        0, 0.02 * valveOrRedstoneState, 0);
+            if (chance(1)) {
+                addParticle(ParticleTypes.FLAME, valveOrRedstoneState, 0.75);
+                addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, valveState, 1.75);
             }
-
         }
 
-        if (heat >= 1.8f && random.nextInt(0, (int) (1+heat*2)) != 1) {
-            level.addParticle(ParticleTypes.SOUL_FIRE_FLAME,
-                    worldPosition.getX() + 0.3475 + (double) x / 9, worldPosition.getY() + 0.75, worldPosition.getZ() + 0.3475 + (double) y / 9,
-                    0, 0.02 * valveOrRedstoneState, 0);
-            return;
+        if (heat >= 1.8f && chance((int) (1+heat*2))) {
+            addParticle(ParticleTypes.SOUL_FIRE_FLAME, valveOrRedstoneState, 0.75);
+        } else {
+            addParticle(ParticleTypes.FLAME, valveOrRedstoneState, 0.75);
         }
-        level.addParticle(ParticleTypes.FLAME,
-                worldPosition.getX() + 0.3475 + (float) x / 9, worldPosition.getY() + 0.75, worldPosition.getZ() + 0.3475 + (float) y / 9,
-                0, 0.02 * valveOrRedstoneState, 0);
-
     }
 
     public BlazeBurnerBlock.HeatLevel calculateHeatLevel(float heat) {
