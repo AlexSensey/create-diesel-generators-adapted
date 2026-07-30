@@ -23,6 +23,7 @@ import com.jesz.createdieselgenerators.content.tools.lighter.LighterModel;
 import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagComponent;
 import com.jesz.createdieselgenerators.content.turret.ChemicalTurretBlockEntity;
 import com.jesz.createdieselgenerators.content.turret.TurretOperatorHatLayer;
+import com.jesz.createdieselgenerators.events.datagen.CDGRecipeProvider;
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.jesz.createdieselgenerators.ponder.CDGPonderPlugin;
 import com.simibubi.create.AllBlockEntityTypes;
@@ -37,6 +38,8 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.neoforged.api.distmarker.Dist;
@@ -61,6 +64,7 @@ import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @EventBusSubscriber(modid = CreateDieselGenerators.ID)
 public class ModEvents {
@@ -79,6 +83,11 @@ public class ModEvents {
             PonderIndex.addPlugin(new CDGPonderPlugin());
             PonderIndex.getLangAccess().provideLang(CreateDieselGenerators.ID, provider::add);
         });
+
+        CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
+        PackOutput packOutput = event.getGenerator().getPackOutput();
+
+        event.addProvider(new CDGRecipeProvider(packOutput, lookupProvider));
     }
 
     @SubscribeEvent
@@ -93,6 +102,8 @@ public class ModEvents {
     @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
     public static void onModelRegistry(ModelEvent.RegisterAdditional event){
+
+        event.register(ModelResourceLocation.standalone(CreateDieselGenerators.rl("block/girder_strut/andesite_girder")));
 
         for (MoldType type : MoldType.types)
             event.register(new ModelResourceLocation(type.getModelId(), ModelResourceLocation.STANDALONE_VARIANT));

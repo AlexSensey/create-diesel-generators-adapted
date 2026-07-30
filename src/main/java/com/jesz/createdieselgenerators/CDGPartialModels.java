@@ -51,9 +51,11 @@ public class CDGPartialModels {
     public static final PartialModel CHEMICAL_TURRET_SMALL_COG = model("block/chemical_turret/small_cog");
     public static final PartialModel CHEMICAL_TURRET_COG = model("block/chemical_turret/cog");
     public static final PartialModel TURRET_OPERATOR_HAT = model("entity/turret_operator_hat");
+
     public static PartialModel model(String id){
         return PartialModel.of(CreateDieselGenerators.rl(id));
     }
+
     public static void init(){}
 }
 

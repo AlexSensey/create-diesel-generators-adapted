@@ -36,6 +36,7 @@ public class LighterModel {
     public static LighterModel simple(String id, LighterState state){
         return new LighterModel(CreateDieselGenerators.rl("item/lighter/"+id+state.getSuffix()));
     }
+
     public static void onModelRegistry(ModelEvent.RegisterAdditional event) {
         for (LighterModel partial : ALL)
             event.register(new ModelResourceLocation(partial.getLocation(), ModelResourceLocation.STANDALONE_VARIANT));

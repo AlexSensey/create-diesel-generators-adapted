@@ -85,7 +85,7 @@ repositories {
     maven { url = "https://maven.ryanhcode.dev/releases" } // Sable, Simulated
     maven { url = "https://cursemaven.com" }
     maven { url = "https://api.modrinth.com/maven" }
-
+//    maven { url = "https://maven.azmod.net/releases" } // Strut your Stuff
     maven {
         url = "https://maven.latvian.dev/releases"
         content {
@@ -93,6 +93,7 @@ repositories {
         }
     }
 }
+
 
 dependencies {
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
@@ -118,17 +119,20 @@ dependencies {
     implementation "curse.maven:selene-499980:7522321"
     annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
 
+    // Strut your stuff
+//    implementation("com.cake.struts:struts:1.3.0")
+    implementation("maven.modrinth:sHO3MhQx:Nrn7hYca")
 
     implementation("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:[${sable_version},)")
     implementation("dev.eriksonn.aeronautics:aeronautics-neoforge-${minecraft_version}:${aeronautics_version}")
     implementation("dev.simulated_team.simulated:simulated-neoforge-${minecraft_version}:${simulated_version}")
     runtimeOnly("dev.ryanhcode.offroad:offroad-neoforge-${minecraft_version}:${offroad_version}")
 
-    jarJar(api("dev.ryanhcode.sable-companion:sable-companion-common-${project.minecraft_version}:[${project.sable_companion_version},)")) {
+    jarJar(api("dev.ryanhcode.sable-companion:sable-companion-common-${project.minecraft_version}:[${project.sable_companion_version},)") {
         version {
             prefer project.sable_companion_version
         }
-    }
+    })
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

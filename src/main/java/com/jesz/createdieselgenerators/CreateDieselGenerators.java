@@ -1,7 +1,9 @@
 package com.jesz.createdieselgenerators;
 
+import com.cake.struts.StrutYourStuff;
 import com.jesz.createdieselgenerators.compat.EveryCompatCompat;
 import com.jesz.createdieselgenerators.compat.computercraft.CCProxy;
+import com.jesz.createdieselgenerators.compat.strut_your_stuff.StrutYourStuffRegistryEntries;
 import com.jesz.createdieselgenerators.content.molds.MoldType;
 import com.jesz.createdieselgenerators.content.tools.lighter.LighterModel;
 import com.jesz.createdieselgenerators.packets.CDGPackets;
@@ -54,6 +56,8 @@ public class CreateDieselGenerators
         CDGPackets.register();
         CDGDataComponents.register(modEventBus);
         CDGDisplaySources.register();
+        if (ModList.get().isLoaded("struts"))
+            StrutYourStuffRegistryEntries.register();
 
         if (ModList.get().isLoaded("moonlight"))
             EveryCompatCompat.init();

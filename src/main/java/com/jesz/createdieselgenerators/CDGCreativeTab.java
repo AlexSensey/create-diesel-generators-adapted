@@ -1,5 +1,6 @@
 package com.jesz.createdieselgenerators;
 
+import com.jesz.createdieselgenerators.compat.strut_your_stuff.StrutYourStuffRegistryEntries;
 import com.jesz.createdieselgenerators.content.molds.MoldType;
 import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagItem;
 import net.minecraft.core.registries.Registries;
@@ -7,6 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -46,6 +48,8 @@ public class CDGCreativeTab {
                         output.accept(CDGBlocks.ASPHALT_SLAB.get());
                         output.accept(CDGBlocks.BULK_FERMENTER.get());
                         output.accept(CDGBlocks.ANDESITE_GIRDER.get());
+                        if (ModList.get().isLoaded("struts"))
+                            StrutYourStuffRegistryEntries.fillCreativeTab(output);
                         output.accept(CDGBlocks.BURNER.get());
                         output.accept(CDGBlocks.CHEMICAL_TURRET.get());
                         output.accept(CDGBlocks.SHEET_METAL_PANEL.get());

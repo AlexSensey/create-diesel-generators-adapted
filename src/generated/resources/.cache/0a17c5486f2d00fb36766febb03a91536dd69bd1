@@ -1,6 +1,7 @@
-// 1.21.1	2026-06-01T21:35:32.856087619	Registrate Provider for createdieselgenerators [Registries, Data Maps, Recipes, Advancements, Loot Tables, Tags (blocks), Tags (enchantments), Tags (items), Tags (fluids), Tags (entity_types), generic_server_provider, Blockstates, Item models, Lang (en_us/en_ud), generic_client_provider]
+// 1.21.1	2026-07-30T15:36:10.225491141	Registrate Provider for createdieselgenerators [Registries, Data Maps, Recipes, Advancements, Loot Tables, Tags (blocks), Tags (enchantments), Tags (items), Tags (fluids), Tags (entity_types), generic_server_provider, Blockstates, Item models, Lang (en_us/en_ud), generic_client_provider]
 515c47692d269b683b2f71229a92f9dda098148f assets/createdieselgenerators/blockstates/andesite_girder.json
 c04c217c8303f8e9da156ff8fd1e03579667db9f assets/createdieselgenerators/blockstates/andesite_girder_encased_shaft.json
+3be6b6b2755b4ab9ae0dbbaf80506b124cdaeeaf assets/createdieselgenerators/blockstates/andesite_girder_strut.json
 c30a00b0f2722bc05d96cdcd9b1418a8eeda6fdd assets/createdieselgenerators/blockstates/asphalt_block.json
 a16c10275b2c9170d61f693bd16ae19b31c03d35 assets/createdieselgenerators/blockstates/asphalt_slab.json
 351289fa28cd69ea64dafb411b8681fc88dfee60 assets/createdieselgenerators/blockstates/asphalt_stairs.json
@@ -63,8 +64,8 @@ c9583193ce370c2d338f8300dd35a08de1174e74 assets/createdieselgenerators/blockstat
 cf38db33d42cfa06ccc89b53b6ed8ef05d06e356 assets/createdieselgenerators/blockstates/white_concrete_encased_fluid_pipe.json
 36119964183cbbf22c9c0e63b37fc5ffb3ea618b assets/createdieselgenerators/blockstates/yellow_cement.json
 c7a73129fc436da16afaeb04bd907e1ff3cc9dbf assets/createdieselgenerators/blockstates/yellow_concrete_encased_fluid_pipe.json
-ee24d3f5493d218d6a8ba3fe45a8fc611e288c73 assets/createdieselgenerators/lang/en_ud.json
-a7926bc26e2e7e2b6ab709e42f9bd2818d8c3397 assets/createdieselgenerators/lang/en_us.json
+aa95650205093f1ca1931b9733acce8db1b2def7 assets/createdieselgenerators/lang/en_ud.json
+2e6a72c460c3d1066542a9c3caea0c9688117f68 assets/createdieselgenerators/lang/en_us.json
 997203a32a2e62db78f3624d060fad2ad06a9132 assets/createdieselgenerators/models/block/asphalt_block.json
 4d907dc0faf4c118976f6fba52c0f995ab060ef2 assets/createdieselgenerators/models/block/asphalt_slab.json
 d30e1a719495f71720c975064c9f0fe84b783550 assets/createdieselgenerators/models/block/asphalt_slab_top.json
@@ -103,6 +104,7 @@ e765192f82467ad159348080ee59ebf9efc6f569 assets/createdieselgenerators/models/bl
 f1f4625f66635fbeb1e400f8c1f8eae32a055005 assets/createdieselgenerators/models/block/white_cement.json
 abd874c0fd3402e575c68dce5357f7e8472185aa assets/createdieselgenerators/models/block/yellow_cement.json
 ef98384289ff7b84da238bfe72bf5535a93102ec assets/createdieselgenerators/models/item/andesite_girder.json
+c6b30e7c2d675a0f7fb1653c479361a9b6c81fc7 assets/createdieselgenerators/models/item/andesite_girder_strut.json
 f4313f1bbfd29d8c3560b11104708b0cf4fe5ea8 assets/createdieselgenerators/models/item/asphalt_block.json
 042a707d088977ac403e657555d938e352da76f2 assets/createdieselgenerators/models/item/asphalt_slab.json
 d176053ed63a32373a73c4e73ffd4462f5a77897 assets/createdieselgenerators/models/item/asphalt_stairs.json
@@ -170,6 +172,7 @@ f30f5c14bdcc6becaeba14e9bd221c97b473b94f assets/createdieselgenerators/models/it
 519dff9ca3ad9ba235dd975c49466dc541eaa3af data/create/tags/item/contraption_controlled.json
 fec273b595da5e7170cf9d8c451b3772d4afec34 data/createdieselgenerators/loot_table/blocks/andesite_girder.json
 7f1ef85d7dbf267e35bb045fe6c0599f03d85e3d data/createdieselgenerators/loot_table/blocks/andesite_girder_encased_shaft.json
+203945eb4f39a9d31eae7fbdecc7d5a4dcdecd97 data/createdieselgenerators/loot_table/blocks/andesite_girder_strut.json
 e924bf6f04053166d686b12d53cbf95661d12e2b data/createdieselgenerators/loot_table/blocks/asphalt_block.json
 760d0782fa96d43aa8223b015bdf8b15a72f152a data/createdieselgenerators/loot_table/blocks/asphalt_slab.json
 67b992c8ecd92a67ca53871bc4c6184c369a9f7b data/createdieselgenerators/loot_table/blocks/asphalt_stairs.json
