@@ -1,22 +1,16 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "A A",
-    "ZKZ",
-    "A A"
-  ],
-  "key": {
-    "A": {
-      "item": "create:andesite_alloy"
-    },
-    "Z": {
-      "tag": "c:ingots/zinc"
-    },
-    "K": {
-      "item": "minecraft:dried_kelp"
-    }
-  },
-  "result": {
-    "id": "createdieselgenerators:pumpjack_head"
-  }
+    "type":  "minecraft:crafting_shaped",
+    "pattern":  [
+                    "A A",
+                    "ZKZ",
+                    "A A"
+                ],
+    "key":  {
+                "A":  "create:andesite_alloy",
+                "Z":  "#c:ingots/zinc",
+                "K":  "minecraft:dried_kelp"
+            },
+    "result":  {
+                   "id":  "createdieselgenerators:pumpjack_head"
+               }
 }

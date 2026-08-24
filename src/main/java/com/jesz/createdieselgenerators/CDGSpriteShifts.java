@@ -3,7 +3,6 @@ package com.jesz.createdieselgenerators;
 import com.simibubi.create.foundation.block.connected.AllCTTypes;
 import com.simibubi.create.foundation.block.connected.CTSpriteShiftEntry;
 import com.simibubi.create.foundation.block.connected.CTSpriteShifter;
-import net.minecraft.resources.ResourceLocation;
 
 public class CDGSpriteShifts {
     public static final CTSpriteShiftEntry MODULAR_DIESEL_ENGINE = horizontal("diesel_engine_big");
@@ -51,17 +50,17 @@ public class CDGSpriteShifts {
             OIL_BARREL_BLACK = rectangle("oil_barrel/vertical/iron", "oil_barrel/vertical/black_connected");
     public static void init(){}
     private static CTSpriteShiftEntry horizontal(String name) {
-        return CTSpriteShifter.getCT(AllCTTypes.CROSS,  CreateDieselGenerators.rl("block/"+name),
-                CreateDieselGenerators.rl("block/"+name+"_connected"));
+        return CTSpriteShifter.getCT(AllCTTypes.CROSS,  CreateDieselGenerators.id("block/"+name),
+                CreateDieselGenerators.id("block/"+name+"_connected"));
     }
     private static CTSpriteShiftEntry rectangle(String name) {
-        return CTSpriteShifter.getCT(AllCTTypes.RECTANGLE,  CreateDieselGenerators.rl("block/"+name),
-                CreateDieselGenerators.rl("block/"+name+"_connected"));
+        return CTSpriteShifter.getCT(AllCTTypes.RECTANGLE,  CreateDieselGenerators.id("block/"+name),
+                CreateDieselGenerators.id("block/"+name+"_connected"));
     }
 
     private static CTSpriteShiftEntry rectangle(String name, String connectedName) {
-        return CTSpriteShifter.getCT(AllCTTypes.RECTANGLE,  CreateDieselGenerators.rl("block/"+name),
-                CreateDieselGenerators.rl("block/"+connectedName));
+        return CTSpriteShifter.getCT(AllCTTypes.RECTANGLE,  CreateDieselGenerators.id("block/"+name),
+                CreateDieselGenerators.id("block/"+connectedName));
     }
 
 }

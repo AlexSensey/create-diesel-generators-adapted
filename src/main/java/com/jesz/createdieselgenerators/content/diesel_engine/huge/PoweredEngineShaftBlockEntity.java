@@ -1,9 +1,8 @@
 package com.jesz.createdieselgenerators.content.diesel_engine.huge;
 
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
-import net.createmod.catnip.data.Couple;
-import net.createmod.catnip.data.Pair;
-import net.createmod.catnip.nbt.NBTHelper;
+import net.createmod.catnip.api.data.Couple;
+import net.createmod.catnip.api.data.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -116,30 +115,31 @@ public class PoweredEngineShaftBlockEntity extends GeneratingKineticBlockEntity 
             CompoundTag engineTag = new CompoundTag();
             engineTag.putFloat("Capacity", engine.getSecond().getFirst());
             engineTag.putFloat("Speed", engine.getSecond().getSecond());
-            engineTag.put("Pos", NbtUtils.writeBlockPos(engine.getFirst()));
+            engineTag.put("Pos", com.jesz.createdieselgenerators.foundation.FluidCompatibility.writeBlockPos(engine.getFirst()));
             engineList.add(engineTag);
         };
         tag.putFloat("GeneratedSpeed", speed);
         tag.put("Engines", engineList);
-        tag.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
+        tag.put("LastKnownPos", com.jesz.createdieselgenerators.foundation.FluidCompatibility.writeBlockPos(lastKnownPos));
     }
 
     @Override
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(tag, registries, clientPacket);
-        movementDirection = tag.getInt("Direction");
+        movementDirection = tag.getIntOr("Direction", 0);
 
-        ListTag engineList = tag.getList("Engines", CompoundTag.TAG_COMPOUND);
+        ListTag engineList = tag.getListOrEmpty("Engines");
         List<Pair<BlockPos, Couple<Float>>> newEngines = new ArrayList<>();
         for (int i = 0; i < engineList.size(); i++) {
-            newEngines.add(Pair.of(NBTHelper.readBlockPos(engineList.getCompound(i), "Pos"),
-                    Couple.create(engineList.getCompound(i).getFloat("Capacity"),
-                            engineList.getCompound(i).getFloat("Speed"))));
+            CompoundTag engineTag = engineList.getCompound(i).orElseGet(CompoundTag::new);
+            newEngines.add(Pair.of(com.jesz.createdieselgenerators.foundation.FluidCompatibility.readBlockPos(engineTag, "Pos"),
+                    Couple.create(engineTag.getFloatOr("Capacity", 0),
+                            engineTag.getFloatOr("Speed", 0))));
         }
         engines = newEngines;
 
-        speed = tag.getFloat("GeneratedSpeed");
-        lastKnownPos = NBTHelper.readBlockPos(tag, "LastKnownPos");
+        speed = tag.getFloatOr("GeneratedSpeed", 0);
+        lastKnownPos = com.jesz.createdieselgenerators.foundation.FluidCompatibility.readBlockPos(tag, "LastKnownPos");
     }
 
     @Override

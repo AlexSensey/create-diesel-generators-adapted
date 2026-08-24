@@ -12,6 +12,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -20,16 +21,21 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.function.Consumer;
 
 public class CanisterBlockItem extends BlockItem implements FueledToolItem {
     public CanisterBlockItem(Block block, Properties properties) {
-        super(block, properties.stacksTo(1));
+        super(block, properties.stacksTo(1).enchantable(1));
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
-        createTooltip(tooltipComponents, stack);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+                                Consumer<Component> tooltip, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, context, display, tooltip, tooltipFlag);
+        List<Component> components = new ArrayList<>();
+        createTooltip(components, stack);
+        components.forEach(tooltip);
     }
 
     @Override
@@ -46,9 +52,6 @@ public class CanisterBlockItem extends BlockItem implements FueledToolItem {
     public InteractionResult useOn(UseOnContext p_40581_) {
         return super.useOn(p_40581_);
     }
-
-    @Override
-    public boolean isEnchantable(ItemStack stack) { return true; }
 
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {

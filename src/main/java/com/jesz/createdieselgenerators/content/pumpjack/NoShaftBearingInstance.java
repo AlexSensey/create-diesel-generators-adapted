@@ -13,8 +13,8 @@ import dev.engine_room.flywheel.lib.model.Models;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import dev.engine_room.flywheel.lib.visual.AbstractBlockEntityVisual;
 import dev.engine_room.flywheel.lib.visual.SimpleDynamicVisual;
-import net.createmod.catnip.animation.AnimationTickHolder;
-import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.api.client.animation.AnimationTickHolder;
+import net.createmod.catnip.api.math.AngleHelper;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.Nullable;
@@ -42,12 +42,14 @@ public class NoShaftBearingInstance<B extends KineticBlockEntity & IBearingBlock
         topInstance = instancerProvider().instancer(InstanceTypes.ORIENTED, Models.partial(top))
                 .createInstance();
 
-        topInstance.position(getVisualPosition()).rotation(blockOrientation);
+        topInstance.position(getVisualPosition())
+                .rotation(blockOrientation)
+                .setChanged();
     }
 
     @Override
     public void beginFrame(DynamicVisual.Context ctx) {
-        float interpolatedAngle = blockEntity.getInterpolatedAngle(ctx.partialTick());
+        float interpolatedAngle = blockEntity.getInterpolatedAngle(ctx.partialTick() - 1);
         Quaternionf rot = rotationAxis.rotationDegrees(interpolatedAngle);
 
         rot.mul(blockOrientation);
@@ -58,7 +60,7 @@ public class NoShaftBearingInstance<B extends KineticBlockEntity & IBearingBlock
 
     @Override
     public void updateLight(float pt) {
-        relight(pos, topInstance);
+        relight(topInstance);
     }
 
     static Quaternionf getBlockStateOrientation(Direction facing) {
@@ -76,7 +78,7 @@ public class NoShaftBearingInstance<B extends KineticBlockEntity & IBearingBlock
 
     @Override
     public void collectCrumblingInstances(Consumer<@Nullable Instance> consumer) {
-
+        consumer.accept(topInstance);
     }
 
     @Override

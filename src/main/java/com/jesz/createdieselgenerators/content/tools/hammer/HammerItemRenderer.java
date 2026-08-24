@@ -6,10 +6,10 @@ import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
 import dev.engine_room.flywheel.lib.transform.TransformStack;
-import net.createmod.catnip.animation.AnimationTickHolder;
-import net.createmod.catnip.math.VecHelper;
+import net.createmod.catnip.api.client.animation.AnimationTickHolder;
+import net.createmod.catnip.api.math.VecHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.createmod.catnip.impl.client.render.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
@@ -22,7 +22,6 @@ import net.minecraft.world.phys.Vec3;
 public class HammerItemRenderer extends CustomRenderedItemModelRenderer {
     @Override
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
-        ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
         Player player = Minecraft.getInstance().player;
 
         if (!stack.has(CDGDataComponents.PROCESSING_ITEM) || player == null)
@@ -36,8 +35,6 @@ public class HammerItemRenderer extends CustomRenderedItemModelRenderer {
                 boolean thirdPerson = transformType.name().startsWith("THIRD_PERSON");
                 if (!thirdPerson) {
                     ms.pushPose();
-                    itemRenderer.renderStatic(processingItem, ItemDisplayContext.NONE, light, overlay, ms, buffer, Minecraft.getInstance().level, 0);
-
                     TransformStack.of(ms)
                             .translate(0.5, -0.2, 0)
                             .scale(0.75f, 0.75f, 1.1f)
@@ -54,7 +51,6 @@ public class HammerItemRenderer extends CustomRenderedItemModelRenderer {
                             .translate(-0.2, 0.4, 0)
                             .scale(0.75f)
                             .rotateYDegrees(77);
-                    itemRenderer.renderStatic(processingItem, ItemDisplayContext.NONE, light, overlay, ms, buffer, Minecraft.getInstance().level, 0);
                     ms.popPose();
                     ms.pushPose();
 
@@ -89,7 +85,6 @@ public class HammerItemRenderer extends CustomRenderedItemModelRenderer {
                         .translate(Math.cos((time) * -Math.PI) / -10, 0, 0)
                         .rotateYDegrees(-45)
                         ;
-                itemRenderer.renderStatic(processingItem, ItemDisplayContext.NONE, light, overlay, ms, buffer, Minecraft.getInstance().level, 0);
                 ms.popPose();
 
             }

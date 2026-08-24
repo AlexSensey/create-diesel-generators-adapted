@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "createdieselgenerators:item/lighter/titanium"
+    "layer0": "createdieselgenerators:block/item_model/lighter/titanium"
   }
 }

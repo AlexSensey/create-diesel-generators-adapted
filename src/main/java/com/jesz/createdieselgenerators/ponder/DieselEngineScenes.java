@@ -9,13 +9,13 @@ import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
-import net.createmod.catnip.math.Pointing;
-import net.createmod.ponder.api.PonderPalette;
-import net.createmod.ponder.api.element.ElementLink;
-import net.createmod.ponder.api.element.WorldSectionElement;
-import net.createmod.ponder.api.scene.SceneBuilder;
-import net.createmod.ponder.api.scene.SceneBuildingUtil;
-import net.createmod.ponder.api.scene.Selection;
+import net.createmod.catnip.api.math.Pointing;
+import net.createmod.ponder.api.client.PonderPalette;
+import net.createmod.ponder.api.client.element.ElementLink;
+import net.createmod.ponder.api.client.element.WorldSectionElement;
+import net.createmod.ponder.api.client.scene.SceneBuilder;
+import net.createmod.ponder.api.client.scene.SceneBuildingUtil;
+import net.createmod.ponder.api.client.scene.Selection;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -301,7 +301,7 @@ public class DieselEngineScenes {
 
     public static FluidStack randomFuel() {
         if (Minecraft.getInstance().level != null) {
-            Registry<FuelType> registry = Minecraft.getInstance().level.registryAccess().registryOrThrow(CDGRegistries.FUEL_TYPE);
+            Registry<FuelType> registry = Minecraft.getInstance().level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE);
             Holder<FuelType> randomType = registry.getRandom(RandomSource.create()).orElse(null);
             if (randomType == null || randomType.value().fluid().size() == 0)
                 currentFuel = new FluidStack(CDGFluids.DIESEL.get(), 16000);

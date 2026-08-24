@@ -4,6 +4,7 @@ import com.jesz.createdieselgenerators.CDGItems;
 import com.jesz.createdieselgenerators.content.molds.CompressionMoldingRecipe;
 import com.jesz.createdieselgenerators.content.molds.MoldItem;
 import com.jesz.createdieselgenerators.content.molds.MoldType;
+import com.jesz.createdieselgenerators.foundation.ItemCompatibility;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinRecipe;
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +21,8 @@ public class BasinRecipeMixin {
     @Inject(method = "apply(Lcom/simibubi/create/content/processing/basin/BasinBlockEntity;Lnet/minecraft/world/item/crafting/Recipe;Z)Z", at=@At("HEAD"), remap = false, cancellable = true)
     private static void apply(BasinBlockEntity basin, Recipe<?> recipe, boolean test, CallbackInfoReturnable<Boolean> cir){
         if (recipe instanceof CompressionMoldingRecipe moldingRecipe) {
-            IItemHandler availableItems = basin.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, basin.getBlockPos(), null);
+            IItemHandler availableItems = ItemCompatibility.itemHandler(
+                    basin.getLevel().getCapability(Capabilities.Item.BLOCK, basin.getBlockPos(), null));
             if (availableItems == null) {
                 cir.setReturnValue(false);
                 return;

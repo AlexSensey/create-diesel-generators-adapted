@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.89'
+    id 'net.neoforged.moddev' version '2.0.141'
     id 'idea'
 }
 
@@ -16,19 +16,78 @@ repositories {
     mavenLocal()
 }
 
+def createAdaptedJar = file(providers.gradleProperty('create_adapted_jar').get())
+def createAdaptedPonderJar = file(providers.gradleProperty('create_adapted_ponder_jar').get())
+def createAdaptedCatnipJar = file(providers.gradleProperty('create_adapted_catnip_jar').get())
+def createAdaptedFlywheelJar = file(providers.gradleProperty('create_adapted_flywheel_jar').get())
+def extractedRegistrateJar = layout.buildDirectory.file('local-dependencies/registrate-adapted.jar')
+def createAdaptedClasses = file('../build/classes/java/main')
+
+def verifyCreateAdaptedDependencies = tasks.register('verifyCreateAdaptedDependencies') {
+    inputs.files(createAdaptedJar, createAdaptedPonderJar, createAdaptedCatnipJar, createAdaptedFlywheelJar)
+    doLast {
+        [createAdaptedJar, createAdaptedPonderJar, createAdaptedCatnipJar, createAdaptedFlywheelJar].each { dependency ->
+            if (!dependency.isFile())
+                throw new GradleException("Missing Create: Adapted dependency: ${dependency}")
+        }
+    }
+}
+
+def sanitizeCreateAdaptedRuntime = tasks.register('sanitizeCreateAdaptedRuntime', Zip) {
+    dependsOn(verifyCreateAdaptedDependencies)
+    archiveFileName = 'create-adapted-runtime.jar'
+    destinationDirectory = layout.buildDirectory.dir('local-dependencies')
+    from(zipTree(createAdaptedJar)) {
+        exclude 'net/neoforged/neoforge/client/model/generators/**'
+    }
+}
+
+// This task shares build/local-dependencies with the compile compatibility JAR.
+// Copy must be used here: Sync deletes sibling outputs and made compilation depend
+// on task execution order after upgrading the Create dependency.
+def extractCreateAdaptedLibraries = tasks.register('extractCreateAdaptedLibraries', Copy) {
+    dependsOn(verifyCreateAdaptedDependencies)
+    from(zipTree(createAdaptedJar)) {
+        include 'META-INF/jarjar/Registrate-*.jar'
+        eachFile { details -> details.path = 'registrate-adapted.jar' }
+        includeEmptyDirs = false
+    }
+    into(extractedRegistrateJar.get().asFile.parentFile)
+}
+
+def createAdaptedCompatibilityJar = tasks.register('createAdaptedCompatibilityJar', Jar) {
+    dependsOn(verifyCreateAdaptedDependencies)
+    archiveFileName = 'create-adapted-compile-compat.jar'
+    destinationDirectory = layout.buildDirectory.dir('local-dependencies')
+    from(createAdaptedClasses) {
+        include 'net/minecraft/**'
+        include 'net/neoforged/**'
+    }
+}
+
 base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+
+// Runtime ships the already-generated JSON/model resources. The legacy
+// Registrate generators target the old 1.21.1 datagen API and are not needed
+// to load or play the adapted mod.
+sourceSets.main.java.exclude 'com/jesz/createdieselgenerators/content/andesite_girder/AndesiteGirderGenerator.java'
+sourceSets.main.java.exclude 'com/jesz/createdieselgenerators/content/diesel_engine/modular/ModularDieselEngineGenerator.java'
+sourceSets.main.java.exclude 'com/jesz/createdieselgenerators/content/pumpjack/PumpjackHoleGenerator.java'
+sourceSets.main.java.exclude 'com/jesz/createdieselgenerators/events/datagen/**'
 
 neoForge {
 
     version = project.neo_version
 
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
+    if (project.parchment_mappings_version != 'none') {
+        parchment {
+            mappingsVersion = project.parchment_mappings_version
+            minecraftVersion = project.parchment_minecraft_version
+        }
     }
 
     runs {
@@ -71,6 +130,146 @@ neoForge {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+// Minecraft 26.2 resolves inventory models through assets/<namespace>/items.
+// The original 1.21.1 datagen only produced models/item, so bridge every
+// existing item model to the new item-definition format during the build.
+def generatedItemDefinitions = layout.buildDirectory.dir('generated/item-definitions')
+def generateItemDefinitions = tasks.register('generateItemDefinitions') {
+    def itemModelDirs = [
+            file('src/main/resources/assets/createdieselgenerators/models/item'),
+            file('src/generated/resources/assets/createdieselgenerators/models/item')
+    ]
+    inputs.files(itemModelDirs.collect { fileTree(it) { include '**/*.json' } })
+    outputs.dir(generatedItemDefinitions)
+
+    doLast {
+        def outputRoot = generatedItemDefinitions.get().asFile
+        delete(outputRoot)
+
+        itemModelDirs.findAll { it.isDirectory() }.each { modelDir ->
+            fileTree(modelDir).matching { include '**/*.json' }.files.each { modelFile ->
+                def relativePath = modelDir.toPath().relativize(modelFile.toPath()).toString().replace('\\', '/')
+                def modelId = relativePath.substring(0, relativePath.length() - '.json'.length())
+                // Nested and state-specific models are renderer parts, not
+                // registered item IDs. Publishing definitions for them puts
+                // their sprites on the item atlas and breaks partial models.
+                def auxiliaryModels = [
+                        'andesite_girder_strut',
+                        'lighter_open', 'lighter_ignited',
+                        'oil_scanner_none', 'oil_scanner_medium', 'oil_scanner_high',
+                        'track_layers_bag_filled', 'wire_cutters_cut'
+                ] as Set
+                if (relativePath.contains('/') || auxiliaryModels.contains(modelId))
+                    return
+                def outputFile = new File(outputRoot, "assets/createdieselgenerators/items/${relativePath}")
+                outputFile.parentFile.mkdirs()
+                outputFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson([
+                        model: [
+                                type : 'minecraft:model',
+                                model: "createdieselgenerators:item/${modelId}"
+                        ]
+                ])) + System.lineSeparator()
+            }
+        }
+
+        // 26.2 dynamic item renderers obtain their component models from the
+        // item-model map. Give renderer parts stable, flat lookup IDs without
+        // pretending that they are registered game items.
+        def auxiliaryModels = [
+                lighter_open: 'lighter_open',
+                lighter_ignited: 'lighter_ignited',
+                chemical_sprayer_cog: 'chemical_sprayer/cog',
+                wire_cutters_cut: 'wire_cutters_cut',
+                oil_scanner_none: 'oil_scanner_none',
+                oil_scanner_medium: 'oil_scanner_medium',
+                oil_scanner_high: 'oil_scanner_high',
+                track_layers_bag_filled: 'track_layers_bag_filled',
+                mold_bar: 'mold/bar',
+                mold_bowl: 'mold/bowl',
+                mold_chain: 'mold/chain',
+                mold_lines: 'mold/lines'
+        ]
+        ['arc', 'creeper', 'diamond', 'dragon', 'fire', 'glass', 'heavier',
+         'obsidian', 'soul', 'sussy', 'titanium', 'willows'].each { skin ->
+            auxiliaryModels["lighter_${skin}"] = "lighter/${skin}"
+            auxiliaryModels["lighter_${skin}_open"] = "lighter/${skin}_open"
+            auxiliaryModels["lighter_${skin}_ignited"] = "lighter/${skin}_ignited"
+        }
+        auxiliaryModels.each { definitionId, modelId ->
+            def outputFile = new File(outputRoot,
+                    "assets/createdieselgenerators/items/${definitionId}.json")
+            outputFile.parentFile.mkdirs()
+            outputFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson([
+                    model: [
+                            type : 'minecraft:model',
+                            model: "createdieselgenerators:item/${modelId}"
+                    ]
+            ])) + System.lineSeparator()
+        }
+    }
+}
+
+sourceSets.main.resources.srcDir(generatedItemDefinitions)
+tasks.named('processResources').configure { dependsOn(generateItemDefinitions) }
+
+// Allows client-only 26.2 compatibility classes to be rebuilt independently
+// while the remaining legacy source migration is still in progress.
+tasks.register('compileFluidModelFix', JavaCompile) {
+    source = files(
+            'src/main/java/com/jesz/createdieselgenerators/CDGFluidModels.java',
+            'src/main/java/com/jesz/createdieselgenerators/CreateDieselGenerators.java',
+            'src/main/java/com/jesz/createdieselgenerators/CDGFluids.java',
+            'src/main/java/com/jesz/createdieselgenerators/CDGItemModelSwapper.java',
+            'src/main/java/com/jesz/createdieselgenerators/CDGPartialModels.java',
+            'src/main/java/com/jesz/createdieselgenerators/events/ModEvents.java',
+            'src/main/java/com/jesz/createdieselgenerators/events/GameEvents.java',
+            'src/main/java/com/jesz/createdieselgenerators/events/CommonModEvents.java',
+            'src/main/java/com/jesz/createdieselgenerators/CDGBlockEntityTypes.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/turret/ChemicalTurretBlock.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/turret/TurretBlockEntity.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/turret/ChemicalTurretRenderer.java',
+            'src/main/java/com/jesz/createdieselgenerators/foundation/ScrollOptionOverlayRenderer.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/burner/BurnerRenderer.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/basin_lid/BasinLidRenderer.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/bulk_fermenter/BulkFermenterRenderer.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/diesel_engine/normal/DieselEngineBlockEntity.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/diesel_engine/normal/DieselEngineRenderer.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/diesel_engine/modular/ModularDieselEngineBlock.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/diesel_engine/modular/ModularDieselEngineBlockEntity.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/diesel_engine/modular/ModularDieselEngineRenderer.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/diesel_engine/huge/HugeDieselEngineBlock.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/diesel_engine/huge/HugeDieselEngineBlockEntity.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/diesel_engine/huge/HugeDieselEngineInstance.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/diesel_engine/huge/PoweredEngineShaftBlock.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/diesel_engine/huge/PoweredEngineShaftVisual.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/diesel_engine/huge/HugeDieselEngineRenderer.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/distillation/DistillationClientSounds.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/distillation/DistillationTankBlock.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/distillation/DistillationTankBlockEntity.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/distillation/DistillationTankRenderer.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/tools/OilScannerItem.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/tools/ChemicalSprayerItem.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/tools/ChemicalSprayerProjectileEntity.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/entity_filter/EntityFilterScreen.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/track_layers_bag/TrackLayersBagPlacement.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/pumpjack/PumpjackClientSounds.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/pumpjack/NoShaftBearingInstance.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/pumpjack/NoShaftBearingRenderer.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/pumpjack/PumpjackCrankBlockEntity.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/pumpjack/PumpjackCrankRenderer.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/pumpjack/PumpjackHoleBlockEntity.java',
+            'src/main/java/com/jesz/createdieselgenerators/content/pumpjack/PumpjackHoleRenderer.java',
+            'src/main/java/com/jesz/createdieselgenerators/contraption/PumpjackHeadMovementBehaviour.java',
+            'src/main/java/com/jesz/createdieselgenerators/contraption/PumpjackRopeActorVisual.java',
+            'src/main/java/com/jesz/createdieselgenerators/mixins/ContraptionEntityRendererMixin.java',
+            'src/main/java/com/jesz/createdieselgenerators/foundation/FluidCompatibility.java'
+    )
+    classpath = sourceSets.main.compileClasspath + files("build/libs/${mod_id}-${version}.jar")
+    destinationDirectory = layout.buildDirectory.dir('fluid-model-fix-classes')
+    javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(25) }
+    options.encoding = 'UTF-8'
+}
+
 configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
@@ -96,43 +295,45 @@ repositories {
 
 
 dependencies {
-    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
-    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
-    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
-    runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
-    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
+    compileOnly(files(createAdaptedJar))
+    compileOnly(files(createAdaptedPonderJar))
+    compileOnly(files(createAdaptedCatnipJar))
+    compileOnly(files(createAdaptedFlywheelJar))
+    compileOnly(files(extractedRegistrateJar))
+    compileOnly(files(createAdaptedCompatibilityJar.flatMap { it.archiveFile }))
+
+    localRuntime(files(sanitizeCreateAdaptedRuntime.flatMap { it.archiveFile }))
+    localRuntime(files(createAdaptedCatnipJar))
+    localRuntime(files(createAdaptedFlywheelJar))
 //    implementation("curse.maven:createaddition-439890:6445614")
 
     compileOnly("curse.maven:kubejs-238086:5810100")
 //    implementation("dev.latvian.mods:kubejs-neoforge:2101.7.2-build.200")
 
 //    implementation("curse.maven:rhino-416294:6184623")
-    implementation("dev.latvian.mods:rhino:2101.2.7-build.74")
+    compileOnly("dev.latvian.mods:rhino:2101.2.7-build.74") { transitive = false }
 
-    implementation("curse.maven:architectury-api-419699:5786327")
+    compileOnly("curse.maven:architectury-api-419699:5786327") { transitive = false }
 
     implementation("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
     compileOnly("cc.tweaked:cc-tweaked-${minecraft_version}-core-api:${cc_tweaked_version}")
     compileOnly("cc.tweaked:cc-tweaked-${minecraft_version}-forge-api:${cc_tweaked_version}")
-    implementation("cc.tweaked:cc-tweaked-${minecraft_version}-forge:${cc_tweaked_version}")
+    compileOnly("cc.tweaked:cc-tweaked-${minecraft_version}-forge:${cc_tweaked_version}") { transitive = false }
 
-    implementation "curse.maven:selene-499980:7522321"
+    compileOnly("curse.maven:selene-499980:7522321") { transitive = false }
     annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
 
     // Strut your stuff
 //    implementation("com.cake.struts:struts:1.3.0")
-    implementation("maven.modrinth:sHO3MhQx:Nrn7hYca")
+    compileOnly("maven.modrinth:sHO3MhQx:Nrn7hYca") { transitive = false }
 
-    implementation("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:[${sable_version},)")
-    implementation("dev.eriksonn.aeronautics:aeronautics-neoforge-${minecraft_version}:${aeronautics_version}")
-    implementation("dev.simulated_team.simulated:simulated-neoforge-${minecraft_version}:${simulated_version}")
-    runtimeOnly("dev.ryanhcode.offroad:offroad-neoforge-${minecraft_version}:${offroad_version}")
-
-    jarJar(api("dev.ryanhcode.sable-companion:sable-companion-common-${project.minecraft_version}:[${project.sable_companion_version},)") {
-        version {
-            prefer project.sable_companion_version
-        }
-    })
+    // These optional APIs do not publish Minecraft 26.2 artifacts yet. Keep
+    // their 1.21.1 API surface available only while the integration is ported;
+    // none of these jars are bundled or loaded by the adapted mod.
+    compileOnly("dev.ryanhcode.sable:sable-neoforge-1.21.1:${sable_version}") { transitive = false }
+    compileOnly("dev.eriksonn.aeronautics:aeronautics-neoforge-1.21.1:${aeronautics_version}") { transitive = false }
+    compileOnly("dev.simulated_team.simulated:simulated-neoforge-1.21.1:${simulated_version}") { transitive = false }
+    compileOnly("dev.ryanhcode.sable-companion:sable-companion-common-1.21.1:${sable_companion_version}") { transitive = false }
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
@@ -174,13 +375,19 @@ publishing {
 }
 
 tasks.withType(JavaCompile).configureEach {
+    dependsOn(extractCreateAdaptedLibraries)
     options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xmaxerrs', '500']
 }
 
 jar {
     manifest.attributes([
             "MixinConfigs": "${mod_id}.mixins.json",
     ])
+    from('LICENSE') {
+        into 'META-INF'
+        rename { 'LICENSE_createdieselgenerators' }
+    }
 }
 
 idea {

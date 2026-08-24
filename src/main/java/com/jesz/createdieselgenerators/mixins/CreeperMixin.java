@@ -30,7 +30,7 @@ public abstract class CreeperMixin extends Monster {
         ItemStack stackInHand = player.getItemInHand(hand);
         if(!CDGItems.LIGHTER.isIn(stackInHand))
             return;
-        IFluidHandlerItem fluid = stackInHand.getCapability(Capabilities.FluidHandler.ITEM, null);
+        IFluidHandler fluid = com.jesz.createdieselgenerators.foundation.FluidCompatibility.fluidHandler(stackInHand);
         if (fluid == null || fluid.getFluidInTank(0).isEmpty())
             return;
         fluid.drain(1, IFluidHandler.FluidAction.EXECUTE);

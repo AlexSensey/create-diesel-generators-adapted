@@ -1,18 +1,14 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " C ",
-    "AAA"
-  ],
-  "key": {
-    "A": {
-      "item": "create:andesite_alloy"
-    },
-    "C": {
-      "item": "minecraft:clock"
-    }
-  },
-  "result": {
-    "id": "createdieselgenerators:basin_lid"
-  }
+    "type":  "minecraft:crafting_shaped",
+    "pattern":  [
+                    " C ",
+                    "AAA"
+                ],
+    "key":  {
+                "A":  "create:andesite_alloy",
+                "C":  "minecraft:clock"
+            },
+    "result":  {
+                   "id":  "createdieselgenerators:basin_lid"
+               }
 }

@@ -1,17 +1,13 @@
 package com.jesz.createdieselgenerators.compat.jei;
 
-import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.compat.jei.category.animations.AnimatedKinetics;
-import net.createmod.catnip.animation.AnimationTickHolder;
-import net.createmod.catnip.gui.UIRenderHelper;
-import net.createmod.catnip.platform.NeoForgeCatnipServices;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.LightTexture;
+import net.createmod.catnip.api.client.gui.element.GuiGameElement;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.core.TypedInstance;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.List;
@@ -25,66 +21,36 @@ public class AnimatedSpoutCastingStation extends AnimatedKinetics {
     }
 
     @Override
-    public void draw(GuiGraphics graphics, int xOffset, int yOffset) {
-        PoseStack matrixStack = graphics.pose();
-        matrixStack.pushPose();
-        matrixStack.translate(xOffset, yOffset, 100);
-        matrixStack.mulPose(Axis.XP.rotationDegrees(-15.5f));
-        matrixStack.mulPose(Axis.YP.rotationDegrees(22.5f));
+    protected void drawAnimation(GuiGraphicsExtractor graphics, int xOffset, int yOffset) {
         int scale = 23;
+        blockElement(AllBlocks.SPOUT.getDefaultState()).at(xOffset, yOffset).scale(scale).submit(graphics);
 
-        blockElement(AllBlocks.SPOUT.getDefaultState())
-                .scale(scale)
-                .render(graphics);
-
-        float cycle = (AnimationTickHolder.getRenderTime() - offset * 8) % 30;
+        float cycle = (getAnimationTime() - offset * 8) % 30;
         float squeeze = cycle < 20 ? Mth.sin((float) (cycle / 20f * Math.PI)) : 0;
-        squeeze *= 20;
+        float displacement = -3 * squeeze * 20 / 32f;
 
-        matrixStack.pushPose();
+        blockElement(AllPartialModels.SPOUT_TOP).at(xOffset, yOffset).scale(scale).submit(graphics);
+        blockElement(AllPartialModels.SPOUT_MIDDLE).at(xOffset, yOffset)
+                .atLocal(0, displacement, 0).scale(scale).submit(graphics);
+        blockElement(AllPartialModels.SPOUT_BOTTOM).at(xOffset, yOffset)
+                .atLocal(0, displacement * 2, 0).scale(scale).submit(graphics);
+        blockElement(AllBlocks.BASIN.getDefaultState()).at(xOffset, yOffset)
+                .atLocal(0, 1.65f, 0).scale(scale).submit(graphics);
 
-        blockElement(AllPartialModels.SPOUT_TOP)
-                .scale(scale)
-                .render(graphics);
-        matrixStack.translate(0, -3 * squeeze / 32f, 0);
-        blockElement(AllPartialModels.SPOUT_MIDDLE)
-                .scale(scale)
-                .render(graphics);
-        matrixStack.translate(0, -3 * squeeze / 32f, 0);
-        blockElement(AllPartialModels.SPOUT_BOTTOM)
-                .scale(scale)
-                .render(graphics);
-        matrixStack.translate(0, -3 * squeeze / 32f, 0);
-
-        matrixStack.popPose();
-
-        blockElement(AllBlocks.BASIN.getDefaultState())
-                .atLocal(0, 1.65, 0)
-                .scale(scale)
-                .render(graphics);
-
-        AnimatedKinetics.DEFAULT_LIGHTING.applyLighting();
-        matrixStack.pushPose();
-        UIRenderHelper.flipForGuiRender(matrixStack);
-        matrixStack.scale(16, 16, 16);
+        if (fluids == null || fluids.isEmpty())
+            return;
+        @SuppressWarnings("unchecked")
+        TypedInstance<Fluid> fluid = (TypedInstance<Fluid>) fluids.getFirst();
+        float fluidScale = 16f / scale;
         float from = 3f / 16f;
         float to = 17f / 16f;
-        FluidStack fluidStack = fluids.get(0);
-        NeoForgeCatnipServices.FLUID_RENDERER.renderFluidBox(fluidStack, from, from, from, to, to, to, graphics.bufferSource(), matrixStack, LightTexture.FULL_BRIGHT, false, true);
+        GuiGameElement.submitFluidBox(fluid, 0, 0, 0, fluidScale,
+                0, 0, 0, from, from, from, to, to, to);
 
-        matrixStack.popPose();
-
-        float width = 1 / 128f * squeeze;
-        matrixStack.translate(scale / 2f, scale * 1.5f, scale / 2f);
-        UIRenderHelper.flipForGuiRender(matrixStack);
-        matrixStack.scale(16, 16, 16);
-        matrixStack.translate(-0.5f, 0, -0.5f);
-        from = -width / 2 + 0.5f;
-        to = width / 2 + 0.5f;
-        NeoForgeCatnipServices.FLUID_RENDERER.renderFluidBox(fluidStack, from, 0, from, to, 2, to, graphics.bufferSource(), matrixStack, LightTexture.FULL_BRIGHT, false, true);
-
-        Lighting.setupFor3DItems();
-
-        matrixStack.popPose();
+        float width = squeeze * 20 / 128f;
+        float streamFrom = .5f - width / 2;
+        float streamTo = .5f + width / 2;
+        GuiGameElement.submitFluidBox(fluid, .5f, 1.5f, .5f, fluidScale,
+                -.5f, 0, -.5f, streamFrom, 0, streamFrom, streamTo, 2, streamTo);
     }
 }

@@ -6,7 +6,7 @@ import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
-import net.createmod.catnip.math.VecHelper;
+import net.createmod.catnip.api.math.VecHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -50,7 +50,8 @@ public class DistillationControllerItem extends Item {
             return InteractionResult.FAIL;
         }
 
-        IFluidHandler tank = context.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, ftbe.getBlockPos(), null);
+        IFluidHandler tank = com.jesz.createdieselgenerators.foundation.FluidCompatibility.fluidHandler(
+                context.getLevel().getCapability(Capabilities.Fluid.BLOCK, ftbe.getBlockPos(), null));
         FluidStack fluidInTank = tank.getFluidInTank(0);
         List<BlockPos> positions = new ArrayList<>();
 
@@ -75,18 +76,18 @@ public class DistillationControllerItem extends Item {
 
         for (BlockPos pos : positions) {
             context.getLevel().setBlock(pos, CDGBlocks.DISTILLATION_TANK.getDefaultState(), 3);
-            if (context.getLevel().isClientSide) {
+            if (context.getLevel().isClientSide()) {
                 for (int i = 0; i < 30; i++) {
                     Vec3 offset = VecHelper.offsetRandomly(VecHelper.getCenterOf(pos), context.getLevel().getRandom(), .3f);
                     Vec3 motion = VecHelper.offsetRandomly(Vec3.ZERO, context.getLevel().getRandom(), .1f);
-                    context.getLevel().addParticle(new ItemParticleOption(ParticleTypes.ITEM, itemInHand), offset.x(), offset.y(),
+                    context.getLevel().addParticle(new ItemParticleOption(ParticleTypes.ITEM, itemInHand.getItem()), offset.x(), offset.y(),
                             offset.z(), motion.x(), motion.y(), motion.z());
                 }
             }
         }
         AllSoundEvents.WRENCH_ROTATE.playAt(context.getLevel(), controllerPos.getX() + (double) width / 2, controllerPos.getY() + (double) height / 2, controllerPos.getZ() + (double) width / 2, 2f, 1f, false);
 
-        if (!context.getPlayer().isCreative() && !context.getLevel().isClientSide) {
+        if (!context.getPlayer().isCreative() && !context.getLevel().isClientSide()) {
             itemInHand.shrink(positions.size());
         }
 
@@ -94,7 +95,8 @@ public class DistillationControllerItem extends Item {
             be.updateConnectivity();
             be.updateVerticalMulti();
             be.updateTemperature();
-            IFluidHandler distillerTank = context.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, controllerPos, null);
+            IFluidHandler distillerTank = com.jesz.createdieselgenerators.foundation.FluidCompatibility.fluidHandler(
+                    context.getLevel().getCapability(Capabilities.Fluid.BLOCK, controllerPos, null));
             if (distillerTank != null)
                 distillerTank.fill(fluidInTank, IFluidHandler.FluidAction.EXECUTE);
         }

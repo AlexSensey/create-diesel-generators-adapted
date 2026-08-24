@@ -12,15 +12,15 @@ import com.simibubi.create.content.kinetics.steamEngine.PoweredShaftBlock;
 import com.simibubi.create.foundation.block.IBE;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.utility.BlockHelper;
-import net.createmod.catnip.data.Iterate;
-import net.createmod.catnip.placement.IPlacementHelper;
-import net.createmod.catnip.placement.PlacementHelpers;
-import net.createmod.catnip.placement.PlacementOffset;
+import net.createmod.catnip.api.data.Iterate;
+import net.createmod.catnip.api.placement.IPlacementHelper;
+import net.createmod.catnip.api.placement.PlacementHelpers;
+import net.createmod.catnip.api.placement.PlacementOffset;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -33,9 +33,10 @@ import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -51,9 +52,9 @@ import static com.jesz.createdieselgenerators.content.diesel_engine.normal.Diese
 import static com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock.AXIS;
 
 public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngineBlockEntity>, IWrenchable {
-    public static final DirectionProperty FACING = BlockStateProperties.FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 
-    private static final int placementHelperId = PlacementHelpers.register(new PlacementHelper());
+    private static final IPlacementHelper placementHelper = PlacementHelpers.register(new PlacementHelper());
 
     public HugeDieselEngineBlock(Properties properties) {
         super(properties);
@@ -66,7 +67,7 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
         return true;
     }
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         for (EngineUpgrades upgrade : EngineUpgrades.allUpgrades) {
             if (upgrade == EngineUpgrades.EMPTY)
                 continue;
@@ -83,47 +84,47 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
                     be.sendData();
                     IWrenchable.playRotateSound(level, pos);
                 });
-                return ItemInteractionResult.SUCCESS;
+                return InteractionResult.SUCCESS;
             }
         }
 
-        IPlacementHelper placementHelper = PlacementHelpers.get(placementHelperId);
         if (placementHelper.matchesItem(stack))
             return placementHelper.getOffset(player, level, state, pos, hitResult)
                     .placeInWorld(level, (BlockItem) stack.getItem(), player, hand, hitResult);
 
         if (!CDGConfig.ENGINES_FILLED_WITH_ITEMS.get() || stack.isEmpty() || !(level.getBlockEntity(pos) instanceof SmartBlockEntity be))
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
 
-        IFluidHandler tank = level.getCapability(Capabilities.FluidHandler.BLOCK, be.getBlockPos(), null);
+        IFluidHandler tank = com.jesz.createdieselgenerators.foundation.FluidCompatibility.fluidHandler(
+                level.getCapability(Capabilities.Fluid.BLOCK, be.getBlockPos(), null));
         if (tank == null)
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
 
-        if (stack.getItem() instanceof BucketItem || stack.getItem() instanceof MilkBucketItem) {
+        if (stack.getItem() instanceof BucketItem || stack.getItem() == Items.MILK_BUCKET) {
             Fluid fluid = stack.getItem() instanceof BucketItem bi ? bi.content : NeoForgeMod.MILK.get();
 
             if (!tank.getFluidInTank(0).isEmpty())
-                return ItemInteractionResult.FAIL;
+                return InteractionResult.FAIL;
 
             tank.fill(new FluidStack(fluid, 1000), IFluidHandler.FluidAction.EXECUTE);
             if (!player.isCreative())
                 player.setItemInHand(hand, new ItemStack(Items.BUCKET));
 
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
-        IFluidHandlerItem itemTank = Capabilities.FluidHandler.ITEM.getCapability(stack, null);
+        IFluidHandler itemTank = com.jesz.createdieselgenerators.foundation.FluidCompatibility.fluidHandler(stack);
         if(itemTank == null)
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         itemTank.drain(tank.fill(itemTank.getFluidInTank(0), IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
-        return ItemInteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
         withBlockEntityDo(context.getLevel(), context.getClickedPos(), be -> {
             if(be.upgrade != EngineUpgrades.EMPTY){
-                if(!context.getLevel().isClientSide) {
+                if(!context.getLevel().isClientSide()) {
                     if (!context.getPlayer().isCreative())
                         context.getPlayer().getInventory().placeItemBackInInventory(be.upgrade.getItem());
                     be.upgrade = EngineUpgrades.EMPTY;
@@ -142,7 +143,7 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos otherPos, boolean moving) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, Orientation otherPos, boolean moving) {
         level.setBlockAndUpdate(pos, state.setValue(POWERED, level.hasNeighborSignal(pos)));
 
         if (CDGConfig.ANALOG_SPEED_CONTROL.get()) {
@@ -200,7 +201,6 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
                 level.setBlock(shaftPos, PoweredEngineShaftBlock.getEquivalent(shaftState), 3);
     }
 
-    @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.is(newState.getBlock()) && !isMoving) {
             withBlockEntityDo(level, pos, be -> {
@@ -209,12 +209,27 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
             });
             BlockPos shaftPos = pos.relative(state.getValue(FACING), 2);
             BlockState shaftState = level.getBlockState(shaftPos);
-            if (CDGBlocks.POWERED_ENGINE_SHAFT.has(shaftState))
-                level.scheduleTick(shaftPos, shaftState.getBlock(), 1);
+            if (!level.isClientSide() && CDGBlocks.POWERED_ENGINE_SHAFT.has(shaftState)) {
+                // 26.2 does not reliably execute the inherited delayed block tick
+                // after the engine disappears. Do the intended conversion now so
+                // an orphaned invisible powered shaft cannot remain in the world.
+                level.setBlock(shaftPos, AllBlocks.SHAFT.getDefaultState()
+                        .setValue(ShaftBlock.AXIS, shaftState.getValue(AXIS))
+                        .setValue(ShaftBlock.WATERLOGGED, shaftState.getValue(ShaftBlock.WATERLOGGED)),
+                        Block.UPDATE_ALL);
+            }
         }
 
         if (state.hasBlockEntity() && (!state.is(newState.getBlock()) || !newState.hasBlockEntity()))
             level.removeBlockEntity(pos);
+    }
+
+    @Override
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean isMoving) {
+        // onRemove(BlockState, Level, ...) was removed from vanilla in 26.2.
+        // Preserve the original Diesel cleanup through its replacement callback.
+        onRemove(state, level, pos, level.getBlockState(pos), isMoving);
+        super.affectNeighborsAfterRemoval(state, level, pos, isMoving);
     }
 
     @Override

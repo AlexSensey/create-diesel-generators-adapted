@@ -2,14 +2,18 @@ package com.jesz.createdieselgenerators.content.diesel_engine.huge;
 
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGBlocks;
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
 import com.simibubi.create.content.kinetics.steamEngine.PoweredShaftBlock;
 import com.simibubi.create.content.kinetics.steamEngine.SteamEngineBlock;
-import net.createmod.catnip.data.Iterate;
+import net.createmod.catnip.api.data.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -44,6 +48,18 @@ public class PoweredEngineShaftBlock extends PoweredShaftBlock {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        // PoweredShaftBlock's tick calls its own static Steam Engine validator.
+        // This subclass needs the Huge Diesel Engine-specific validator instead.
+        if (!stillValid(state, level, pos)) {
+            level.setBlock(pos, AllBlocks.SHAFT.getDefaultState()
+                    .setValue(ShaftBlock.AXIS, state.getValue(AXIS))
+                    .setValue(ShaftBlock.WATERLOGGED, state.getValue(WATERLOGGED)),
+                    Block.UPDATE_ALL);
+        }
     }
 
     @Override

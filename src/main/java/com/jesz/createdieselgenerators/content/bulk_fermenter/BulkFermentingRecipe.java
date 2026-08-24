@@ -5,7 +5,7 @@ import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.recipe.StandardProcessingRecipe;
-import net.createmod.catnip.data.Iterate;
+import net.createmod.catnip.api.data.Iterate;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -137,7 +137,7 @@ public class BulkFermentingRecipe extends StandardProcessingRecipe<RecipeInput> 
                 be.onFluidStackChanged();
 
             if (simulate) {
-                recipeOutputItems.addAll(rollResults(be.getLevel().random));
+                recipeOutputItems.addAll(rollResults(be.getLevel().getRandom()));
 
                 for (FluidStack fluidStack : getFluidResults())
                     if (!fluidStack.isEmpty())

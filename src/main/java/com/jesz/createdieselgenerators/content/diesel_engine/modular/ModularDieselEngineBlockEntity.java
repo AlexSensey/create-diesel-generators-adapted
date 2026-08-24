@@ -3,7 +3,6 @@ package com.jesz.createdieselgenerators.content.diesel_engine.modular;
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGBlocks;
 import com.jesz.createdieselgenerators.CDGConfig;
-import com.jesz.createdieselgenerators.content.diesel_engine.EngineSoundInstance;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.jesz.createdieselgenerators.content.diesel_engine.IEngine;
 import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlock;
@@ -17,16 +16,14 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.fluid.SmartFluidTank;
 import com.simibubi.create.foundation.utility.CreateLang;
-import net.createmod.catnip.nbt.NBTHelper;
 import net.createmod.catnip.platform.CatnipServices;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -68,9 +65,19 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
     private float cachedFuelSpeed = 0f;
     private float cachedFuelCapacity = 0f;
     private float cachedBurnRate = 0f;
+    private boolean queuedRemovalSplit;
 
     public ModularDieselEngineBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (!queuedRemovalSplit && hasLevel() && !level.isClientSide()) {
+            queuedRemovalSplit = true;
+            ModularDieselEngineBlock.prepareRemoval(this);
+        }
+        super.preRemoveSideEffects(pos, state);
     }
 
     public void resetConnectivity() {
@@ -90,13 +97,13 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
     }
 
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK,
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK,
                 CDGBlockEntityTypes.MODULAR_DIESEL_ENGINE.get(),
                 (be, side) -> {
                     if (be.fluidCapability == null)
                         be.refreshCapability();
                     if (side == null || (side == Direction.UP && be.getBlockState().getValue(PIPE)))
-                        return be.fluidCapability;
+                        return com.jesz.createdieselgenerators.foundation.FluidCompatibility.resourceHandler(be.fluidCapability);
                     return null;
                 });
     }
@@ -164,11 +171,11 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
                 return;
             ModularDieselEngineBlockEntity controller = getControllerBE();
 
-            if (controller.upgrade == EngineUpgrades.EMPTY)
-                controller.upgrade = upgrade;
+            if (controller != null && controller.upgrade == EngineUpgrades.EMPTY)
+                controller.setUpgrade(upgrade);
             else
                 Block.popResource(level, getBlockPos(), upgrade.getItem());
-            upgrade = EngineUpgrades.EMPTY;
+            setUpgrade(EngineUpgrades.EMPTY);
 
             return;
         }
@@ -180,7 +187,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
             sendData();
         }
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             float currentCapacity = 0;
             float currentSpeed = 0;
             if (validFS()) {
@@ -198,6 +205,18 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
             }
         }
 
+        if (level.isClientSide()) {
+            Vec3 soundPos = Vec3.atCenterOf(getBlockPos());
+            if (getBlockState().getValue(FACING).getAxis() == Direction.Axis.X)
+                soundPos = soundPos.add((double) length / 2 - .5, 0, 0);
+            else
+                soundPos = soundPos.add(0, 0, (double) length / 2 - .5);
+            Vec3 finalSoundPos = soundPos;
+            CatnipServices.PLATFORM.executeOnClientOnly(() -> () ->
+                    com.jesz.createdieselgenerators.content.diesel_engine.ClientEngineSounds.tick(
+                            this, finalSoundPos, 1, isOverStressed()));
+        }
+
         if (isOverStressed())
             return;
 
@@ -207,37 +226,6 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
             fuelDebt -= 1f;
         }
 
-        if (level.isClientSide) {
-            CatnipServices.PLATFORM.executeOnClientOnly(() -> this::tickClient);
-        }
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    protected EngineSoundInstance soundInstance;
-
-    @OnlyIn(Dist.CLIENT)
-    protected void tickClient() {
-        if (enabled() && getThrottle() > 0 && !isOverStressed()) {
-            Vec3 pos = Vec3.atCenterOf(getBlockPos());
-            if (getBlockState().getValue(FACING).getAxis() == Direction.Axis.X)
-                pos = pos.add((double) length / 2 - 0.5, 0, 0);
-            else
-                pos = pos.add(0, 0, (double) length / 2 - 0.5);
-            if (soundInstance == null || soundInstance.isStopped() || soundInstance.getX() != pos.x || soundInstance.getZ() != pos.z) {
-                Minecraft.getInstance()
-                        .getSoundManager()
-                        .play(soundInstance = upgrade.createSoundInstance(this, pos));
-            } else if (soundInstance.active()) {
-                soundInstance.keepAlive();
-                soundInstance.setPitch(upgrade.getPitchMultiplier(this) * getFuelSoundPitch() * getThrottle());
-                soundInstance.setVolume(upgrade.getVolume(this));
-            }
-        } else {
-            if (soundInstance != null) {
-                soundInstance.fadeOut();
-                soundInstance = null;
-            }
-        }
     }
 
     void refreshCapability() {
@@ -251,7 +239,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
 
     public void updateConnectivity() {
         updateConnectivity = false;
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
         if (!isController())
             return;
@@ -275,7 +263,13 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
 
     @Override
     public void setUpgrade(EngineUpgrades upgrade) {
+        if (this.upgrade == upgrade)
+            return;
         this.upgrade = upgrade;
+        reActivateSource = true;
+        setChanged();
+        if (hasLevel() && !level.isClientSide())
+            sendData();
     }
 
     @Override
@@ -300,7 +294,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
 
     @Override
     public void setController(BlockPos controller) {
-        if (level.isClientSide && !isVirtual())
+        if (level.isClientSide() && !isVirtual())
             return;
         if (controller.equals(this.controller))
             return;
@@ -312,7 +306,7 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
 
     @Override
     public void removeController(boolean keepContents) {
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
         updateConnectivity = true;
         controller = null;
@@ -332,21 +326,21 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
         int prevHeight = length;
 
         updateConnectivity = compound.contains("Uninitialized");
-        upgrade = EngineUpgrades.get(ResourceLocation.parse(compound.getString("Upgrade")));
+        upgrade = EngineUpgrades.get(Identifier.parse(compound.getStringOr("Upgrade", "")));
         controller = null;
         lastKnownPos = null;
 
         if (compound.contains("LastKnownPos"))
-            lastKnownPos = NBTHelper.readBlockPos(compound, "LastKnownPos");
+            lastKnownPos = com.jesz.createdieselgenerators.foundation.FluidCompatibility.readBlockPos(compound, "LastKnownPos");
         if (compound.contains("Controller"))
-            controller = NBTHelper.readBlockPos(compound, "Controller");
+            controller = com.jesz.createdieselgenerators.foundation.FluidCompatibility.readBlockPos(compound, "Controller");
 
         if (isController()) {
-            length = compound.getInt("Height");
-            tankInventory.readFromNBT(registries, compound.getCompound("TankContent"));
+            length = compound.getIntOr("Height", 0);
+            com.jesz.createdieselgenerators.foundation.FluidCompatibility.readTank(registries, compound.getCompoundOrEmpty("TankContent"), tankInventory);
             if (tankInventory.getSpace() < 0)
                 tankInventory.drain(-tankInventory.getSpace(), IFluidHandler.FluidAction.EXECUTE);
-            analogSignal = compound.contains("AnalogSignal") ? compound.getInt("AnalogSignal") : 0;
+            analogSignal = compound.contains("AnalogSignal") ? compound.getIntOr("AnalogSignal", 0) : 0;
             fuelDebt = 0f;
             invalidateFuelCache();
         }
@@ -373,12 +367,12 @@ public class ModularDieselEngineBlockEntity extends GeneratingKineticBlockEntity
         if (updateConnectivity)
             compound.putBoolean("Uninitialized", true);
         if (lastKnownPos != null)
-            compound.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
+            compound.put("LastKnownPos", com.jesz.createdieselgenerators.foundation.FluidCompatibility.writeBlockPos(lastKnownPos));
         if (!isController())
-            compound.put("Controller", NbtUtils.writeBlockPos(controller));
+            compound.put("Controller", com.jesz.createdieselgenerators.foundation.FluidCompatibility.writeBlockPos(controller));
         if (isController()) {
             compound.putString("Upgrade", upgrade.getId().toString());
-            compound.put("TankContent", tankInventory.writeToNBT(registries, new CompoundTag()));
+            compound.put("TankContent", com.jesz.createdieselgenerators.foundation.FluidCompatibility.writeTank(registries, tankInventory));
             compound.putInt("Height", length);
             compound.putInt("AnalogSignal", analogSignal);
         }

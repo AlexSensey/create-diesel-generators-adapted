@@ -5,9 +5,9 @@ import com.jesz.createdieselgenerators.CreateDieselGenerators;
 public record LighterSkinEntry(String name, LighterModel closedModel, LighterModel openModel, LighterModel ignitedModel) {
     public static final LighterSkinEntry STANDARD = new LighterSkinEntry(
             "standard",
-            new LighterModel(CreateDieselGenerators.rl("item/lighter")),
-            new LighterModel(CreateDieselGenerators.rl("item/lighter_open")),
-            new LighterModel(CreateDieselGenerators.rl("item/lighter_ignited"))
+            new LighterModel(CreateDieselGenerators.id("item/lighter")),
+            new LighterModel(CreateDieselGenerators.id("item/lighter_open")),
+            new LighterModel(CreateDieselGenerators.id("item/lighter_ignited"))
     );
     public static LighterSkinEntry simple(String name, String id){
         return new LighterSkinEntry(

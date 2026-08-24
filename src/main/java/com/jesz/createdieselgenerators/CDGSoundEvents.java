@@ -13,7 +13,7 @@ public class CDGSoundEvents {
     public static DeferredHolder<SoundEvent, SoundEvent> ENGINE_NORMAL = registerSoundEvent("engine_normal");
 
     private static DeferredHolder<SoundEvent, SoundEvent> registerSoundEvent(String name) {
-        return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(CreateDieselGenerators.rl(name)));
+        return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(CreateDieselGenerators.id(name)));
     }
 
     public static void register(IEventBus eventBus) {

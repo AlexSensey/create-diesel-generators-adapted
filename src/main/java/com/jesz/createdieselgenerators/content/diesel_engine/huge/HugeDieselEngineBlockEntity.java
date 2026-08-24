@@ -3,7 +3,6 @@ package com.jesz.createdieselgenerators.content.diesel_engine.huge;
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGBlocks;
 import com.jesz.createdieselgenerators.CDGConfig;
-import com.jesz.createdieselgenerators.content.diesel_engine.EngineSoundInstance;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.jesz.createdieselgenerators.content.diesel_engine.IEngine;
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
@@ -18,18 +17,17 @@ import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTank
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.item.TooltipHelper;
 import com.simibubi.create.foundation.utility.CreateLang;
-import net.createmod.catnip.data.Couple;
-import net.createmod.catnip.data.Pair;
-import net.createmod.catnip.lang.FontHelper;
+import net.createmod.catnip.api.data.Couple;
+import net.createmod.catnip.api.data.Pair;
+import net.createmod.catnip.api.client.lang.FontHelper;
 import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -80,11 +78,11 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
     @Override
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(tag, registries, clientPacket);
-        upgrade = EngineUpgrades.get(ResourceLocation.parse(tag.getString("Upgrade")));
-        analogSignal = tag.contains("AnalogSignal") ? tag.getInt("AnalogSignal") : 0;
+        upgrade = EngineUpgrades.get(Identifier.parse(tag.getStringOr("Upgrade", "")));
+        analogSignal = tag.contains("AnalogSignal") ? tag.getIntOr("AnalogSignal", 0) : 0;
         fuelDebt = 0f;
         signalChanged = true;
-        overStressed = tag.contains("OverStressed") && tag.getBoolean("OverStressed");
+        overStressed = tag.contains("OverStressed") && tag.getBooleanOr("OverStressed", false);
         invalidateFuelCache();
     }
 
@@ -127,6 +125,13 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
             sendData();
         }
 
+        if (level.isClientSide()) {
+            boolean cannotRun = overStressed || shaft == null;
+            CatnipServices.PLATFORM.executeOnClientOnly(() -> () ->
+                    com.jesz.createdieselgenerators.content.diesel_engine.ClientEngineSounds.tick(
+                            this, Vec3.atCenterOf(getBlockPos()), .5f, cannotRun));
+        }
+
         if (overStressed)
             return;
 
@@ -147,33 +152,8 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
                 fuelDebt -= 1f;
             }
 
-            if (level.isClientSide)
-                CatnipServices.PLATFORM.executeOnClientOnly(() -> this::tickClient);
         } else {
             shaft.removeGenerator(worldPosition);
-        }
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    protected EngineSoundInstance soundInstance;
-
-    @OnlyIn(Dist.CLIENT)
-    protected void tickClient() {
-        if (enabled()) {
-            if (soundInstance == null || soundInstance.isStopped()) {
-                Minecraft.getInstance()
-                        .getSoundManager()
-                        .play(soundInstance = upgrade.createSoundInstance(this, Vec3.atCenterOf(getBlockPos())));
-            } else if (soundInstance.active()) {
-                soundInstance.keepAlive();
-                soundInstance.setPitch(upgrade.getPitchMultiplier(this) * getFuelSoundPitch() / 2 * getThrottle());
-                soundInstance.setVolume(upgrade.getVolume(this)* getThrottle());
-            }
-        } else {
-            if (soundInstance != null) {
-                soundInstance.fadeOut();
-                soundInstance = null;
-            }
         }
     }
 
@@ -212,11 +192,11 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
     }
 
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK,
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK,
                 CDGBlockEntityTypes.HUGE_DIESEL_ENGINE.get(),
                 (be, side) -> {
                     if (side == null || side.getAxis() != be.getBlockState().getValue(FACING).getAxis())
-                        return be.getTank();
+                        return com.jesz.createdieselgenerators.foundation.FluidCompatibility.resourceHandler(be.getTank());
                     return null;
                 });
     }

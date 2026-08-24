@@ -6,11 +6,12 @@ import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
@@ -32,8 +33,12 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.common.util.DeferredSoundType;
 
 import java.util.Locale;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OilBarrelBlock extends Block implements IBE<OilBarrelBlockEntity>, IWrenchable {
+
+    private static final Map<RemovedBarrelKey, OilBarrelBlockEntity> REMOVED_BARRELS = new HashMap<>();
 
     public static final EnumProperty<OilBarrelColor> OIL_BARREL_COLOR = EnumProperty.create("color", OilBarrelColor.class);
     public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
@@ -66,16 +71,19 @@ public class OilBarrelBlock extends Block implements IBE<OilBarrelBlockEntity>, 
     }
 
     @Override
-    public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (state.hasBlockEntity() && (state.getBlock() != newState.getBlock() || !newState.hasBlockEntity())) {
-            BlockEntity be = world.getBlockEntity(pos);
-            if (!(be instanceof OilBarrelBlockEntity))
-                return;
-            OilBarrelBlockEntity tankBE = (OilBarrelBlockEntity) be;
-            world.removeBlockEntity(pos);
-            ConnectivityHandler.splitMulti(tankBE);
-        }
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean isMoving) {
+        OilBarrelBlockEntity removed = REMOVED_BARRELS.remove(new RemovedBarrelKey(world.dimension(), pos));
+        if (removed != null)
+            ConnectivityHandler.splitMultiAndReconnect(removed);
+        super.affectNeighborsAfterRemoval(state, world, pos, isMoving);
     }
+
+    static void prepareRemoval(OilBarrelBlockEntity barrel) {
+        if (barrel.hasLevel())
+            REMOVED_BARRELS.put(new RemovedBarrelKey(barrel.getLevel().dimension(), barrel.getBlockPos()), barrel);
+    }
+
+    private record RemovedBarrelKey(ResourceKey<Level> dimension, BlockPos pos) {}
 
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
@@ -90,10 +98,13 @@ public class OilBarrelBlock extends Block implements IBE<OilBarrelBlockEntity>, 
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (!(stack.getItem() instanceof DyeItem di))
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        OilBarrelColor color = OilBarrelColor.getForDyeColor(di.getDyeColor());
+            return InteractionResult.PASS;
+        DyeColor dyeColor = stack.get(net.minecraft.core.component.DataComponents.DYE);
+        if (dyeColor == null)
+            return InteractionResult.PASS;
+        OilBarrelColor color = OilBarrelColor.getForDyeColor(dyeColor);
 
         if (state.getValue(OIL_BARREL_COLOR) == color) {
             if (level.getBlockEntity(pos) instanceof OilBarrelBlockEntity be){
@@ -117,16 +128,16 @@ public class OilBarrelBlock extends Block implements IBE<OilBarrelBlockEntity>, 
                         }
                     }
                     if (successful)
-                        return ItemInteractionResult.SUCCESS;
+                        return InteractionResult.SUCCESS;
                 }
             }
         } else {
             level.setBlockAndUpdate(pos, state.setValue(OIL_BARREL_COLOR, color));
             if (!player.isCreative())
                 stack.shrink(1);
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.PASS;
     }
 
     @Override

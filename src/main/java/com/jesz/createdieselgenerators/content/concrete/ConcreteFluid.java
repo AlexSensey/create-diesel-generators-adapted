@@ -1,20 +1,16 @@
 package com.jesz.createdieselgenerators.content.concrete;
 
-import com.jesz.createdieselgenerators.CDGFluids;
-import com.tterrag.registrate.util.entry.FluidEntry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
-
-import java.util.Map;
 
 public class ConcreteFluid extends BaseFlowingFluid.Source {
     DyeColor color;
@@ -24,20 +20,24 @@ public class ConcreteFluid extends BaseFlowingFluid.Source {
     }
 
     @Override
-    public void tick(Level level, BlockPos pos, FluidState state) {
+    public void tick(ServerLevel level, BlockPos pos, BlockState blockState, FluidState state) {
         if (level.getBlockState(pos.below()).isAir()) {
             BlockState blockstate = state.createLegacyBlock();
             level.setBlockAndUpdate(pos.below(), blockstate);
             level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
         } else
-            super.tick(level, pos, state);
+            super.tick(level, pos, blockState, state);
 
     }
 
     @Override
-    protected void randomTick(Level level, BlockPos pos, FluidState state, RandomSource random) {
+    protected void randomTick(ServerLevel level, BlockPos pos, FluidState state, RandomSource random) {
         if (random.nextInt(30) == 0) {
-            level.setBlockAndUpdate(pos, BuiltInRegistries.BLOCK.get(ResourceLocation.withDefaultNamespace(color.getName() + "_concrete")).defaultBlockState());
+            Block concrete = BuiltInRegistries.BLOCK
+                    .get(Identifier.withDefaultNamespace(color.getName() + "_concrete"))
+                    .map(holder -> holder.value())
+                    .orElse(Blocks.AIR);
+            level.setBlockAndUpdate(pos, concrete.defaultBlockState());
         }
         super.randomTick(level, pos, state, random);
     }

@@ -4,15 +4,10 @@ import com.jesz.createdieselgenerators.CDGConfig;
 import com.jesz.createdieselgenerators.CDGTags;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.compat.kubejs.CDGKubeJSPlugin;
-import net.createmod.catnip.nbt.NBTHelper;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.IntTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
@@ -20,6 +15,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.synth.PerlinNoise;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import net.neoforged.fml.ModList;
 
 import java.util.ArrayList;
@@ -32,39 +28,38 @@ public class OilChunksSavedData extends SavedData {
     Map<ChunkPos, Integer> chunks = new HashMap<>();
     ServerLevel level;
 
-    @Override
-    public CompoundTag save(CompoundTag compound, HolderLookup.Provider registries) {
-        ListTag lt = new ListTag();
-        chunks.forEach((pos,amount) -> {
-            CompoundTag c = new CompoundTag();
-            c.put("x", IntTag.valueOf(pos.x));
-            c.put("z", IntTag.valueOf(pos.z));
-            c.put("Amountmb", IntTag.valueOf(amount));
-            lt.add(c);
-        });
-
-        compound.put("OilChunks", lt);
-
-        return compound;
-    }
-
     private OilChunksSavedData(ServerLevel level) {
         this.level = level;
     }
 
-    private static OilChunksSavedData load(ServerLevel level, CompoundTag tag, HolderLookup.Provider registries) {
+    private static OilChunksSavedData load(ServerLevel level, Map<String, Integer> serialized) {
         OilChunksSavedData sd = new OilChunksSavedData(level);
-
-        sd.chunks = new HashMap<>();
-        NBTHelper.iterateCompoundList(tag.getList("OilChunks", Tag.TAG_COMPOUND), c -> {
-            sd.chunks.put(new ChunkPos(c.getInt("x"), c.getInt("z")), c.contains("Amountmb") ? c.getInt("Amountmb") : c.getInt("Amount") * 1000);
+        serialized.forEach((key, amount) -> {
+            String[] coordinates = key.split(",", 2);
+            if (coordinates.length != 2)
+                return;
+            try {
+                sd.chunks.put(new ChunkPos(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1])), amount);
+            } catch (NumberFormatException ignored) {
+            }
         });
-
         return sd;
     }
 
+    private Map<String, Integer> serializeChunks() {
+        Map<String, Integer> serialized = new HashMap<>();
+        chunks.forEach((pos, amount) -> serialized.put(pos.x() + "," + pos.z(), amount));
+        return serialized;
+    }
+
+    private static SavedDataType<OilChunksSavedData> type(ServerLevel level) {
+        Codec<OilChunksSavedData> codec = Codec.unboundedMap(Codec.STRING, Codec.INT)
+                .xmap(map -> load(level, map), OilChunksSavedData::serializeChunks);
+        return new SavedDataType<>(CreateDieselGenerators.id("oil_chunks"), () -> new OilChunksSavedData(level), codec);
+    }
+
     public static OilChunksSavedData load(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(new Factory<>(() -> new OilChunksSavedData(level), (compoundTag, provider) -> OilChunksSavedData.load(level, compoundTag, provider)), "cdg_oil_chunks");
+        return level.getDataStorage().computeIfAbsent(type(level));
     }
 
     public void setChunkAmount(ChunkPos chunk, int amount) {
@@ -110,7 +105,7 @@ public class OilChunksSavedData extends SavedData {
 
         double scale = CDGConfig.OIL_CHUNK_SCALE.get();
         PerlinNoise noise = PerlinNoise.create(RandomSource.create(seed), List.of(-2, -1, 0, 1));
-        float amount = (float) (noise.getValue(chunk.x * scale, 0, chunk.z * scale) + 1) / 1.6f;
+        float amount = (float) (noise.getValue(chunk.x() * scale, 0, chunk.z() * scale) + 1) / 1.6f;
 
         boolean isHighInOil = false;
         boolean isDenied = false;

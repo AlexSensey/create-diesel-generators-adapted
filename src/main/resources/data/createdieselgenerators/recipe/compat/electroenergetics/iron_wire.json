@@ -1,20 +1,18 @@
 {
-  "type": "createdieselgenerators:wire_cutting",
-  "ingredients": [
-    {
-      "tag": "c:plates/iron"
-    }
-  ],
-  "results": [
-    {
-      "id": "electroenergetics:iron_wire",
-      "count": 3
-    }
-  ],
-  "neoforge:conditions": [
-    {
-      "type": "neoforge:mod_loaded",
-      "modid": "electroenergetics"
-    }
-  ]
+    "type":  "createdieselgenerators:wire_cutting",
+    "ingredients":  [
+                        "#c:plates/iron"
+                    ],
+    "results":  [
+                    {
+                        "id":  "electroenergetics:iron_wire",
+                        "count":  3
+                    }
+                ],
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "neoforge:mod_loaded",
+                                    "modid":  "electroenergetics"
+                                }
+                            ]
 }

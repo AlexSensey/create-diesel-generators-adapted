@@ -1,13 +1,11 @@
 {
-  "type": "createdieselgenerators:hammering",
-  "ingredients": [
-    {
-      "tag": "c:ingots/gold"
-    }
-  ],
-  "results": [
-    {
-      "id": "create:golden_sheet"
-    }
-  ]
+    "type":  "createdieselgenerators:hammering",
+    "ingredients":  [
+                        "#c:ingots/gold"
+                    ],
+    "results":  [
+                    {
+                        "id":  "create:golden_sheet"
+                    }
+                ]
 }

@@ -1,22 +1,16 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " I ",
-    "SAI",
-    " S "
-  ],
-  "key": {
-    "S": {
-      "tag": "c:rods/wooden"
-    },
-    "A": {
-      "item": "create:andesite_alloy"
-    },
-    "I": {
-      "tag": "c:plates/iron"
-    }
-  },
-  "result": {
-    "id": "createdieselgenerators:wire_cutters"
-  }
+    "type":  "minecraft:crafting_shaped",
+    "pattern":  [
+                    " I ",
+                    "SAI",
+                    " S "
+                ],
+    "key":  {
+                "S":  "#c:rods/wooden",
+                "A":  "create:andesite_alloy",
+                "I":  "#c:plates/iron"
+            },
+    "result":  {
+                   "id":  "createdieselgenerators:wire_cutters"
+               }
 }

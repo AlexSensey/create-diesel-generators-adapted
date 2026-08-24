@@ -4,10 +4,8 @@ import com.jesz.createdieselgenerators.CDGRecipes;
 import com.simibubi.create.api.behaviour.spouting.BlockSpoutingBehaviour;
 import com.simibubi.create.content.fluids.spout.SpoutBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
+import com.simibubi.create.foundation.recipe.RecipeFinder;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
 
@@ -22,15 +20,19 @@ public class BasinSpoutCasting implements BlockSpoutingBehaviour {
         else
             return 0;
 
-        List<Recipe<RecipeInput>> recipes = level.getRecipeManager().getAllRecipesFor(CDGRecipes.CASTING.getType()).stream()
-                .map(RecipeHolder::value)
-                .filter(r -> r instanceof CastingRecipe cr && cr.matches(basin, availableFluid) && cr.getFluidIngredients().get(0).amount() <= availableFluid.getAmount())
+        List<CastingRecipe> recipes = RecipeFinder.get(null, level,
+                        holder -> holder.value().getType() == CDGRecipes.CASTING.getType()).stream()
+                .map(holder -> holder.value())
+                .filter(CastingRecipe.class::isInstance)
+                .map(CastingRecipe.class::cast)
+                .filter(cr -> cr.matches(basin, availableFluid)
+                        && cr.getFluidIngredients().get(0).amount() <= availableFluid.getAmount())
                 .toList();
 
         if (recipes.isEmpty())
             return 0;
 
-        CastingRecipe recipe = (CastingRecipe) recipes.get(0);
+        CastingRecipe recipe = recipes.get(0);
         return recipe.execute(basin, simulate);
     }
 }

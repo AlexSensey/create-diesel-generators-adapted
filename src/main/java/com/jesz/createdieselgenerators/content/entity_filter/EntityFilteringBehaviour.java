@@ -10,7 +10,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform;
 import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringBehaviour;
 import com.simibubi.create.foundation.item.ItemHelper;
 import com.simibubi.create.foundation.utility.CreateLang;
-import net.createmod.catnip.math.VecHelper;
+import net.createmod.catnip.api.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
@@ -63,7 +63,7 @@ public class EntityFilteringBehaviour extends FilteringBehaviour {
             toApply.setCount(1);
 
         if (!setFilter(side, toApply)) {
-            player.displayClientMessage(CreateLang.translateDirect("logistics.filter.invalid_item"), true);
+            player.sendOverlayMessage(CreateLang.translateDirect("logistics.filter.invalid_item"));
             AllSoundEvents.DENY.playOnServer(player.level(), player.blockPosition(), 1, 1);
             return;
         }

@@ -4,12 +4,12 @@ import com.jesz.createdieselgenerators.content.entity_filter.EntityAttribute;
 import com.jesz.createdieselgenerators.content.tools.lighter.LighterState;
 import com.jesz.createdieselgenerators.content.track_layers_bag.TrackLayersBagItemDataComponent;
 import com.simibubi.create.content.equipment.sandPaper.SandPaperItemComponent;
-import net.createmod.catnip.codecs.CatnipCodecs;
-import net.createmod.catnip.codecs.stream.CatnipStreamCodecBuilders;
+import net.createmod.catnip.api.data.codec.CatnipCodecs;
+import net.createmod.catnip.api.data.codec.stream.CatnipStreamCodecBuilders;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
@@ -31,8 +31,8 @@ public class CDGDataComponents {
     public static final DataComponentType<TrackLayersBagItemDataComponent> TRACKS = register("tracks",
             builder -> builder.persistent(TrackLayersBagItemDataComponent.CODEC).networkSynchronized(TrackLayersBagItemDataComponent.STREAM_CODEC));
 
-    public static final DataComponentType<ResourceLocation> MOLD_TYPE = register("mold_type",
-            builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC));
+    public static final DataComponentType<Identifier> MOLD_TYPE = register("mold_type",
+            builder -> builder.persistent(Identifier.CODEC).networkSynchronized(Identifier.STREAM_CODEC));
 
     public static final DataComponentType<SandPaperItemComponent> PROCESSING_ITEM = register("processing_item",
             builder -> builder.persistent(SandPaperItemComponent.CODEC).networkSynchronized(SandPaperItemComponent.STREAM_CODEC));

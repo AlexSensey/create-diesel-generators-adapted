@@ -13,13 +13,13 @@ import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringB
 import com.simibubi.create.foundation.blockEntity.behaviour.filtering.SidedFilteringBehaviour;
 import com.simibubi.create.foundation.utility.CreateLang;
 import com.simibubi.create.infrastructure.config.AllConfigs;
-import net.createmod.catnip.data.Iterate;
-import net.createmod.catnip.data.Pair;
-import net.createmod.catnip.math.VecHelper;
-import net.createmod.catnip.outliner.Outliner;
+import net.createmod.catnip.api.data.Iterate;
+import net.createmod.catnip.api.data.Pair;
+import net.createmod.catnip.api.math.VecHelper;
+import net.createmod.catnip.api.client.outliner.Outliner;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.createmod.catnip.impl.client.render.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -112,7 +112,7 @@ public class EntityFilteringRenderer {
                 continue;
 
             if (!be.isVirtual()) {
-                Entity cameraEntity = Minecraft.getInstance().cameraEntity;
+                Entity cameraEntity = Minecraft.getInstance().gameRenderer.mainCamera().entity();
                 if (cameraEntity != null && level == cameraEntity.level()) {
                     float max = behaviour.getRenderDistance();
                     if (cameraEntity.position()

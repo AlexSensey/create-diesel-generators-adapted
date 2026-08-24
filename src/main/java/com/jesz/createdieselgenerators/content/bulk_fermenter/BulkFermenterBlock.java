@@ -7,28 +7,36 @@ import com.simibubi.create.foundation.block.IBE;
 import com.simibubi.create.foundation.item.ItemHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.util.DeferredSoundType;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BulkFermenterBlock extends Block implements IBE<BulkFermenterBlockEntity>, IWrenchable {
+    private static final Map<RemovedFermenterKey, BulkFermenterBlockEntity> REMOVED_FERMENTERS = new HashMap<>();
     public BulkFermenterBlock(Properties properties) {
         super(properties);
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighbourState, LevelAccessor level, BlockPos pos, BlockPos neighbourPos) {
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+                                     Direction direction, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
         if (direction == Direction.DOWN && neighbourState.getBlock() != this)
             withBlockEntityDo(level, pos, BulkFermenterBlockEntity::updateHeat);
-        return super.updateShape(state, direction, neighbourState, level, pos, neighbourPos);
+        return super.updateShape(state, level, ticks, pos, direction, neighbourPos, neighbourState, random);
     }
 
     @Override
@@ -41,17 +49,19 @@ public class BulkFermenterBlock extends Block implements IBE<BulkFermenterBlockE
         withBlockEntityDo(world, pos, BulkFermenterBlockEntity::updateHeat);
     }
     @Override
-    public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (state.hasBlockEntity() && (state.getBlock() != newState.getBlock() || !newState.hasBlockEntity())) {
-            BlockEntity be = world.getBlockEntity(pos);
-            if (!(be instanceof BulkFermenterBlockEntity))
-                return;
-            BulkFermenterBlockEntity tankBE = (BulkFermenterBlockEntity) be;
-            ItemHelper.dropContents(world, pos, tankBE.inventory);
-            world.removeBlockEntity(pos);
-            ConnectivityHandler.splitMulti(tankBE);
-        }
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean isMoving) {
+        BulkFermenterBlockEntity removed = REMOVED_FERMENTERS.remove(new RemovedFermenterKey(world.dimension(), pos));
+        if (removed != null)
+            ConnectivityHandler.splitMultiAndReconnect(removed);
+        super.affectNeighborsAfterRemoval(state, world, pos, isMoving);
     }
+
+    static void prepareRemoval(BulkFermenterBlockEntity fermenter) {
+        if (fermenter.hasLevel())
+            REMOVED_FERMENTERS.put(new RemovedFermenterKey(fermenter.getLevel().dimension(), fermenter.getBlockPos()), fermenter);
+    }
+
+    private record RemovedFermenterKey(ResourceKey<Level> dimension, BlockPos pos) {}
     @Override
     public Class<BulkFermenterBlockEntity> getBlockEntityClass() {
         return BulkFermenterBlockEntity.class;

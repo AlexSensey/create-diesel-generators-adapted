@@ -22,7 +22,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -35,7 +35,7 @@ import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import java.util.List;
 
 public class CanisterBlock extends Block implements IBE<CanisterBlockEntity>, ProperWaterloggedBlock, IWrenchable {
-    public static final DirectionProperty FACING = BlockStateProperties.FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
     public static final BooleanProperty ENCHANTED = BooleanProperty.create("enchanted");
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
@@ -48,7 +48,7 @@ public class CanisterBlock extends Block implements IBE<CanisterBlockEntity>, Pr
 
     @Override
     public RenderShape getRenderShape(BlockState state) {
-        return state.getValue(ENCHANTED) ? RenderShape.ENTITYBLOCK_ANIMATED : RenderShape.MODEL;
+        return state.getValue(ENCHANTED) ? RenderShape.INVISIBLE : RenderShape.MODEL;
     }
 
     @Override
@@ -58,7 +58,7 @@ public class CanisterBlock extends Block implements IBE<CanisterBlockEntity>, Pr
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
 
         withBlockEntityDo(level, pos, be -> {
@@ -92,7 +92,6 @@ public class CanisterBlock extends Block implements IBE<CanisterBlockEntity>, Pr
         return fluidState(state);
     }
 
-    @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighbourState,
                                   LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         updateWater(level, state, pos);

@@ -10,9 +10,10 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.Item;
@@ -24,7 +25,7 @@ import java.util.function.Predicate;
 
 public interface EntityAttribute {
     Codec<EntityAttribute> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ResourceLocation.CODEC.fieldOf("id").forGetter(EntityAttribute::getId),
+            Identifier.CODEC.fieldOf("id").forGetter(EntityAttribute::getId),
             CompoundTag.CODEC.optionalFieldOf("data", new CompoundTag()).forGetter(EntityAttribute::write)
     ).apply(i,  (id, data) -> {
         EntityAttribute attribute = EntityAttribute.getById(id);
@@ -34,7 +35,7 @@ public interface EntityAttribute {
     }));
 
     StreamCodec<ByteBuf, EntityAttribute> STREAM_CODEC = StreamCodec.composite(
-            ResourceLocation.STREAM_CODEC, EntityAttribute::getId,
+            Identifier.STREAM_CODEC, EntityAttribute::getId,
             ByteBufCodecs.COMPOUND_TAG, EntityAttribute::write,
             (id, data) -> {
                 EntityAttribute attribute = EntityAttribute.getById(id);
@@ -46,14 +47,14 @@ public interface EntityAttribute {
 
     List<EntityAttribute> ALL = new ArrayList<>();
     EntityAttribute STANDARD_TRAITS = register(StandardTraits.IS_HOSTILE);
-    EntityAttribute IS_MOB = register(new IsMob(EntityType.PIG));
+    EntityAttribute IS_MOB = register(new IsMob(EntityTypes.PIG));
 
     static EntityAttribute register(EntityAttribute attribute) {
         ALL.add(attribute);
         return attribute;
     }
 
-    static EntityAttribute getById(ResourceLocation id) {
+    static EntityAttribute getById(Identifier id) {
         for (EntityAttribute attribute : ALL) {
             if(attribute.getId().equals(id))
                 return attribute;
@@ -61,7 +62,7 @@ public interface EntityAttribute {
         return null;
     }
 
-    ResourceLocation getId();
+    Identifier getId();
 
     boolean test(Entity entity);
 
@@ -113,8 +114,8 @@ public interface EntityAttribute {
         }
 
         @Override
-        public ResourceLocation getId() {
-            return CreateDieselGenerators.rl(name().toLowerCase(Locale.ROOT));
+        public Identifier getId() {
+            return CreateDieselGenerators.id(name().toLowerCase(Locale.ROOT));
         }
 
         @Override
@@ -138,7 +139,7 @@ public interface EntityAttribute {
         public EntityAttribute read(CompoundTag tag) {
             EntityAttribute attribute = null;
             for(EntityAttribute possibleAttribute : values()){
-                if(possibleAttribute.getId().toString().equals(tag.getString("TraitType")))
+                if(possibleAttribute.getId().toString().equals(tag.getStringOr("TraitType", "")))
                     attribute = possibleAttribute;
             }
             return attribute;
@@ -167,8 +168,8 @@ public interface EntityAttribute {
             this.type = type;
         }
         @Override
-        public ResourceLocation getId() {
-            return CreateDieselGenerators.rl("is_mob");
+        public Identifier getId() {
+            return CreateDieselGenerators.id("is_mob");
         }
 
         @Override
@@ -184,7 +185,11 @@ public interface EntityAttribute {
         }
         @Override
         public EntityAttribute read(CompoundTag tag) {
-            return new IsMob(BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(tag.getString("Entity"))));
+            EntityType<?> entityType = BuiltInRegistries.ENTITY_TYPE
+                    .get(Identifier.parse(tag.getStringOr("Entity", "")))
+                    .<EntityType<?>>map(holder -> holder.value())
+                    .orElse(EntityTypes.PIG);
+            return new IsMob(entityType);
         }
 
         @Override

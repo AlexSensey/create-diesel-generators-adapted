@@ -11,7 +11,6 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.fluid.SmartFluidTank;
 import com.simibubi.create.infrastructure.config.AllConfigs;
-import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -43,6 +42,16 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
     protected boolean updateCapability;
     protected int width;
     protected int height;
+    private boolean queuedRemovalSplit;
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (!queuedRemovalSplit && hasLevel() && !level.isClientSide()) {
+            queuedRemovalSplit = true;
+            OilBarrelBlock.prepareRemoval(this);
+        }
+        super.preRemoveSideEffects(pos, state);
+    }
 
     private static final int SYNC_RATE = 8;
     protected int syncCooldown;
@@ -69,7 +78,7 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
 
     public void updateConnectivity() {
         updateConnectivity = false;
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
         if (!isController())
             return;
@@ -141,7 +150,7 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
             }
         }
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             setChanged();
             sendData();
         }
@@ -166,7 +175,7 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
     }
 
     public void removeController(boolean keepFluids) {
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
         updateConnectivity = true;
         if (!keepFluids)
@@ -194,7 +203,7 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
     }
     @Override
     public void setController(BlockPos controller) {
-        if (level.isClientSide && !isVirtual())
+        if (level.isClientSide() && !isVirtual())
             return;
         if (controller.equals(this.controller))
             return;
@@ -226,7 +235,8 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
         if (controllerBE == null)
             return false;
         return containedFluidTooltip(tooltip, isPlayerSneaking,
-                level.getCapability(Capabilities.FluidHandler.BLOCK, controllerBE.getBlockPos(), null));
+                com.jesz.createdieselgenerators.foundation.FluidCompatibility.fluidHandler(
+                        level.getCapability(Capabilities.Fluid.BLOCK, controllerBE.getBlockPos(), null)));
     }
     @Override
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
@@ -241,15 +251,15 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
         lastKnownPos = null;
 
         if (tag.contains("LastKnownPos"))
-            lastKnownPos = NBTHelper.readBlockPos(tag,"LastKnownPos");
+            lastKnownPos = com.jesz.createdieselgenerators.foundation.FluidCompatibility.readBlockPos(tag, "LastKnownPos");
         if (tag.contains("Controller"))
-            controller = NBTHelper.readBlockPos(tag, "Controller");
+            controller = com.jesz.createdieselgenerators.foundation.FluidCompatibility.readBlockPos(tag, "Controller");
 
         if (isController()) {
-            width = tag.getInt("Size");
-            height = tag.getInt("Height");
+            width = tag.getIntOr("Size", 0);
+            height = tag.getIntOr("Height", 0);
             tankInventory.setCapacity(getTotalTankSize() * getCapacityMultiplier());
-            tankInventory.readFromNBT(registries, tag.getCompound("TankContent"));
+            com.jesz.createdieselgenerators.foundation.FluidCompatibility.readTank(registries, tag.getCompoundOrEmpty("TankContent"), tankInventory);
 //            if (tankInventory.getSpace() < 0)
 //                tankInventory.drain(-tankInventory.getSpace(), IFluidHandler.FluidAction.EXECUTE);
         }
@@ -277,11 +287,11 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
         if (updateConnectivity)
             tag.putBoolean("Uninitialized", true);
         if (lastKnownPos != null)
-            tag.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
+            tag.put("LastKnownPos", com.jesz.createdieselgenerators.foundation.FluidCompatibility.writeBlockPos(lastKnownPos));
         if (!isController())
-            tag.put("Controller", NbtUtils.writeBlockPos(getController()));
+            tag.put("Controller", com.jesz.createdieselgenerators.foundation.FluidCompatibility.writeBlockPos(getController()));
         if (isController()) {
-            tag.put("TankContent", tankInventory.writeToNBT(registries, new CompoundTag()));
+            tag.put("TankContent", com.jesz.createdieselgenerators.foundation.FluidCompatibility.writeTank(registries, tankInventory));
             tag.putInt("Size", width);
             tag.putInt("Height", height);
         }
@@ -294,12 +304,12 @@ public class OilBarrelBlockEntity extends SmartBlockEntity implements IMultiBloc
 
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
-                Capabilities.FluidHandler.BLOCK,
+                Capabilities.Fluid.BLOCK,
                 CDGBlockEntityTypes.OIL_BARREL.get(),
                 (be, context) -> {
                     if (be.fluidCapability == null)
                         be.refreshCapability();
-                    return be.fluidCapability;
+                    return com.jesz.createdieselgenerators.foundation.FluidCompatibility.resourceHandler(be.fluidCapability);
                 }
         );
     }

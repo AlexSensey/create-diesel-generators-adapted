@@ -9,7 +9,7 @@ import com.simibubi.create.content.fluids.pipes.EncasedPipeBlock;
 import com.simibubi.create.content.fluids.pipes.FluidPipeBlock;
 import com.simibubi.create.content.fluids.pipes.FluidPipeBlockEntity;
 import com.simibubi.create.content.fluids.pump.PumpBlock;
-import net.createmod.catnip.data.Iterate;
+import net.createmod.catnip.api.data.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.DebugPackets;
@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.ticks.TickPriority;
 
@@ -45,20 +46,16 @@ public class ConcreteEncasedFluidPipeBlock extends EncasedPipeBlock {
         return InteractionResult.SUCCESS;
     }
     @Override
-    public void neighborChanged(BlockState state, Level world, BlockPos pos, Block otherBlock, BlockPos neighborPos,
+    public void neighborChanged(BlockState state, Level world, BlockPos pos, Block otherBlock, Orientation neighborPos,
                                 boolean isMoving) {
         DebugPackets.sendNeighborsUpdatePacket(world, pos);
-        Direction d = fixedValidateNeighbourChange(state, world, pos, otherBlock, neighborPos, isMoving);
-        if (d == null)
-            return;
-        if (!state.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(d)))
-            return;
-        world.scheduleTick(pos, this, 1, TickPriority.HIGH);
+        if (!world.isClientSide())
+            world.scheduleTick(pos, this, 1, TickPriority.HIGH);
     }
 
     public static Direction fixedValidateNeighbourChange(BlockState state, Level world, BlockPos pos, Block otherBlock,
                                                     BlockPos neighborPos, boolean isMoving) {
-        if (world.isClientSide)
+        if (world.isClientSide())
             return null;
         // calling getblockstate() as otherBlock param seems to contain the block which
         // was replaced

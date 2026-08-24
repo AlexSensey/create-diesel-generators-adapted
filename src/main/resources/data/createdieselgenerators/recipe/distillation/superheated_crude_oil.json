@@ -1,22 +1,21 @@
 {
-  "type": "createdieselgenerators:distillation",
-  "ingredients": [
-    {
-      "type": "fluid_tag",
-      "fluid_tag": "c:crude_oil",
-      "amount": 100
-    }
-  ],
-  "heat_requirement": "superheated",
-  "processing_time": 40,
-  "results": [
-    {
-      "id": "createdieselgenerators:diesel",
-      "amount": 75
-    },
-    {
-      "id": "createdieselgenerators:gasoline",
-      "amount": 75
-    }
-  ]
+    "type":  "createdieselgenerators:distillation",
+    "ingredients":  [
+                        {
+                            "ingredient":  "#c:crude_oil",
+                            "amount":  100
+                        }
+                    ],
+    "heat_requirement":  "superheated",
+    "processing_time":  40,
+    "results":  [
+                    {
+                        "id":  "createdieselgenerators:diesel",
+                        "amount":  75
+                    },
+                    {
+                        "id":  "createdieselgenerators:gasoline",
+                        "amount":  75
+                    }
+                ]
 }

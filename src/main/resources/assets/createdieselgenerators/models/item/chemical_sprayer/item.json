@@ -2,8 +2,8 @@
 	"credit": "Made with Blockbench",
 	"texture_size": [32, 32],
 	"textures": {
-		"0": "createdieselgenerators:item/chemical_sprayer",
-		"particle": "createdieselgenerators:item/chemical_sprayer"
+		"0": "createdieselgenerators:block/item_model/chemical_sprayer",
+		"particle": "createdieselgenerators:block/item_model/chemical_sprayer"
 	},
 	"elements": [
 		{

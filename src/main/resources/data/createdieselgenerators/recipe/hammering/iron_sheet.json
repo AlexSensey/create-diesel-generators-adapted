@@ -1,13 +1,11 @@
 {
-  "type": "createdieselgenerators:hammering",
-  "ingredients": [
-    {
-      "tag": "c:ingots/iron"
-    }
-  ],
-  "results": [
-    {
-      "id": "create:iron_sheet"
-    }
-  ]
+    "type":  "createdieselgenerators:hammering",
+    "ingredients":  [
+                        "#c:ingots/iron"
+                    ],
+    "results":  [
+                    {
+                        "id":  "create:iron_sheet"
+                    }
+                ]
 }

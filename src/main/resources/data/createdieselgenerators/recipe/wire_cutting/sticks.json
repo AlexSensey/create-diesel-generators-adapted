@@ -1,14 +1,12 @@
 {
-  "type": "createdieselgenerators:wire_cutting",
-  "ingredients": [
-    {
-      "tag": "minecraft:planks"
-    }
-  ],
-  "results": [
-    {
-      "id": "minecraft:stick",
-      "count": 4
-    }
-  ]
+    "type":  "createdieselgenerators:wire_cutting",
+    "ingredients":  [
+                        "#minecraft:planks"
+                    ],
+    "results":  [
+                    {
+                        "id":  "minecraft:stick",
+                        "count":  4
+                    }
+                ]
 }

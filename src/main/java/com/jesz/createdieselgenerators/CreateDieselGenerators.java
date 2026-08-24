@@ -1,6 +1,5 @@
 package com.jesz.createdieselgenerators;
 
-import com.cake.struts.StrutYourStuff;
 import com.jesz.createdieselgenerators.compat.EveryCompatCompat;
 import com.jesz.createdieselgenerators.compat.computercraft.CCProxy;
 import com.jesz.createdieselgenerators.compat.strut_your_stuff.StrutYourStuffRegistryEntries;
@@ -13,19 +12,17 @@ import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.item.ItemDescription;
 import com.simibubi.create.foundation.item.KineticStats;
 import com.simibubi.create.foundation.item.TooltipModifier;
-import net.createmod.catnip.lang.FontHelper;
+import net.createmod.catnip.api.client.lang.FontHelper;
 import net.createmod.catnip.platform.CatnipServices;
-import net.createmod.ponder.foundation.PonderIndex;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTab;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 import static com.jesz.createdieselgenerators.CreateDieselGenerators.ID;
 
@@ -71,11 +68,15 @@ public class CreateDieselGenerators
     public static void onClient(IEventBus modEventBus, ModContainer container) {
         CDGPartialModels.init();
         container.registerConfig(ModConfig.Type.CLIENT, CDGConfig.CLIENT_SPEC, ID + "-client.toml");
-        modEventBus.addListener(LighterModel::onModelBake);
+        LighterModel.initSkins();
     }
 
-    public static ResourceLocation rl(String path){
-        return ResourceLocation.fromNamespaceAndPath(ID, path);
+    public static Identifier rl(String path){
+        return Identifier.fromNamespaceAndPath(ID, path);
+    }
+
+    public static Identifier id(String path) {
+        return rl(path);
     }
 
     public static Component lang(String path, Object... args) {

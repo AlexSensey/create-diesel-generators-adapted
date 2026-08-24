@@ -1,10 +1,7 @@
 package com.jesz.createdieselgenerators.content.molds;
 
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraft.resources.Identifier;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -12,30 +9,27 @@ import java.util.List;
 public class MoldType {
     public static final List<MoldType> types = new LinkedList<>();
 
-    public static MoldType BOWL_MOLD = new MoldType(CreateDieselGenerators.rl("bowl"));
-    public static MoldType LINES_MOLD = new MoldType(CreateDieselGenerators.rl("lines"));
-    public static MoldType CHAIN_MOLD = new MoldType(CreateDieselGenerators.rl("chain"));
-    public static MoldType BAR_MOLD = new MoldType(CreateDieselGenerators.rl("bar"));
+    public static MoldType BOWL_MOLD = new MoldType(CreateDieselGenerators.id("bowl"));
+    public static MoldType LINES_MOLD = new MoldType(CreateDieselGenerators.id("lines"));
+    public static MoldType CHAIN_MOLD = new MoldType(CreateDieselGenerators.id("chain"));
+    public static MoldType BAR_MOLD = new MoldType(CreateDieselGenerators.id("bar"));
 
-    ResourceLocation id;
+    Identifier id;
 
-    @OnlyIn(Dist.CLIENT)
-    public BakedModel model;
-
-    public MoldType(ResourceLocation id) {
+    public MoldType(Identifier id) {
         this.id = id;
         types.add(this);
     }
 
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 
-    public ResourceLocation getModelId() {
-        return ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "item/mold/"+id.getPath());
+    public Identifier getModelId() {
+        return Identifier.fromNamespaceAndPath(id.getNamespace(), "item/mold/"+id.getPath());
     }
 
-    public static MoldType findById(ResourceLocation id) {
+    public static MoldType findById(Identifier id) {
         for (MoldType type : types){
             if(type.id.equals(id))
                 return type;

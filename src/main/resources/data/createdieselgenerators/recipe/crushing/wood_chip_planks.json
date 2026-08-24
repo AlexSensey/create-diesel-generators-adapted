@@ -1,29 +1,26 @@
 {
-  "type": "create:crushing",
-  "ingredients": [
-    {
-      "type": "neoforge:difference",
-      "base": [
-        {
-          "tag": "minecraft:planks"
-        },
-        {
-          "item": "minecraft:bamboo_mosaic"
-        }
-      ],
-      "subtracted": {
-        "item": "createdieselgenerators:chip_wood_block"
-      }
-    }
-  ],
-  "results": [
-    {
-      "id": "createdieselgenerators:wood_chip",
-      "count": 7
-    },
-    {
-      "id": "createdieselgenerators:wood_chip",
-      "chance": 0.5
-    }
-  ]
+    "type":  "create:crushing",
+    "ingredients":  [
+                        {
+                            "neoforge:ingredient_type":  "neoforge:difference",
+                            "base":  {
+                                         "neoforge:ingredient_type":  "neoforge:compound",
+                                         "children":  [
+                                                          "#minecraft:planks",
+                                                          "minecraft:bamboo_mosaic"
+                                                      ]
+                                     },
+                            "subtracted":  "createdieselgenerators:chip_wood_block"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "createdieselgenerators:wood_chip",
+                        "count":  7
+                    },
+                    {
+                        "id":  "createdieselgenerators:wood_chip",
+                        "chance":  0.5
+                    }
+                ]
 }

@@ -16,12 +16,11 @@
     "LootTableAccessor",
     "MechanicalPressBlockEntityMixin",
     "ShaftBlockMixin",
-    "UseOnContextInvoker",
-    "SableAssemblyMixin"
+    "UseOnContextInvoker"
   ],
   "client": [
-    "AgeableListModelAccessor",
     "BasinRendererMixin",
+    "ContraptionEntityRendererMixin",
     "ModelPartAccessor"
   ],
   "injectors": {

@@ -3,8 +3,7 @@ package com.jesz.createdieselgenerators.content.tools.lighter;
 import com.jesz.createdieselgenerators.*;
 import com.jesz.createdieselgenerators.content.tools.FueledToolItem;
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
-import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
-import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.advancements.triggers.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
@@ -15,11 +14,13 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseFireBlock;
@@ -32,12 +33,11 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.function.Consumer;
 
 public class LighterItem extends Item implements FueledToolItem {
     public LighterItem(Properties properties) {
@@ -45,12 +45,13 @@ public class LighterItem extends Item implements FueledToolItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
-        createTooltip(tooltipComponents, stack);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, context, display, tooltip, tooltipFlag);
+        List<Component> components = new ArrayList<>();
+        createTooltip(components, stack);
+        components.forEach(tooltip);
     }
 
-    @Override
     public boolean isEnchantable(ItemStack stack) { return true; }
 
     @Override
@@ -59,7 +60,7 @@ public class LighterItem extends Item implements FueledToolItem {
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, Level level, Entity entity, int p_41407_, boolean p_41408_) {
+    public void inventoryTick(ItemStack stack, net.minecraft.server.level.ServerLevel level, Entity entity, EquipmentSlot slot) {
         FluidStack fStack = readFluid(stack);
 
         var registry = level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE);
@@ -72,7 +73,7 @@ public class LighterItem extends Item implements FueledToolItem {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stackInHand = player.getItemInHand(hand);
 
         level.playSound(player, player.blockPosition(), SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.4F + 0.8F);
@@ -81,7 +82,7 @@ public class LighterItem extends Item implements FueledToolItem {
                 stackInHand.get(CDGDataComponents.LIGHTER_STATE) == LighterState.CLOSED) {
             if (player.isShiftKeyDown()) {
                 stackInHand.set(CDGDataComponents.LIGHTER_STATE, LighterState.OPEN);
-                return InteractionResultHolder.success(stackInHand);
+                return InteractionResult.SUCCESS;
             }
             FluidStack fStack = readFluid(stackInHand);
 
@@ -94,11 +95,11 @@ public class LighterItem extends Item implements FueledToolItem {
                 fStack.setAmount(fStack.getAmount() - 1);
                 writeFluid(stackInHand, fStack);
             }
-            return InteractionResultHolder.success(stackInHand);
+            return InteractionResult.SUCCESS;
         }
         stackInHand.set(CDGDataComponents.LIGHTER_STATE, LighterState.CLOSED);
 
-        return InteractionResultHolder.success(stackInHand);
+        return InteractionResult.SUCCESS;
 
     }
 
@@ -113,7 +114,7 @@ public class LighterItem extends Item implements FueledToolItem {
         ItemStack stack = context.getItemInHand();
 
         if (stack.get(CDGDataComponents.LIGHTER_STATE) != LighterState.OPEN_IGNITED)
-            return use(context.getLevel(), context.getPlayer(), context.getHand()).getResult();
+            return use(context.getLevel(), context.getPlayer(), context.getHand());
 
         var registry = level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE);
 
@@ -140,9 +141,9 @@ public class LighterItem extends Item implements FueledToolItem {
                     fStack.setAmount(fStack.getAmount()-1);
                     writeFluid(stack, fStack);
                 }
-                return InteractionResult.sidedSuccess(level.isClientSide());
+                return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
             } else {
-                return use(context.getLevel(), context.getPlayer(), context.getHand()).getResult();
+                return use(context.getLevel(), context.getPlayer(), context.getHand());
             }
         } else {
             level.playSound(player, blockpos, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.4F + 0.8F);
@@ -198,8 +199,4 @@ public class LighterItem extends Item implements FueledToolItem {
         return false;
     }
 
-    @OnlyIn(Dist.CLIENT)
-    public void registerExtension(RegisterClientExtensionsEvent event) {
-        event.registerItem(SimpleCustomRenderer.create(this, new LighterItemRenderer()), this);
-    }
 }

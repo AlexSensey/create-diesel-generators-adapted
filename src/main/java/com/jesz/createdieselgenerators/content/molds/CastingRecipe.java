@@ -12,7 +12,6 @@ import com.simibubi.create.content.processing.recipe.StandardProcessingRecipe;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeInput;
@@ -65,7 +64,8 @@ public class CastingRecipe extends StandardProcessingRecipe<RecipeInput> {
         if (getFluidIngredients().size() != 1)
             return false;
 
-        IItemHandler availableItems = basin.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, basin.getBlockPos(), null);
+        IItemHandler availableItems = com.jesz.createdieselgenerators.foundation.ItemCompatibility.itemHandler(
+                basin.getLevel().getCapability(Capabilities.Item.BLOCK, basin.getBlockPos(), null));
 
         if (availableItems == null)
             return false;
@@ -89,7 +89,8 @@ public class CastingRecipe extends StandardProcessingRecipe<RecipeInput> {
     }
 
     public int execute(BasinBlockEntity basin, boolean simulate) {
-        IItemHandler availableItems = basin.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, basin.getBlockPos(), null);
+        IItemHandler availableItems = com.jesz.createdieselgenerators.foundation.ItemCompatibility.itemHandler(
+                basin.getLevel().getCapability(Capabilities.Item.BLOCK, basin.getBlockPos(), null));
 
         if (availableItems == null)
             return 0;
@@ -108,7 +109,7 @@ public class CastingRecipe extends StandardProcessingRecipe<RecipeInput> {
         List<ItemStack> recipeOutputItems = new ArrayList<>();
 
         if (!simulate)
-            recipeOutputItems.addAll(rollResults(basin.getLevel().random));
+            recipeOutputItems.addAll(rollResults(basin.getLevel().getRandom()));
 
         if (!basin.acceptOutputs(recipeOutputItems, List.of(), false))
             return 0;
@@ -121,7 +122,7 @@ public class CastingRecipe extends StandardProcessingRecipe<RecipeInput> {
         return false;
     }
 
-    public static class Serializer implements RecipeSerializer<CastingRecipe> {
+    public static class Serializer {
         private final MapCodec<CastingRecipe> codec;
         private final StreamCodec<RegistryFriendlyByteBuf, CastingRecipe> streamCodec;
 
@@ -137,14 +138,16 @@ public class CastingRecipe extends StandardProcessingRecipe<RecipeInput> {
             this.streamCodec = MoldRecipeParams.STREAM_CODEC.map(CastingRecipe::new, CastingRecipe::getParams);
         }
 
-        @Override
         public MapCodec<CastingRecipe> codec() {
             return codec;
         }
 
-        @Override
         public StreamCodec<RegistryFriendlyByteBuf, CastingRecipe> streamCodec() {
             return streamCodec;
+        }
+
+        public RecipeSerializer<CastingRecipe> asRecipeSerializer() {
+            return new RecipeSerializer<>(codec, streamCodec);
         }
 
     }

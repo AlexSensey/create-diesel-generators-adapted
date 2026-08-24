@@ -14,6 +14,7 @@ import dev.latvian.mods.kubejs.plugin.ClassFilter;
 import dev.latvian.mods.kubejs.plugin.KubeJSPlugin;
 import dev.latvian.mods.kubejs.script.ScriptType;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
@@ -60,9 +61,10 @@ public class CDGKubeJSPlugin implements KubeJSPlugin {
         event.chunkPos = chunkPos;
         event.seed = seed;
         String[] stringBiomes = new String[biomes.size()];
-        for (int i = 0; i < stringBiomes.length; i++) {
-            stringBiomes[i] = biomes.stream().map(b -> ((Holder.Reference)b).key().location().toString()).toList().get(i);
-        }
+        for (int i = 0; i < stringBiomes.length; i++)
+            stringBiomes[i] = biomes.get(i).unwrapKey()
+                    .map(key -> key.identifier().toString())
+                    .orElse("minecraft:unknown");
         event.biomes = stringBiomes;
 
         return ((Double)OIL_CHUNKS.post(event).value()).intValue();
@@ -78,13 +80,13 @@ public class CDGKubeJSPlugin implements KubeJSPlugin {
         CDGKubeJSPlugin.registerLighterSkins();
 
         MoldEventJS.addedMolds.forEach((rl, name) -> {
-            generator.json(ResourceLocation.fromNamespaceAndPath(rl.getNamespace(), "models/item/mold/"+rl.getPath()), generateTextureModel(ResourceLocation.fromNamespaceAndPath(rl.getNamespace(), "item/mold/"+rl.getPath())));
+            generator.json(ResourceLocation.fromNamespaceAndPath(rl.getNamespace(), "models/item/mold/"+rl.getPath()), generateTextureModel(Identifier.fromNamespaceAndPath(rl.getNamespace(), "item/mold/"+rl.getPath())));
         });
 
         LighterSkinsEventJS.addedIds.forEach((name, id) -> {
-            generator.json(CreateDieselGenerators.rl("models/item/lighter/"+id), generateLighterSkinModel(id, LighterModel.LighterState.CLOSED));
-            generator.json(CreateDieselGenerators.rl("models/item/lighter/"+id+"_open"), generateLighterSkinModel(id, LighterModel.LighterState.OPEN));
-            generator.json(CreateDieselGenerators.rl("models/item/lighter/"+id+"_ignited"), generateLighterSkinModel(id, LighterModel.LighterState.IGNITED));
+            generator.json(ResourceLocation.fromNamespaceAndPath(CreateDieselGenerators.ID, "models/item/lighter/"+id), generateLighterSkinModel(id, LighterModel.LighterState.CLOSED));
+            generator.json(ResourceLocation.fromNamespaceAndPath(CreateDieselGenerators.ID, "models/item/lighter/"+id+"_open"), generateLighterSkinModel(id, LighterModel.LighterState.OPEN));
+            generator.json(ResourceLocation.fromNamespaceAndPath(CreateDieselGenerators.ID, "models/item/lighter/"+id+"_ignited"), generateLighterSkinModel(id, LighterModel.LighterState.IGNITED));
         });
     }
 
@@ -95,7 +97,7 @@ public class CDGKubeJSPlugin implements KubeJSPlugin {
         });
     }
 
-    JsonElement generateTextureModel(ResourceLocation rl) {
+    JsonElement generateTextureModel(Identifier rl) {
         JsonObject object = new JsonObject();
         object.add("parent", new JsonPrimitive("minecraft:item/generated"));
         JsonObject texturesObject = new JsonObject();

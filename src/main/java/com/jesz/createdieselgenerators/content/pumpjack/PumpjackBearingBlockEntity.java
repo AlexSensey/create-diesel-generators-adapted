@@ -6,7 +6,7 @@ import com.simibubi.create.content.contraptions.bearing.BearingBlock;
 import com.simibubi.create.content.contraptions.bearing.BearingContraption;
 import com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
-import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.api.math.AngleHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -112,10 +112,10 @@ public class PumpjackBearingBlockEntity extends MechanicalBearingBlockEntity {
     @Override
     public void tick() {
         prevAngle = angle;
-        if (level.isClientSide)
+        if (level.isClientSide())
             clientAngleDiff /= 2;
 
-        if (!level.isClientSide && assembleNextTick) {
+        if (!level.isClientSide() && assembleNextTick) {
             assembleNextTick = false;
             if (running) {
                 if (movedContraption == null || movedContraption.getContraption().getBlocks().isEmpty()) {
@@ -208,7 +208,7 @@ public class PumpjackBearingBlockEntity extends MechanicalBearingBlockEntity {
         setChanged();
         BlockPos anchor = worldPosition.relative(blockState.getValue(FACING));
         movedContraption.setPos(anchor.getX(), anchor.getY(), anchor.getZ());
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             this.running = true;
             sendData();
         }

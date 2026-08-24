@@ -1,48 +1,30 @@
 {
-  "type": "createdieselgenerators:basin_fermenting",
-  "ingredients": [
-    {
-      "item": "minecraft:apple"
-    },
-    {
-      "tag": "c:ingots/gold"
-    },
-    {
-      "tag": "c:ingots/gold"
-    },
-    {
-      "tag": "c:ingots/gold"
-    },
-    {
-      "tag": "c:ingots/gold"
-    },
-    {
-      "tag": "c:ingots/gold"
-    },
-    {
-      "type": "fluid_stack",
-      "fluid": "create:potion",
-      "components": {
-        "minecraft:potion_contents": {
-          "potion": "minecraft:awkward"
-        }
-      },
-      "amount": 250
-    }
-  ],
-  "processing_time": 400,
-  "results": [
-    {
-      "id": "minecraft:golden_apple"
-    },
-    {
-      "id": "create:potion",
-      "components": {
-        "minecraft:potion_contents": {
-          "potion": "minecraft:awkward"
-        }
-      },
-      "amount": 250
-    }
-  ]
+    "type":  "createdieselgenerators:basin_fermenting",
+    "ingredients":  [
+                        "minecraft:apple",
+                        "#c:ingots/gold",
+                        "#c:ingots/gold",
+                        "#c:ingots/gold",
+                        "#c:ingots/gold",
+                        "#c:ingots/gold",
+                        {
+                            "ingredient":  "create:potion",
+                            "amount":  250
+                        }
+                    ],
+    "processing_time":  400,
+    "results":  [
+                    {
+                        "id":  "minecraft:golden_apple"
+                    },
+                    {
+                        "id":  "create:potion",
+                        "components":  {
+                                           "minecraft:potion_contents":  {
+                                                                             "potion":  "minecraft:awkward"
+                                                                         }
+                                       },
+                        "amount":  250
+                    }
+                ]
 }

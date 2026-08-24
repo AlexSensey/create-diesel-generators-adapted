@@ -3,7 +3,6 @@ package com.jesz.createdieselgenerators.compat.jei;
 import com.jesz.createdieselgenerators.content.distillation.DistillationRecipe;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
-import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.compat.jei.category.animations.AnimatedBlazeBurner;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.recipe.HeatCondition;
@@ -14,19 +13,19 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
-public class DistillationCategory extends CreateRecipeCategory<DistillationRecipe> {
+public class DistillationCategory extends CDGRecipeCategory<DistillationRecipe> {
 
     private final AnimatedDistillationTower distillationTower = new AnimatedDistillationTower();
     private final AnimatedBlazeBurner heater = new AnimatedBlazeBurner();
 
-    public DistillationCategory(Info<DistillationRecipe> info) {
+    public DistillationCategory(CDGRecipeCategory.Info<DistillationRecipe> info) {
         super(info);
     }
 
@@ -55,13 +54,13 @@ public class DistillationCategory extends CreateRecipeCategory<DistillationRecip
         }
         if (!requiredHeat.testBlazeBurner(BlazeBurnerBlock.HeatLevel.KINDLED)) {
             builder
-                    .addSlot(RecipeIngredientRole.CATALYST, 153, 171)
+                    .addSlot(RecipeIngredientRole.RENDER_ONLY, 153, 171)
                     .addItemStack(AllItems.BLAZE_CAKE.asStack());
         }
     }
 
     @Override
-    public void draw(DistillationRecipe recipe, IRecipeSlotsView iRecipeSlotsView, GuiGraphics graphics, double mouseX, double mouseY) {
+    public void draw(DistillationRecipe recipe, IRecipeSlotsView iRecipeSlotsView, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
         HeatCondition requiredHeat = recipe.getRequiredHeat();
         boolean noHeat = requiredHeat == HeatCondition.NONE;
         AllGuiTextures.JEI_ARROW.render(graphics, 40, 150);
@@ -75,7 +74,17 @@ public class DistillationCategory extends CreateRecipeCategory<DistillationRecip
         AllGuiTextures heatBar = noHeat ? AllGuiTextures.JEI_NO_HEAT_BAR : AllGuiTextures.JEI_HEAT_BAR;
 
         heatBar.render(graphics, 4, 170);
-        graphics.drawString(Minecraft.getInstance().font, CreateLang.translateDirect(requiredHeat.getTranslationKey()), 9,
-                176, requiredHeat.getColor(), false);
+        graphics.text(Minecraft.getInstance().font, CreateLang.translateDirect(requiredHeat.getTranslationKey()),
+                9, 176, 0xff000000 | requiredHeat.getColor(), false);
+    }
+
+    @Override
+    public int getWidth() {
+        return getBackground().getWidth();
+    }
+
+    @Override
+    public int getHeight() {
+        return getBackground().getHeight();
     }
 }

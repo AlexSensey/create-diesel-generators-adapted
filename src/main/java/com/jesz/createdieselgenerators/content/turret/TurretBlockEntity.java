@@ -10,8 +10,7 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringBehaviour;
 import com.simibubi.create.foundation.utility.CreateLang;
-import dev.ryanhcode.sable.companion.SableCompanion;
-import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.api.math.AngleHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -19,6 +18,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -96,9 +96,9 @@ public class TurretBlockEntity extends KineticBlockEntity {
 
         if (controllingEntity != null && controllingPlayer == null && targetedEntity != null) {
             AABB aabb = getTargetBB();
-            Vec3 targetPos = SableCompanion.INSTANCE.projectOutOfSubLevel(targetedEntity.level(), targetedEntity.position());
+            Vec3 targetPos = targetedEntity.position();
             Vec3 turretPos = getWorldPos();
-            targetedHorizontalRotation = (float) (Math.atan2(targetPos.x - turretPos.x, targetPos.z - turretPos.z) * 180 / Math.PI) + 180;            targetedVerticalRotation = calculatePitch(targetPos.add(0, 0.5, 0));
+            targetedHorizontalRotation = (float) (Math.atan2(targetPos.x() - turretPos.x, targetPos.z() - turretPos.z) * 180 / Math.PI) + 180;            targetedVerticalRotation = calculatePitch(targetPos.add(0, 0.5, 0));
 
             if (!aabb.contains(targetPos) || targetedEntity.isRemoved() || !isWithinRange(targetPos.add(0, 0.5, 0)) || targetPos.distanceTo(getWorldPos()) < 1)
                 targetedEntity = null;
@@ -145,8 +145,8 @@ public class TurretBlockEntity extends KineticBlockEntity {
 
         float initialVelocity = getShootingForce();
 
-        double dx = targetPos.x - start.x;
-        double dz = targetPos.z - start.z;
+        double dx = targetPos.x() - start.x;
+        double dz = targetPos.z() - start.z;
         double dY = targetPos.y - start.y;
         double horizontalDist = Math.sqrt(dx * dx + dz * dz);
 
@@ -207,8 +207,8 @@ public class TurretBlockEntity extends KineticBlockEntity {
     public boolean isWithinRange(Vec3 targetPos) {
         Vec3 turretPos = getWorldPos().add(0, 0.625f, 0);
 
-        double dx = targetPos.x - turretPos.x;
-        double dz = targetPos.z - turretPos.z;
+        double dx = targetPos.x() - turretPos.x;
+        double dz = targetPos.z() - turretPos.z;
         double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
 
         return horizontalDistance < 22;
@@ -241,9 +241,10 @@ public class TurretBlockEntity extends KineticBlockEntity {
     }
 
     public boolean isValidTarget(LivingEntity entity) {
-        Vec3 entityPos = SableCompanion.INSTANCE.projectOutOfSubLevel(entity.level(), entity.position());
+        Vec3 entityPos = entity.position();
 
-        if (!TargetingConditions.forCombat().test(controllingEntity, entity))
+        if (!(level instanceof ServerLevel serverLevel)
+                || !TargetingConditions.forCombat().test(serverLevel, controllingEntity, entity))
             return false;
         if (entity.isRemoved() || !isWithinRange(entityPos) || entityPos.distanceTo(getWorldPos()) < 2)
             return false;
@@ -260,14 +261,14 @@ public class TurretBlockEntity extends KineticBlockEntity {
 
     public AABB getTargetBB() {
         Vec3 pos = getWorldPos();
-        return new AABB(pos.x - (controllingEntityDirection == Direction.WEST ? -1.5 : 33), pos.y - 5, pos.z - (controllingEntityDirection == Direction.NORTH ? -1.5 : 33), pos.x + (controllingEntityDirection == Direction.EAST ? -1.5 : 33), pos.y + 10, pos.z + (controllingEntityDirection == Direction.SOUTH ? -1.5 : 33));
+        return new AABB(pos.x() - (controllingEntityDirection == Direction.WEST ? -1.5 : 33), pos.y - 5, pos.z() - (controllingEntityDirection == Direction.NORTH ? -1.5 : 33), pos.x() + (controllingEntityDirection == Direction.EAST ? -1.5 : 33), pos.y + 10, pos.z() + (controllingEntityDirection == Direction.SOUTH ? -1.5 : 33));
     }
 
     @Override
     protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(compound, registries, clientPacket);
-        targetedVerticalRotation = compound.getFloat("VerticalRotation");
-        targetedHorizontalRotation = compound.getFloat("HorizontalRotation");
+        targetedVerticalRotation = compound.getFloatOr("VerticalRotation", 0);
+        targetedHorizontalRotation = compound.getFloatOr("HorizontalRotation", 0);
     }
 
     @Override
@@ -286,7 +287,7 @@ public class TurretBlockEntity extends KineticBlockEntity {
 
     public void setControllingPlayer(Player player){
         BlockPos worldPos = BlockPos.containing(getWorldPos());
-        if(level.isClientSide)
+        if(level.isClientSide())
             AllSoundEvents.CONTROLLER_CLICK.play(level, player, worldPos);
         BlockPos tPos = ((IEntity)player).getTurretPos();
         if(tPos != null && level.getBlockEntity(tPos) instanceof TurretBlockEntity be)
@@ -304,7 +305,7 @@ public class TurretBlockEntity extends KineticBlockEntity {
 
     public void removePlayer() {
         BlockPos worldPos = BlockPos.containing(getWorldPos());
-        if(level.isClientSide)
+        if(level.isClientSide())
             AllSoundEvents.CONTROLLER_CLICK.play(level, controllingPlayer, worldPos);
         if(controllingPlayer instanceof ServerPlayer sp)
             sp.connection.send(new ClientboundSetActionBarTextPacket(CreateDieselGenerators.lang("actionbar.turret.stopped_controlling", Component.translatable(getBlockState().getBlock().getDescriptionId()))));
@@ -313,6 +314,8 @@ public class TurretBlockEntity extends KineticBlockEntity {
     }
 
     public Vec3 getWorldPos() {
-        return SableCompanion.INSTANCE.projectOutOfSubLevel(level, Vec3.atCenterOf(worldPosition));
+        // Sable/Sable Companion have no 26.2 build. Direct references to their
+        // optional API crash ordinary worlds as soon as a turret starts ticking.
+        return Vec3.atCenterOf(worldPosition);
     }
 }

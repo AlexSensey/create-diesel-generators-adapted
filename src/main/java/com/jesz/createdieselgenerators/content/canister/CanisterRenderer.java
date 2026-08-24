@@ -2,9 +2,10 @@ package com.jesz.createdieselgenerators.content.canister;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
-import net.createmod.catnip.render.CachedBuffers;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.createmod.catnip.api.client.render.CachedBuffers;
+import net.createmod.catnip.impl.client.render.MultiBufferSource;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 
 public class CanisterRenderer extends SmartBlockEntityRenderer<CanisterBlockEntity> {
@@ -18,16 +19,10 @@ public class CanisterRenderer extends SmartBlockEntityRenderer<CanisterBlockEnti
         if(blockEntity.capacityEnchantLevel == 0)
             return;
         CachedBuffers.block(blockEntity.getBlockState())
-                .center()
-                .scale(1)
-                .uncenter()
                 .light(light)
-                .renderInto(ms, buffer.getBuffer(RenderType.cutout()));
+                .renderInto(ms, buffer.getBuffer(RenderTypes.cutoutMovingBlock()));
         CachedBuffers.block(blockEntity.getBlockState())
-                .center()
-                .scale(1)
-                .uncenter()
                 .light(light)
-                .renderInto(ms, buffer.getBuffer(RenderType.glint()));
+                .renderInto(ms, buffer.getBuffer(RenderTypes.glint()));
     }
 }

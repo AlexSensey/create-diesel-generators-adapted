@@ -1,0 +1,18 @@
+{
+  "sources": [
+    { "type": "single", "resource": "createdieselgenerators:block/fluid/plant_oil_still" },
+    { "type": "single", "resource": "createdieselgenerators:block/fluid/plant_oil_flow" },
+    { "type": "single", "resource": "createdieselgenerators:block/crude_oil_still" },
+    { "type": "single", "resource": "createdieselgenerators:block/crude_oil_flow" },
+    { "type": "single", "resource": "createdieselgenerators:block/biodiesel_still" },
+    { "type": "single", "resource": "createdieselgenerators:block/biodiesel_flow" },
+    { "type": "single", "resource": "createdieselgenerators:block/diesel_still" },
+    { "type": "single", "resource": "createdieselgenerators:block/diesel_flow" },
+    { "type": "single", "resource": "createdieselgenerators:block/gasoline_still" },
+    { "type": "single", "resource": "createdieselgenerators:block/gasoline_flow" },
+    { "type": "single", "resource": "createdieselgenerators:block/fluid/ethanol_still" },
+    { "type": "single", "resource": "createdieselgenerators:block/fluid/ethanol_flow" },
+    { "type": "directory", "source": "block/cement", "prefix": "block/cement/" },
+    { "type": "directory", "source": "block/item_model", "prefix": "block/item_model/" }
+  ]
+}

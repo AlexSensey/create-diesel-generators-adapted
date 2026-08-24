@@ -8,6 +8,8 @@ import com.simibubi.create.content.kinetics.mixer.CompactingRecipe;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeType;
 
 public class CompressionMoldingRecipe extends CompactingRecipe {
@@ -21,7 +23,7 @@ public class CompressionMoldingRecipe extends CompactingRecipe {
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<? extends Recipe<RecipeInput>> getSerializer() {
         return CDGRecipes.COMPRESSION_MOLDING.getSerializer();
     }
 
@@ -35,7 +37,7 @@ public class CompressionMoldingRecipe extends CompactingRecipe {
         return params;
     }
 
-    public static class Serializer implements RecipeSerializer<CompressionMoldingRecipe> {
+    public static class Serializer {
         private final MapCodec<CompressionMoldingRecipe> codec;
         private final StreamCodec<RegistryFriendlyByteBuf, CompressionMoldingRecipe> streamCodec;
 
@@ -51,14 +53,16 @@ public class CompressionMoldingRecipe extends CompactingRecipe {
             this.streamCodec = MoldRecipeParams.STREAM_CODEC.map(CompressionMoldingRecipe::new, CompressionMoldingRecipe::getParams);
         }
 
-        @Override
         public MapCodec<CompressionMoldingRecipe> codec() {
             return codec;
         }
 
-        @Override
         public StreamCodec<RegistryFriendlyByteBuf, CompressionMoldingRecipe> streamCodec() {
             return streamCodec;
+        }
+
+        public RecipeSerializer<CompressionMoldingRecipe> asRecipeSerializer() {
+            return new RecipeSerializer<>(codec, streamCodec);
         }
 
     }

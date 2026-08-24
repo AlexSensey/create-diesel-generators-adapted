@@ -1,27 +1,23 @@
 {
-  "type": "createdieselgenerators:bulk_fermenting",
-  "ingredients": [
-    {
-      "type": "fluid_stack",
-      "fluid": "minecraft:water",
-      "amount": 250
-    },
-    {
-      "tag": "c:dusts/redstone"
-    }
-  ],
-  "processingTime": 400,
-  "results": [
-    {
-      "id": "immersiveengineering:redstone_acid",
-      "amount": 250
-    }
-  ],
-
-  "neoforge:conditions": [
-    {
-      "type": "neoforge:mod_loaded",
-      "modid": "immersiveengineering"
-    }
-  ]
+    "type":  "createdieselgenerators:bulk_fermenting",
+    "ingredients":  [
+                        {
+                            "ingredient":  "minecraft:water",
+                            "amount":  250
+                        },
+                        "#c:dusts/redstone"
+                    ],
+    "processingTime":  400,
+    "results":  [
+                    {
+                        "id":  "immersiveengineering:redstone_acid",
+                        "amount":  250
+                    }
+                ],
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "neoforge:mod_loaded",
+                                    "modid":  "immersiveengineering"
+                                }
+                            ]
 }

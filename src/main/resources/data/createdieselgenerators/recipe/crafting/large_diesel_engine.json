@@ -1,25 +1,17 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " A ",
-    "SDS",
-    " B "
-  ],
-  "key": {
-    "A": {
-      "item": "create:andesite_alloy"
-    },
-    "D": {
-      "item": "createdieselgenerators:diesel_engine"
-    },
-    "B": {
-      "item": "minecraft:polished_blackstone_slab"
-    },
-    "S": {
-      "tag": "c:plates/brass"
-    }
-  },
-  "result": {
-    "id": "createdieselgenerators:large_diesel_engine"
-  }
+    "type":  "minecraft:crafting_shaped",
+    "pattern":  [
+                    " A ",
+                    "SDS",
+                    " B "
+                ],
+    "key":  {
+                "A":  "create:andesite_alloy",
+                "D":  "createdieselgenerators:diesel_engine",
+                "B":  "minecraft:polished_blackstone_slab",
+                "S":  "#c:plates/brass"
+            },
+    "result":  {
+                   "id":  "createdieselgenerators:large_diesel_engine"
+               }
 }

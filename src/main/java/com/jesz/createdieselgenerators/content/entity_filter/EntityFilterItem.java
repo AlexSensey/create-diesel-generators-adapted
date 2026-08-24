@@ -9,7 +9,7 @@ import com.simibubi.create.content.logistics.filter.AttributeFilterWhitelistMode
 import com.simibubi.create.content.logistics.filter.FilterItem;
 import com.simibubi.create.content.logistics.item.filter.attribute.ItemAttribute;
 import com.simibubi.create.foundation.utility.CreateLang;
-import net.createmod.catnip.nbt.NBTHelper;
+import net.createmod.catnip.api.nbt.NBTHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -19,6 +19,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
@@ -26,10 +27,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 public class EntityFilterItem extends Item {
     public EntityFilterItem(Properties properties) {
@@ -40,16 +43,16 @@ public class EntityFilterItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, context, display, tooltip, tooltipFlag);
 
         if (AllKeys.shiftDown())
             return;
         List<Component> makeSummary = makeSummary(stack);
         if (makeSummary.isEmpty())
             return;
-        tooltipComponents.add(CommonComponents.SPACE);
-        tooltipComponents.addAll(makeSummary);
+        tooltip.accept(CommonComponents.SPACE);
+        makeSummary.forEach(tooltip);
     }
 
     private List<Component> makeSummary(ItemStack stack) {
@@ -103,18 +106,18 @@ public class EntityFilterItem extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stackInHand = player.getItemInHand(hand);
         if (player.isShiftKeyDown() || hand != InteractionHand.MAIN_HAND)
-            return InteractionResultHolder.pass(stackInHand);
-        if (level.isClientSide || !(player instanceof ServerPlayer sp))
-            return InteractionResultHolder.success(stackInHand);
+            return InteractionResult.PASS;
+        if (level.isClientSide() || !(player instanceof ServerPlayer sp))
+            return InteractionResult.SUCCESS;
 
         sp.openMenu(new SimpleMenuProvider((int id, Inventory inventory, Player player1) ->
-                new EntityFilterMenu(CDGMenuTypes.ENTITY_FILTER.get(), id, inventory, player1.getMainHandItem()), getDescription()), buf -> {
+                new EntityFilterMenu(CDGMenuTypes.ENTITY_FILTER.get(), id, inventory, player1.getMainHandItem()), getName(stackInHand)), buf -> {
             ItemStack.STREAM_CODEC.encode(buf, stackInHand);
         });
-        return InteractionResultHolder.success(stackInHand);
+        return InteractionResult.SUCCESS;
     }
 
 }

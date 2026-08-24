@@ -12,7 +12,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import dan200.computercraft.api.peripheral.PeripheralCapability;
-import net.createmod.catnip.math.VecHelper;
+import net.createmod.catnip.api.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -57,11 +57,11 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
 
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
-                Capabilities.FluidHandler.BLOCK,
+                Capabilities.Fluid.BLOCK,
                 CDGBlockEntityTypes.CHEMICAL_TURRET.get(),
                 (be, side) -> {
                     if (side == null || side == Direction.DOWN) {
-                        return be.tank.getCapability();
+                        return com.jesz.createdieselgenerators.foundation.FluidCompatibility.resourceHandler(be.tank.getCapability());
                     }
                     return null;
                 }
@@ -88,13 +88,13 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
     public void tick() {
         super.tick();
 
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             lastCogRotation = cogRotation;
             if (wasShootingLastTick)
                 cogRotation += getSpeed() * 3 / 10f;
         }
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             boolean wasShooting = wasShootingLastTick;
             wasShootingLastTick = false;
 
@@ -121,11 +121,11 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
     @Override
     protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(compound, registries, clientPacket);
-        lighterUpgrade = compound.getBoolean("LighterUpgrade");
-        redstoneSignal = compound.getInt("RedstoneSignal");
+        lighterUpgrade = compound.getBooleanOr("LighterUpgrade", false);
+        redstoneSignal = compound.getIntOr("RedstoneSignal", 0);
 
         if (clientPacket)
-            wasShootingLastTick = compound.getBoolean("WasShooting");
+            wasShootingLastTick = compound.getBooleanOr("WasShooting", false);
     }
 
     @Override
@@ -153,7 +153,7 @@ public class ChemicalTurretBlockEntity extends TurretBlockEntity {
 
         float shootingForce = getShootingForce();
 
-        if (!level.isClientSide && !tank.isEmpty()) {
+        if (!level.isClientSide() && !tank.isEmpty()) {
             wasShootingLastTick = true;
             sendData();
 

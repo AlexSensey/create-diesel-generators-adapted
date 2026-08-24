@@ -2,7 +2,6 @@ package com.jesz.createdieselgenerators.content.entity_filter;
 
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.packets.EntityFilterScreenPacket;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.content.logistics.filter.AbstractFilterScreen;
 import com.simibubi.create.content.logistics.filter.AttributeFilterWhitelistMode;
 import com.simibubi.create.content.logistics.filter.FilterScreenPacket;
@@ -12,10 +11,11 @@ import com.simibubi.create.foundation.gui.widget.IconButton;
 import com.simibubi.create.foundation.gui.widget.Indicator;
 import com.simibubi.create.foundation.gui.widget.Label;
 import com.simibubi.create.foundation.gui.widget.SelectionScrollInput;
-import net.createmod.catnip.gui.element.GuiGameElement;
-import net.createmod.catnip.platform.CatnipServices;
+import net.createmod.catnip.api.client.gui.element.GuiGameElement;
+import net.createmod.catnip.api.client.network.ClientNetworkHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -96,24 +96,6 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
                 .append(at.attribute().format(at.inverted()))
                 .withStyle(ChatFormatting.GRAY)));
     }
-    @Override
-    protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
-        int invX = getLeftOfCentered(PLAYER_INVENTORY.getWidth());
-        int invY = topPos + background.getHeight() + 4;
-        renderPlayerInventory(graphics, invX, invY);
-
-        int x = leftPos;
-        int y = topPos;
-
-        background.render(graphics, x, y);
-//        font.draw(ms, title, x + (background.width - 8) / 2 - font.width(title) / 2, y + 4,
-//                CDGItems.ENTITY_FILTER.isIn(menu.contentHolder) ? 0x303030 : 0x592424);
-
-        GuiGameElement.of(menu.contentHolder).<GuiGameElement
-                        .GuiRenderBuilder>at(x + background.getWidth() + 8, y + background.getHeight() - 52, -200)
-                .scale(4)
-                .render(graphics);
-    }
     private void referenceItemChanged(ItemStack stack) {
         lastItemScanned = stack;
         if (stack.isEmpty()) {
@@ -171,7 +153,7 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
         add.active = false;
         addInverted.active = false;
         EntityAttribute attribute = attributesOfItem.get(index);
-        CatnipServices.NETWORK.sendToServer(new EntityFilterScreenPacket(inverted ? FilterScreenPacket.Option.ADD_INVERTED_TAG : FilterScreenPacket.Option.ADD_TAG, attribute));
+        ClientNetworkHelper.INSTANCE.sendToServer(new EntityFilterScreenPacket(inverted ? FilterScreenPacket.Option.ADD_INVERTED_TAG : FilterScreenPacket.Option.ADD_TAG, attribute));
         menu.appendSelectedAttribute(attribute, inverted);
         if (menu.selectedAttributes.size() == 1)
             selectedAttributes.set(0,
@@ -182,28 +164,14 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
         return true;
     }
     @Override
-    public void renderForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+    protected void renderForeground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
         ItemStack stack = menu.ghostInventory.getStackInSlot(1);
-        PoseStack matrixStack = graphics.pose();
-        matrixStack.pushPose();
-        matrixStack.translate(0, 0, 150);
-        graphics.renderItemDecorations(font, stack, leftPos + 16, topPos + 62,
+        graphics.itemDecorations(font, stack, leftPos + 16, topPos + 62,
                 String.valueOf(selectedAttributes.size() - 1));
-        matrixStack.popPose();;
 
         super.renderForeground(graphics, mouseX, mouseY, partialTicks);
-    }
-
-    @Override
-    protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
-        if (this.menu.getCarried().isEmpty() && this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
-            if (this.hoveredSlot.index == 37) {
-                graphics.renderComponentTooltip(font, selectedAttributes, mouseX, mouseY);
-                return;
-            }
-            graphics.renderTooltip(font, this.hoveredSlot.getItem(), mouseX, mouseY);
-        }
-        super.renderTooltip(graphics, mouseX, mouseY);
+        if (menu.getCarried().isEmpty() && hoveredSlot != null && hoveredSlot.hasItem() && hoveredSlot.index == 37)
+            graphics.setComponentTooltipForNextFrame(font, selectedAttributes, mouseX, mouseY);
     }
     @Override
     protected void containerTick() {
@@ -212,6 +180,16 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
         if (!ItemStack.isSameItemSameComponents(stackInSlot, lastItemScanned))
             referenceItemChanged(stackInSlot);
     }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (attributeSelector != null && attributeSelector.visible && attributeSelector.active
+                && attributeSelector.isMouseOver(mouseX, mouseY)
+                && attributeSelector.mouseScrolled(mouseX, mouseY, scrollX, scrollY))
+            return true;
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
     @Override
     protected void contentsCleared() {
         selectedAttributes.clear();
@@ -246,6 +224,6 @@ public class EntityFilterScreen extends AbstractFilterScreen<EntityFilterMenu> {
 
     @Override
     protected void sendOptionUpdate(FilterScreenPacket.Option option) {
-        CatnipServices.NETWORK.sendToServer(new EntityFilterScreenPacket(option, EntityAttribute.IS_MOB));
+        ClientNetworkHelper.INSTANCE.sendToServer(new EntityFilterScreenPacket(option, EntityAttribute.IS_MOB));
     }
 }

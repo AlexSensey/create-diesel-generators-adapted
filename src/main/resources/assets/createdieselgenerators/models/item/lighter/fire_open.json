@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "createdieselgenerators:item/lighter/fire_open"
+    "layer0": "createdieselgenerators:block/item_model/lighter/fire_open"
   }
 }

@@ -1,5 +1,7 @@
 package com.jesz.createdieselgenerators.content.track_layers_bag;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.jesz.createdieselgenerators.CDGDataComponents;
 import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.AllSpecialTextures;
@@ -10,17 +12,19 @@ import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
 import com.simibubi.create.foundation.utility.BlockHelper;
 import com.simibubi.create.foundation.utility.CreateLang;
 import com.simibubi.create.infrastructure.config.AllConfigs;
-import net.createmod.catnip.animation.LerpedFloat;
-import net.createmod.catnip.data.Couple;
-import net.createmod.catnip.data.Iterate;
-import net.createmod.catnip.data.Pair;
-import net.createmod.catnip.math.AngleHelper;
-import net.createmod.catnip.math.VecHelper;
-import net.createmod.catnip.outliner.Outliner;
-import net.createmod.catnip.theme.Color;
+import net.createmod.catnip.api.animation.LerpedFloat;
+import net.createmod.catnip.api.data.Couple;
+import net.createmod.catnip.api.data.Iterate;
+import net.createmod.catnip.api.data.Pair;
+import net.createmod.catnip.api.math.AngleHelper;
+import net.createmod.catnip.api.math.VecHelper;
+import net.createmod.catnip.api.client.outliner.Outliner;
+import net.createmod.catnip.api.theme.Color;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
@@ -101,7 +105,7 @@ public class TrackLayersBagPlacement {
         int lookAngle = (int) (22.5 + AngleHelper.deg(Mth.atan2(lookVec.z, lookVec.x)) % 360) / 8;
         int maxLength = AllConfigs.server().trains.maxTrackPlacementLength.get();
         ItemStack storedTracksRaw = TrackLayersBagItem.getTracks(stack);
-        if (level.isClientSide && cached != null && pos2.equals(hoveringPos) && stack.equals(lastItem)
+        if (level.isClientSide() && cached != null && pos2.equals(hoveringPos) && stack.equals(lastItem)
                 && hoveringMaxed == maximiseTurn && lookAngle == hoveringAngle)
             return cached;
 
@@ -133,7 +137,7 @@ public class TrackLayersBagPlacement {
         Vec3 normal1 = connectingFrom.normal();
         BlockState state1 = level.getBlockState(pos1);
 
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             info.end1 = end1;
             info.end2 = end2;
             info.normal1 = normal1;
@@ -156,7 +160,7 @@ public class TrackLayersBagPlacement {
             axis1 = axis1.scale(-1);
             normedAxis1 = normedAxis1.scale(-1);
             end1 = track.getCurveStart(level, pos1, state1, axis1);
-            if (level.isClientSide) {
+            if (level.isClientSide()) {
                 info.end1 = end1;
                 info.axis1 = axis1;
             }
@@ -170,7 +174,7 @@ public class TrackLayersBagPlacement {
             axis2 = axis2.scale(-1);
             normedAxis2 = normedAxis2.scale(-1);
             end2 = track.getCurveStart(level, pos2, state2, axis2);
-            if (level.isClientSide) {
+            if (level.isClientSide()) {
                 info.end2 = end2;
                 info.axis2 = axis2;
             }
@@ -185,7 +189,7 @@ public class TrackLayersBagPlacement {
         double absAscend = Math.abs(ascend);
         boolean slope = !normal1.equals(normal2);
 
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             Vec3 offset1 = axis1.scale(info.end1Extent);
             Vec3 offset2 = axis2.scale(info.end2Extent);
             BlockPos targetPos1 = pos1.offset(BlockPos.containing(offset1));
@@ -376,7 +380,7 @@ public class TrackLayersBagPlacement {
 
         if (!player.isCreative()) {
             for (boolean simulate : Iterate.trueAndFalse) {
-                if (level.isClientSide && !simulate)
+                if (level.isClientSide() && !simulate)
                     break;
 
                 int tracks = info.requiredTracks;
@@ -393,18 +397,18 @@ public class TrackLayersBagPlacement {
                 foundTracks += usedFromBag;
 
                 Inventory inv = player.getInventory();
-                int size = inv.items.size();
+                int size = inv.getNonEquipmentItems().size();
                 for (int j = 0; j <= size + 1; j++) {
                     int i = j;
                     boolean offhand = j == size + 1;
                     if (j == size)
-                        i = inv.selected;
+                        i = inv.getSelectedSlot();
                     else if (offhand)
                         i = 0;
-                    else if (j == inv.selected)
+                    else if (j == inv.getSelectedSlot())
                         continue;
 
-                    ItemStack stackInSlot = (offhand ? inv.offhand : inv.items).get(i);
+                    ItemStack stackInSlot = offhand ? inv.getItem(Inventory.SLOT_OFFHAND) : inv.getItem(i);
                     boolean isTrack = AllTags.AllBlockTags.TRACKS.matches(stackInSlot)
                             && stackInSlot.is(storedTracks.getItem());
                     if (!isTrack && (!shouldPave || offhandItem.getItem() != stackInSlot.getItem()))
@@ -418,7 +422,7 @@ public class TrackLayersBagPlacement {
                     if (!simulate) {
                         int remainingItems =
                                 count - used;
-                        if (i == inv.selected)
+                        if (!offhand && i == inv.getSelectedSlot())
                             stackInSlot.remove(AllDataComponents.TRACK_CONNECTING_FROM);
                         ItemStack newItem = stackInSlot.copyWithCount(remainingItems);
                         if (offhand)
@@ -587,39 +591,56 @@ public class TrackLayersBagPlacement {
     static BlockPos hintPos;
     static int hintAngle;
     static Couple<List<BlockPos>> hints;
+    static final List<BlockPos> previewValidHints = new ArrayList<>();
+    static final List<BlockPos> previewInvalidHints = new ArrayList<>();
+    static final List<PreviewLine> previewLines = new ArrayList<>();
+
+    record PreviewLine(Vec3 start, Vec3 end, float width, int color) {
+    }
 
     @OnlyIn(Dist.CLIENT)
     public static void clientTick() {
 
         Minecraft mc = Minecraft.getInstance();
-        if (mc == null) return;
         LocalPlayer player = mc.player;
-        if (player == null) return;
+        if (player == null || mc.level == null) {
+            clearPreview();
+            return;
+        }
 
         ItemStack stack = player.getMainHandItem();
         HitResult hitResult = Minecraft.getInstance().hitResult;
         int restoreWarmup = extraTipWarmup;
         extraTipWarmup = 0;
 
-        if (hitResult == null)
+        if (hitResult == null) {
+            clearPreview();
             return;
-        if (hitResult.getType() != HitResult.Type.BLOCK)
-            return;
-
-        InteractionHand hand = InteractionHand.MAIN_HAND;
-        if (!(stack.getItem() instanceof TrackLayersBagItem)) {
+        }
+        if (hitResult.getType() != HitResult.Type.BLOCK) {
+            clearPreview();
             return;
         }
 
-        if (!stack.hasFoil())
+        InteractionHand hand = InteractionHand.MAIN_HAND;
+        if (!(stack.getItem() instanceof TrackLayersBagItem)) {
+            clearPreview();
             return;
+        }
+
+        if (!stack.has(AllDataComponents.TRACK_CONNECTING_FROM)) {
+            clearPreview();
+            return;
+        }
 
         ItemStack trackStack = stack;
 
         if (stack.getItem() instanceof TrackLayersBagItem bag) {
             trackStack = TrackLayersBagItem.getTracks(stack);
-            if (trackStack.isEmpty())
+            if (trackStack.isEmpty()) {
+                clearPreview();
                 return;
+            }
         }
 
         TrackBlockItem blockItem = (TrackBlockItem) trackStack.getItem();
@@ -631,12 +652,16 @@ public class TrackLayersBagPlacement {
         if (!(hitState.getBlock() instanceof TrackBlock) && !hitState.canBeReplaced()) {
             pos = pos.relative(bhr.getDirection());
             hitState = blockItem.getPlacementState(new UseOnContext(player, hand, bhr));
-            if (hitState == null)
+            if (hitState == null) {
+                clearPreview();
                 return;
+            }
         }
 
-        if (!(hitState.getBlock() instanceof TrackBlock))
+        if (!(hitState.getBlock() instanceof TrackBlock)) {
+            clearPreview();
             return;
+        }
 
         extraTipWarmup = restoreWarmup;
         boolean maxTurns = Minecraft.getInstance().options.keySprint.isDown();
@@ -650,12 +675,11 @@ public class TrackLayersBagPlacement {
             BlueprintOverlayRenderer.displayTrackRequirements(info, stack);
 
         if (info.valid)
-            player.displayClientMessage(CreateLang.translateDirect("track.valid_connection")
-                    .withStyle(ChatFormatting.GREEN), true);
+            player.sendOverlayMessage(CreateLang.translateDirect("track.valid_connection")
+                    .withStyle(ChatFormatting.GREEN));
         else if (info.message != null)
-            player.displayClientMessage(CreateLang.translateDirect(info.message)
-                            .withStyle(info.message.equals("track.second_point") ? ChatFormatting.WHITE : ChatFormatting.RED),
-                    true);
+            player.sendOverlayMessage(CreateLang.translateDirect(info.message)
+                            .withStyle(info.message.equals("track.second_point") ? ChatFormatting.WHITE : ChatFormatting.RED));
 
         if (bhr.getDirection() == Direction.UP) {
             Vec3 lookVec = player.getLookAngle();
@@ -677,6 +701,10 @@ public class TrackLayersBagPlacement {
             }
 
             if (hints != null && !hints.either(Collection::isEmpty)) {
+                previewValidHints.clear();
+                previewValidHints.addAll(hints.getFirst());
+                previewInvalidHints.clear();
+                previewInvalidHints.addAll(hints.getSecond());
                 Outliner.getInstance().showCluster("track_valid", hints.getFirst())
                         .withFaceTexture(AllSpecialTextures.THIN_CHECKERED)
                         .colored(0x95CD41)
@@ -686,10 +714,14 @@ public class TrackLayersBagPlacement {
                         .colored(0xEA5C2B)
                         .lineWidth(0);
             }
+        } else {
+            previewValidHints.clear();
+            previewInvalidHints.clear();
         }
 
         animation.chase(info.valid ? 1 : 0, 0.25, LerpedFloat.Chaser.EXP);
         animation.tickChaser();
+        previewLines.clear();
 
         if (!info.valid) {
             info.end1Extent = 0;
@@ -761,6 +793,10 @@ public class TrackLayersBagPlacement {
                         .scale(0.5f);
                 Vec3 middle2 = rail2.add(previous2)
                         .scale(0.5f);
+                addPreviewLine(VecHelper.lerp(s, middle1, previous1), VecHelper.lerp(s, middle1, rail1), lw,
+                        railcolor);
+                addPreviewLine(VecHelper.lerp(s, middle2, previous2), VecHelper.lerp(s, middle2, rail2), lw,
+                        railcolor);
                 Outliner.getInstance()
                         .showLine(Pair.of(key, i * 2), VecHelper.lerp(s, middle1, previous1),
                                 VecHelper.lerp(s, middle1, rail1))
@@ -790,9 +826,80 @@ public class TrackLayersBagPlacement {
     @OnlyIn(Dist.CLIENT)
     private static void line(int id, Vec3 v1, Vec3 o1, Vec3 ex) {
         int color = Color.mixColors(0xEA5C2B, 0x95CD41, animation.getValue());
+        addPreviewLine(v1.subtract(o1), v1.add(ex), 1 / 8f, color);
         Outliner.getInstance().showLine(Pair.of("start", id), v1.subtract(o1), v1.add(ex))
                 .lineWidth(1 / 8f)
                 .disableLineNormals()
                 .colored(color);
+    }
+
+    private static void addPreviewLine(Vec3 start, Vec3 end, float width, int color) {
+        previewLines.add(new PreviewLine(start, end, width, 0xFF000000 | color));
+    }
+
+    private static void clearPreview() {
+        previewValidHints.clear();
+        previewInvalidHints.clear();
+        previewLines.clear();
+    }
+
+    public static void submit(PoseStack ms, SubmitNodeCollector collector, CameraRenderState cameraRenderState) {
+        if (previewValidHints.isEmpty() && previewInvalidHints.isEmpty() && previewLines.isEmpty())
+            return;
+
+        Vec3 camera = cameraRenderState.pos;
+        collector.submitCustomGeometry(ms, net.minecraft.client.renderer.rendertype.RenderTypes.debugQuads(),
+                (pose, consumer) -> {
+                    for (BlockPos pos : previewValidHints)
+                        renderGroundTile(pose, consumer, camera, pos, 0x2095CD41);
+                    for (BlockPos pos : previewInvalidHints)
+                        renderGroundTile(pose, consumer, camera, pos, 0x20EA5C2B);
+                    for (PreviewLine line : previewLines)
+                        renderPreviewStrip(pose, consumer, camera, line.start(), line.end(), line.width(), line.color());
+                });
+    }
+
+    private static void renderGroundTile(PoseStack.Pose pose, VertexConsumer consumer, Vec3 camera, BlockPos pos,
+                                         int color) {
+        float x0 = (float) (pos.getX() + 1 / 32f - camera.x);
+        float x1 = (float) (pos.getX() + 31 / 32f - camera.x);
+        float y = (float) (pos.getY() + 1 + 1 / 128f - camera.y);
+        float z0 = (float) (pos.getZ() + 1 / 32f - camera.z);
+        float z1 = (float) (pos.getZ() + 31 / 32f - camera.z);
+        renderQuad(pose, consumer, new Vec3(x0, y, z0), new Vec3(x1, y, z0), new Vec3(x1, y, z1),
+                new Vec3(x0, y, z1), color);
+    }
+
+    private static void renderPreviewStrip(PoseStack.Pose pose, VertexConsumer consumer, Vec3 camera,
+                                           Vec3 worldStart, Vec3 worldEnd, float width, int color) {
+        Vec3 start = worldStart.subtract(camera);
+        Vec3 end = worldEnd.subtract(camera);
+        Vec3 direction = end.subtract(start);
+        if (direction.lengthSqr() < 1e-5)
+            return;
+
+        Vec3 normal = direction.cross(new Vec3(0, 1, 0));
+        if (normal.lengthSqr() < 1e-5)
+            normal = new Vec3(1, 0, 0);
+        normal = normal.normalize().scale(width);
+
+        renderQuad(pose, consumer, start.add(normal), end.add(normal), end.subtract(normal), start.subtract(normal),
+                color);
+    }
+
+    private static void renderQuad(PoseStack.Pose pose, VertexConsumer consumer, Vec3 a, Vec3 b, Vec3 c, Vec3 d,
+                                   int color) {
+        addPreviewVertex(pose, consumer, a, color);
+        addPreviewVertex(pose, consumer, b, color);
+        addPreviewVertex(pose, consumer, c, color);
+        addPreviewVertex(pose, consumer, d, color);
+        addPreviewVertex(pose, consumer, d, color);
+        addPreviewVertex(pose, consumer, c, color);
+        addPreviewVertex(pose, consumer, b, color);
+        addPreviewVertex(pose, consumer, a, color);
+    }
+
+    private static void addPreviewVertex(PoseStack.Pose pose, VertexConsumer consumer, Vec3 vertex, int color) {
+        consumer.addVertex(pose, (float) vertex.x, (float) vertex.y, (float) vertex.z).setColor(color);
     }
 }

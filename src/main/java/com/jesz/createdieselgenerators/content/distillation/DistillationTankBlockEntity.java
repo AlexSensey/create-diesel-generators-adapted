@@ -17,10 +17,10 @@ import com.simibubi.create.foundation.item.TooltipHelper;
 import com.simibubi.create.foundation.recipe.RecipeFinder;
 import com.simibubi.create.foundation.utility.CreateLang;
 import com.simibubi.create.infrastructure.config.AllConfigs;
-import net.createmod.catnip.animation.LerpedFloat;
-import net.createmod.catnip.lang.FontHelper;
-import net.createmod.catnip.lang.Lang;
-import net.createmod.catnip.nbt.NBTHelper;
+import net.createmod.catnip.api.animation.LerpedFloat;
+import net.createmod.catnip.api.client.lang.FontHelper;
+import net.createmod.catnip.api.lang.Lang;
+import net.createmod.catnip.api.nbt.NBTHelper;
 import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -50,6 +50,8 @@ import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.IFluidTank;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -57,10 +59,21 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class DistillationTankBlockEntity extends SmartBlockEntity implements IMultiBlockEntityContainer.Fluid, IHaveGoggleInformation, IHaveHoveringInformation {
+    private boolean queuedRemovalSplit;
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (!queuedRemovalSplit && hasLevel() && !level.isClientSide()) {
+            queuedRemovalSplit = true;
+            DistillationTankBlock.prepareRemoval(this);
+        }
+        super.preRemoveSideEffects(pos, state);
+    }
     private static final int MAX_SIZE = 3;
 
     public float progress;
     protected IFluidHandler fluidCapability;
+    protected ResourceHandler<FluidResource> fluidResourceCapability;
     protected boolean forceFluidLevelUpdate;
     public FluidTank tankInventory;
     protected BlockPos controller;
@@ -130,7 +143,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
 
     public void updateConnectivity() {
         updateConnectivity = false;
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
         if (!isController())
             return;
@@ -143,7 +156,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
         if(currentRecipe == null)
             return;
         processingTime = (currentRecipe.getProcessingDuration());
-        if(!level.isClientSide)
+        if(!level.isClientSide())
             sendData();
     }
 
@@ -151,6 +164,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
     public void tick() {
         boolean prevTanksFull = tanksFull;
         tanksFull = false;
+
         if (isController() && isBottom()) {
             if (processingTime >= 0 && currentRecipe == null) {
                 List<Recipe<?>> r = getMatchingRecipes();
@@ -185,7 +199,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
                 }
             }
             if (processingTime == 0 && currentRecipe != null) {
-                if (!level.isClientSide) {
+                if (!level.isClientSide()) {
                     level.playSound(null,
                             getBlockPos().offset(width / 2, height / 2, width / 2),
                             SoundEvents.BREWING_STAND_BREW,
@@ -228,6 +242,9 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
 
         super.tick();
 
+        if (level.isClientSide())
+            CatnipServices.PLATFORM.executeOnClientOnly(() -> () -> DistillationClientSounds.tick(this));
+
         if (tanksFull != prevTanksFull)
             sendData();
 
@@ -254,8 +271,6 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
         if (fluidLevel != null)
             fluidLevel.tickChaser();
 
-        if (level.isClientSide)
-            CatnipServices.PLATFORM.executeOnClientOnly(() -> this::tickClient);
     }
 
     @Override
@@ -276,7 +291,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
         super.initialize();
         updateTemperature();
         sendData();
-        if (level.isClientSide)
+        if (level.isClientSide())
             invalidateRenderBoundingBox();
     }
 
@@ -340,7 +355,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
             }
         }
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             setChanged();
             sendData();
         }
@@ -354,7 +369,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
     }
 
     protected void setLuminosity(int luminosity) {
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
         if (this.luminosity == luminosity)
             return;
@@ -382,7 +397,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
     }
 
     public void removeController(boolean keepFluids) {
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
         updateConnectivity = true;
         if (!keepFluids)
@@ -457,7 +472,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
 
     @Override
     public void setController(BlockPos controller) {
-        if (level.isClientSide && !isVirtual())
+        if (level.isClientSide() && !isVirtual())
             return;
         if (controller.equals(this.controller))
             return;
@@ -469,7 +484,15 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
 
     private void refreshCapability() {
         fluidCapability = handlerForCapability();
+        fluidResourceCapability = null;
         invalidateCapabilities();
+    }
+
+    private ResourceHandler<FluidResource> getFluidResourceCapability() {
+        if (fluidResourceCapability == null)
+            fluidResourceCapability = com.jesz.createdieselgenerators.foundation.FluidCompatibility.resourceHandler(
+                    () -> fluidCapability);
+        return fluidResourceCapability;
     }
 
     private IFluidHandler handlerForCapability() {
@@ -496,7 +519,8 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
         if (controllerBE == null)
             return false;
         return containedFluidTooltip(tooltip, isPlayerSneaking,
-                level.getCapability(Capabilities.FluidHandler.BLOCK, controllerBE.getBlockPos(), null));
+                com.jesz.createdieselgenerators.foundation.FluidCompatibility.fluidHandler(
+                        level.getCapability(Capabilities.Fluid.BLOCK, controllerBE.getBlockPos(), null)));
     }
 
     @Override
@@ -507,24 +531,24 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
         int prevSize = width;
         int prevHeight = height;
         int prevLum = luminosity;
-        tanksFull = tag.getBoolean("TanksFull");
+        tanksFull = tag.getBooleanOr("TanksFull", false);
 
         updateConnectivity = tag.contains("Uninitialized");
-        luminosity = tag.getInt("Luminosity");
+        luminosity = tag.getIntOr("Luminosity", 0);
         controller = null;
         lastKnownPos = null;
 
         if (tag.contains("LastKnownPos"))
-            lastKnownPos = NBTHelper.readBlockPos(tag, "LastKnownPos");
+            lastKnownPos = com.jesz.createdieselgenerators.foundation.FluidCompatibility.readBlockPos(tag, "LastKnownPos");
         if (tag.contains("Controller"))
-            controller = NBTHelper.readBlockPos(tag, "Controller");
+            controller = com.jesz.createdieselgenerators.foundation.FluidCompatibility.readBlockPos(tag, "Controller");
 
         if (isController()) {
-            window = tag.getBoolean("Window");
-            width = tag.getInt("Size");
-            height = tag.getInt("Height");
+            window = tag.getBooleanOr("Window", false);
+            width = tag.getIntOr("Size", 0);
+            height = tag.getIntOr("Height", 0);
             tankInventory.setCapacity(getTotalTankSize() * getCapacityMultiplier());
-            tankInventory.readFromNBT(registries, tag.getCompound("TankContent"));
+            com.jesz.createdieselgenerators.foundation.FluidCompatibility.readTank(registries, tag.getCompoundOrEmpty("TankContent"), tankInventory);
             if (tankInventory.getSpace() < 0)
                 tankInventory.drain(-tankInventory.getSpace(), IFluidHandler.FluidAction.EXECUTE);
         }
@@ -552,7 +576,7 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
                 fluidLevel = LerpedFloat.linear()
                         .startWithValue(fillState);
             fluidLevel.chase(fillState, 0.5f, LerpedFloat.Chaser.EXP);
-            processingTime = tag.getInt("Progress");
+            processingTime = tag.getIntOr("Progress", 0);
         }
         if (luminosity != prevLum && hasLevel())
             level.getChunkSource()
@@ -582,12 +606,12 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
         if (updateConnectivity)
             tag.putBoolean("Uninitialized", true);
         if (lastKnownPos != null)
-            tag.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
+            tag.put("LastKnownPos", com.jesz.createdieselgenerators.foundation.FluidCompatibility.writeBlockPos(lastKnownPos));
         if (!isController())
-            tag.put("Controller", NbtUtils.writeBlockPos(controller));
+            tag.put("Controller", com.jesz.createdieselgenerators.foundation.FluidCompatibility.writeBlockPos(controller));
         if (isController()) {
             tag.putBoolean("Window", window);
-            tag.put("TankContent", tankInventory.writeToNBT(registries, new CompoundTag()));
+            tag.put("TankContent", com.jesz.createdieselgenerators.foundation.FluidCompatibility.writeTank(registries, tankInventory));
             tag.putInt("Size", width);
             tag.putInt("Height", height);
             tag.putInt("Progress", processingTime);
@@ -606,13 +630,9 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
 
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
-                Capabilities.FluidHandler.BLOCK,
+                Capabilities.Fluid.BLOCK,
                 CDGBlockEntityTypes.DISTILLATION_TANK.get(),
-                (be, context) -> {
-                    if (be.fluidCapability == null)
-                        be.refreshCapability();
-                    return be.fluidCapability;
-                }
+                (be, context) -> be.getFluidResourceCapability()
         );
     }
 
@@ -840,42 +860,4 @@ public class DistillationTankBlockEntity extends SmartBlockEntity implements IMu
         be.updateTemperature();
     }
 
-    @OnlyIn(Dist.CLIENT)
-    protected DistillationSoundInstance soundInstance;
-
-    @OnlyIn(Dist.CLIENT)
-    protected void tickClient() {
-        boolean isProcessing = isController() && isBottom() && processingTime > -1;
-
-        if (isProcessing) {
-            if (soundInstance == null || soundInstance.isStopped()) {
-                soundInstance = new DistillationSoundInstance(
-                        Vec3.atCenterOf(getBlockPos().offset(width / 2, height / 2, width / 2)));
-                Minecraft.getInstance().getSoundManager().play(soundInstance);
-            }
-        } else {
-            if (soundInstance != null) {
-                Minecraft.getInstance().getSoundManager().stop(soundInstance);
-                soundInstance = null;
-            }
-        }
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static class DistillationSoundInstance extends AbstractTickableSoundInstance {
-        public DistillationSoundInstance(Vec3 pos) {
-            super(SoundEvents.BUBBLE_COLUMN_UPWARDS_AMBIENT, SoundSource.BLOCKS, RandomSource.create());
-            this.x = pos.x;
-            this.y = pos.y;
-            this.z = pos.z;
-            this.volume = 0.5f;
-            this.pitch = 0.45f;
-            this.looping = true;
-            this.delay = 0;
-            this.attenuation = Attenuation.LINEAR;
-        }
-
-        @Override
-        public void tick() {}
-    }
 }

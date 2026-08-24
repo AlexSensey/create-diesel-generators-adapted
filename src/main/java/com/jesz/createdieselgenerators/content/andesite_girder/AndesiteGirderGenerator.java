@@ -5,7 +5,7 @@ import com.simibubi.create.content.decoration.girder.GirderEncasedShaftBlock;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider;
-import net.createmod.catnip.data.Iterate;
+import net.createmod.catnip.api.data.Iterate;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;

@@ -2,7 +2,6 @@ package com.jesz.createdieselgenerators.content.diesel_engine.normal;
 
 import com.jesz.createdieselgenerators.CDGBlockEntityTypes;
 import com.jesz.createdieselgenerators.CDGConfig;
-import com.jesz.createdieselgenerators.content.diesel_engine.EngineSoundInstance;
 import com.jesz.createdieselgenerators.content.diesel_engine.EngineUpgrades;
 import com.jesz.createdieselgenerators.content.diesel_engine.IEngine;
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
@@ -14,13 +13,12 @@ import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTank
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.utility.CreateLang;
 import net.createmod.catnip.platform.CatnipServices;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -57,21 +55,21 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
     }
 
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK,
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK,
                 CDGBlockEntityTypes.DIESEL_ENGINE.get(),
                 (be, side) -> {
                     if (side == null)
-                        return be.tank.getCapability();
+                        return com.jesz.createdieselgenerators.foundation.FluidCompatibility.resourceHandler(be.tank.getCapability());
                     Direction facing = be.getBlockState().getValue(FACING);
                     if (facing.getAxis().isVertical()) {
                         Direction.Axis portAxis = (facing == Direction.DOWN)
                                 ? Direction.Axis.X
                                 : Direction.Axis.Z;
                         if (side.getAxis() == portAxis)
-                            return be.tank.getCapability();
+                            return com.jesz.createdieselgenerators.foundation.FluidCompatibility.resourceHandler(be.tank.getCapability());
                     } else {
                         if (side == Direction.DOWN)
-                            return be.tank.getCapability();
+                            return com.jesz.createdieselgenerators.foundation.FluidCompatibility.resourceHandler(be.tank.getCapability());
                     }
                     return null;
                 });
@@ -87,8 +85,8 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
     @Override
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(tag, registries, clientPacket);
-        upgrade = EngineUpgrades.get(ResourceLocation.parse(tag.getString("Upgrade")));
-        analogSignal = tag.getInt("AnalogSignal");
+        upgrade = EngineUpgrades.get(Identifier.parse(tag.getStringOr("Upgrade", "")));
+        analogSignal = tag.getIntOr("AnalogSignal", 0);
         fuelDebt = 0f;
         invalidateFuelCache();
     }
@@ -144,7 +142,7 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
             sendData();
         }
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             float currentCapacity = 0;
             float currentSpeed = 0;
 
@@ -175,31 +173,14 @@ public class DieselEngineBlockEntity extends GeneratingKineticBlockEntity implem
             }
         }
 
-        if (level.isClientSide)
-            CatnipServices.PLATFORM.executeOnClientOnly(() -> this::tickClient);
-    }
+        // Sound lifetime must follow the block entity tick, not its renderer.
+        // Render submission is culled when the player looks away, which used to
+        // stop keepAlive() calls and incorrectly fade a still-running engine.
+        if (level.isClientSide())
+            CatnipServices.PLATFORM.executeOnClientOnly(() -> () ->
+                    com.jesz.createdieselgenerators.content.diesel_engine.ClientEngineSounds.tick(
+                            this, Vec3.atCenterOf(getBlockPos()), 1, isOverStressed()));
 
-    @OnlyIn(Dist.CLIENT)
-    protected EngineSoundInstance soundInstance;
-
-    @OnlyIn(Dist.CLIENT)
-    protected void tickClient() {
-        if (enabled() && getThrottle() > 0 && !isOverStressed()) {
-            if (soundInstance == null || soundInstance.isStopped()) {
-                Minecraft.getInstance()
-                        .getSoundManager()
-                        .play(soundInstance = upgrade.createSoundInstance(this, Vec3.atCenterOf(getBlockPos())));
-            } else if (soundInstance.active()) {
-                soundInstance.keepAlive();
-                soundInstance.setPitch(upgrade.getPitchMultiplier(this) * getFuelSoundPitch() * getThrottle());
-                soundInstance.setVolume(upgrade.getVolume(this));
-            }
-        } else {
-            if (soundInstance != null) {
-                soundInstance.fadeOut();
-                soundInstance = null;
-            }
-        }
     }
 
     public void setAnalogSignal(int newSignal) { analogSignal = newSignal; }

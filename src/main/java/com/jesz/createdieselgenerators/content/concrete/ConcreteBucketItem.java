@@ -4,19 +4,15 @@ import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.simibubi.create.AllBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
-
-import javax.annotation.Nullable;
-import java.util.function.Consumer;
 
 public class ConcreteBucketItem extends BucketItem {
     DyeColor color;
@@ -35,7 +31,13 @@ public class ConcreteBucketItem extends BucketItem {
             if (!AllBlocks.FLUID_PIPE.has(pipeState))
                 return super.useOn(context);
         }
-        context.getLevel().setBlock(pos, BuiltInRegistries.BLOCK.get(CreateDieselGenerators.rl(color.getName() + "_concrete_encased_fluid_pipe")).defaultBlockState()
+        Block encasedPipe = BuiltInRegistries.BLOCK
+                .get(CreateDieselGenerators.id(color.getName() + "_concrete_encased_fluid_pipe"))
+                .map(holder -> holder.value())
+                .orElse(Blocks.AIR);
+        if (encasedPipe == Blocks.AIR)
+            return super.useOn(context);
+        context.getLevel().setBlock(pos, encasedPipe.defaultBlockState()
                 .setValue(PipeBlock.NORTH, pipeState.getValue(PipeBlock.NORTH))
                 .setValue(PipeBlock.EAST, pipeState.getValue(PipeBlock.EAST))
                 .setValue(PipeBlock.SOUTH, pipeState.getValue(PipeBlock.SOUTH))

@@ -1,29 +1,17 @@
 {
-  "type": "createdieselgenerators:compression_molding",
-  "ingredients": [
-    {
-      "tag": "c:nuggets/iron"
-    },
-    {
-      "tag": "c:nuggets/iron"
-    },
-    {
-      "tag": "c:nuggets/iron"
-    },
-    {
-      "tag": "c:nuggets/iron"
-    },
-    {
-      "tag": "c:nuggets/iron"
-    },
-    {
-      "tag": "c:nuggets/iron"
-    }
-  ],
-  "mold": "createdieselgenerators:chain",
-  "results": [
-    {
-      "id": "minecraft:chain"
-    }
-  ]
+    "type":  "createdieselgenerators:compression_molding",
+    "ingredients":  [
+                        "#c:nuggets/iron",
+                        "#c:nuggets/iron",
+                        "#c:nuggets/iron",
+                        "#c:nuggets/iron",
+                        "#c:nuggets/iron",
+                        "#c:nuggets/iron"
+                    ],
+    "mold":  "createdieselgenerators:chain",
+    "results":  [
+                    {
+                        "id":  "minecraft:chain"
+                    }
+                ]
 }

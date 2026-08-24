@@ -6,20 +6,9 @@ import com.jesz.createdieselgenerators.content.diesel_engine.huge.HugeDieselEngi
 import com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlock;
 import com.jesz.createdieselgenerators.content.diesel_engine.modular.ModularDieselEngineBlockEntity;
 import com.jesz.createdieselgenerators.content.diesel_engine.normal.DieselEngineBlockEntity;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
-import net.createmod.catnip.render.CachedBuffers;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundSource;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +26,7 @@ public interface EngineUpgrades {
         return upgrade;
     }
 
-    static EngineUpgrades get(ResourceLocation rl) {
+    static EngineUpgrades get(Identifier rl) {
 
         for (EngineUpgrades upgrade : EngineUpgrades.allUpgrades) {
             if (upgrade.getId().equals(rl)) {
@@ -46,7 +35,7 @@ public interface EngineUpgrades {
         }
         return EMPTY;
     }
-    ResourceLocation getId();
+    Identifier getId();
     default boolean canAddOn(IEngine engine) {
         return true;
     }
@@ -56,11 +45,6 @@ public interface EngineUpgrades {
     }
     default float getCapacity(float capacity, IEngine engine) {
         return capacity;
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    default <T extends SmartBlockEntity & IEngine> EngineSoundInstance createSoundInstance(T engine, Vec3 pos) {
-        return new EngineSoundInstance(CDGSoundEvents.ENGINE_NORMAL.get(), SoundSource.NEUTRAL, pos, 0.2f);
     }
 
     default <T extends SmartBlockEntity & IEngine> float getPitchMultiplier(T engine) {
@@ -73,65 +57,9 @@ public interface EngineUpgrades {
 
     ItemStack getItem();
 
-    default void render(BlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light) {
-
-    }
-
-    static void renderPartial(BlockEntity be, PoseStack ms, MultiBufferSource buffer,
-                              PartialModel normalModel, PartialModel normalVerticalModel,
-                              PartialModel modularModel, PartialModel hugeModel, int light) {
-        if (be instanceof DieselEngineBlockEntity) {
-            Direction facing = be.getBlockState().getValue(FACING);
-            if (facing.getAxis() == Direction.Axis.Y) {
-                CachedBuffers.partial(normalVerticalModel, be.getBlockState())
-                        .center()
-                        .rotateYDegrees(facing.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 270 : 180)
-                        .uncenter()
-                        .light(light)
-                        .renderInto(ms, buffer.getBuffer(RenderType.cutout()));
-            } else {
-                CachedBuffers.partial(normalModel, be.getBlockState())
-                        .center()
-                        .rotateYDegrees(facing.toYRot())
-                        .uncenter()
-                        .light(light)
-                        .renderInto(ms, buffer.getBuffer(RenderType.cutout()));
-            }
-        } else if (be instanceof ModularDieselEngineBlockEntity) {
-            Direction facing = be.getBlockState().getValue(ModularDieselEngineBlock.FACING);
-
-            CachedBuffers.partial(modularModel, be.getBlockState())
-                    .center()
-                    .rotateYDegrees(facing.toYRot())
-                    .uncenter()
-                    .light(light)
-                    .renderInto(ms, buffer.getBuffer(RenderType.cutout()));
-
-        } else if (be instanceof HugeDieselEngineBlockEntity) {
-            Direction facing = be.getBlockState().getValue(HugeDieselEngineBlock.FACING);
-
-            if (facing.getAxis() == Direction.Axis.Y) {
-                CachedBuffers.partial(hugeModel, be.getBlockState())
-                        .center().rotateZDegrees(90)
-                        .rotateYDegrees(facing.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 270 : 90)
-                        .uncenter()
-                        .light(light)
-                        .renderInto(ms, buffer.getBuffer(RenderType.cutout()));
-            } else {
-                CachedBuffers.partial(hugeModel, be.getBlockState())
-                        .center()
-                        .rotateYDegrees(facing.getAxis() == Direction.Axis.X ? (facing.toYRot()) : (facing.toYRot()) + 180)
-                        .uncenter()
-                        .light(light)
-                        .renderInto(ms, buffer.getBuffer(RenderType.cutout()));
-            }
-
-        }
-    }
-
     class EmptyUpgrade implements EngineUpgrades {
         @Override
-        public ResourceLocation getId() {
+        public Identifier getId() {
             return CreateDieselGenerators.rl("none");
         }
 
@@ -143,14 +71,8 @@ public interface EngineUpgrades {
 
     class SilencerUpgrade implements EngineUpgrades {
         @Override
-        public ResourceLocation getId() {
+        public Identifier getId() {
             return CreateDieselGenerators.rl("silencer");
-        }
-
-        @Override
-        public void render(BlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light) {
-            renderPartial(be, ms, buffer, CDGPartialModels.ENGINE_SILENCER, CDGPartialModels.ENGINE_SILENCER_VERTICAL,
-                    CDGPartialModels.MODULAR_ENGINE_SILENCER, CDGPartialModels.HUGE_ENGINE_SILENCER, light);
         }
 
         @Override
@@ -166,7 +88,7 @@ public interface EngineUpgrades {
 
     class TurbochargerUpgrade implements EngineUpgrades {
         @Override
-        public ResourceLocation getId() {
+        public Identifier getId() {
             return CreateDieselGenerators.rl("turbocharger");
         }
 
@@ -178,12 +100,6 @@ public interface EngineUpgrades {
         @Override
         public float getCapacity(float capacity, IEngine engine) {
             return (float) (capacity * CDGConfig.TURBOCHARGED_ENGINE_MULTIPLIER.get());
-        }
-
-        @Override
-        public void render(BlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light) {
-            renderPartial(be, ms, buffer, CDGPartialModels.ENGINE_TURBOCHARGER, CDGPartialModels.ENGINE_TURBOCHARGER_VERTICAL,
-                    CDGPartialModels.MODULAR_TURBOCHARGER, CDGPartialModels.ENGINE_TURBOCHARGER, light);
         }
 
         @Override

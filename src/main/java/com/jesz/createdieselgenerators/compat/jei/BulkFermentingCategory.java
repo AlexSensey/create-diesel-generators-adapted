@@ -3,7 +3,6 @@ package com.jesz.createdieselgenerators.compat.jei;
 import com.jesz.createdieselgenerators.content.bulk_fermenter.BulkFermentingRecipe;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
-import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.compat.jei.category.animations.AnimatedBlazeBurner;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.recipe.HeatCondition;
@@ -15,9 +14,10 @@ import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import net.createmod.catnip.data.Pair;
+import net.createmod.catnip.api.data.Pair;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -27,10 +27,10 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BulkFermentingCategory extends CreateRecipeCategory<BulkFermentingRecipe> {
+public class BulkFermentingCategory extends CDGRecipeCategory<BulkFermentingRecipe> {
     private final AnimatedBlazeBurner heater = new AnimatedBlazeBurner();
     AnimatedBulkFermenter bulkFermenter = new AnimatedBulkFermenter();
-    public BulkFermentingCategory(Info<BulkFermentingRecipe> info) {
+    public BulkFermentingCategory(CDGRecipeCategory.Info<BulkFermentingRecipe> info) {
         super(info);
     }
 
@@ -44,7 +44,8 @@ public class BulkFermentingCategory extends CreateRecipeCategory<BulkFermentingR
 
         for (Pair<Ingredient, MutableInt> pair : condensedIngredients) {
             List<ItemStack> stacks = new ArrayList<>();
-            for (ItemStack itemStack : pair.getFirst().getItems()) {
+            for (ItemStack itemStack : pair.getFirst().display()
+                    .resolveForStacks(SlotDisplayContext.fromLevel(Minecraft.getInstance().level))) {
                 ItemStack copy = itemStack.copy();
                 copy.setCount(pair.getSecond().getValue());
                 stacks.add(copy);
@@ -52,7 +53,7 @@ public class BulkFermentingCategory extends CreateRecipeCategory<BulkFermentingR
 
             builder
                     .addSlot(RecipeIngredientRole.INPUT, 2 + xOffset + (i % 3) * 19, 41 - (i / 3) * 19)
-                    .setBackground(getRenderedSlot(), -1, -1)
+                    .setStandardSlotBackground()
                     .addItemStacks(stacks);
             i++;
         }
@@ -70,7 +71,7 @@ public class BulkFermentingCategory extends CreateRecipeCategory<BulkFermentingR
 
             builder
                     .addSlot(RecipeIngredientRole.OUTPUT, xPosition, yPosition)
-                    .setBackground(getRenderedSlot(result), -1, -1)
+                    .setStandardSlotBackground()
                     .addItemStack(result.getStack())
                     .addRichTooltipCallback(addStochasticTooltip(result));
             i++;
@@ -92,13 +93,13 @@ public class BulkFermentingCategory extends CreateRecipeCategory<BulkFermentingR
         }
         if (!requiredHeat.testBlazeBurner(BlazeBurnerBlock.HeatLevel.KINDLED)) {
             builder
-                    .addSlot(RecipeIngredientRole.CATALYST, 153, 81)
+                    .addSlot(RecipeIngredientRole.RENDER_ONLY, 153, 81)
                     .addItemStack(AllItems.BLAZE_CAKE.asStack());
         }
     }
 
     @Override
-    public void draw(BulkFermentingRecipe recipe, IRecipeSlotsView iRecipeSlotsView, GuiGraphics graphics, double mouseX, double mouseY) {
+    public void draw(BulkFermentingRecipe recipe, IRecipeSlotsView iRecipeSlotsView, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
 
         AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 136, 20);
 
@@ -114,9 +115,19 @@ public class BulkFermentingCategory extends CreateRecipeCategory<BulkFermentingR
 
         AllGuiTextures heatBar = noHeat ? AllGuiTextures.JEI_NO_HEAT_BAR : AllGuiTextures.JEI_HEAT_BAR;
         heatBar.render(graphics, 4, 80);
-        graphics.drawString(Minecraft.getInstance().font, CreateLang.translateDirect(requiredHeat.getTranslationKey()), 9,
-                86, requiredHeat.getColor(), false);
+        graphics.text(Minecraft.getInstance().font, CreateLang.translateDirect(requiredHeat.getTranslationKey()),
+                9, 86, 0xff000000 | requiredHeat.getColor(), false);
 
 
+    }
+
+    @Override
+    public int getWidth() {
+        return getBackground().getWidth();
+    }
+
+    @Override
+    public int getHeight() {
+        return getBackground().getHeight();
     }
 }

@@ -18,21 +18,19 @@ import com.simibubi.create.foundation.utility.CreateLang;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import com.simibubi.create.infrastructure.config.CKinetics;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import net.createmod.catnip.animation.AnimationTickHolder;
-import net.createmod.catnip.lang.FontHelper;
-import net.createmod.catnip.lang.Lang;
-import net.createmod.catnip.lang.LangBuilder;
+import net.createmod.catnip.api.client.animation.AnimationTickHolder;
+import net.createmod.catnip.api.client.lang.FontHelper;
+import net.createmod.catnip.api.lang.Lang;
+import net.createmod.catnip.api.lang.LangBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.npc.VillagerProfession;
-import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
@@ -47,6 +45,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.event.LootTableLoadEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -54,7 +53,6 @@ import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
-import net.neoforged.neoforge.event.village.VillagerTradesEvent;
 
 import java.util.*;
 
@@ -72,7 +70,7 @@ public class GameEvents {
     @SubscribeEvent
     public static void loadLootTable(LootTableLoadEvent event){
         LootTable table = event.getTable();
-        ResourceLocation tableId = table.getLootTableId();
+        Identifier tableId = table.getLootTableId();
         if (tableId == null) return;
         if (!tableId.getPath().startsWith("entities/"))
                 return;
@@ -83,8 +81,11 @@ public class GameEvents {
                     if (c instanceof LootItemAccessor lootItem) {
                         String path = tableId.getPath();
                         path = path.replaceAll("entities/", "");
-                        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.fromNamespaceAndPath(tableId.getNamespace(), path));
-                        ReverseLootTable.ALL.computeIfAbsent(lootItem.getItem().value(), s -> new ArrayList<>()).add(type);
+                        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE
+                                .get(Identifier.fromNamespaceAndPath(tableId.getNamespace(), path))
+                                .map(holder -> holder.value()).orElse(null);
+                        if (type != null)
+                            ReverseLootTable.ALL.computeIfAbsent(lootItem.getItem().value(), s -> new ArrayList<>()).add(type);
 
                     }
             });
@@ -101,6 +102,12 @@ public class GameEvents {
         AndesiteGirderWrenchBehaviour.tick();
         EntityFilteringRenderer.tick();
         TrackLayersBagPlacement.clientTick();
+    }
+
+    @SubscribeEvent
+    public static void submitCustomGeometry(SubmitCustomGeometryEvent event) {
+        TrackLayersBagPlacement.submit(event.getPoseStack(), event.getSubmitNodeCollector(),
+                event.getLevelRenderState().cameraRenderState);
     }
 
     @SubscribeEvent
@@ -123,7 +130,7 @@ public class GameEvents {
     @SubscribeEvent
     public static void onExplosion(ExplosionEvent.Detonate event){
         Level level = event.getLevel();
-        if (CDGConfig.COMBUSTIBLES_BLOW_UP.get() && !level.isClientSide)
+        if (CDGConfig.COMBUSTIBLES_BLOW_UP.get() && !level.isClientSide())
             for (int x = -2; x < 2; x++) {
                 for (int y = -2; y < 2; y++) {
                     for (int z = -2; z < 2; z++) {
@@ -148,17 +155,6 @@ public class GameEvents {
     }
 
     @SubscribeEvent
-    public static void addTrade(VillagerTradesEvent event) {
-        Int2ObjectMap<List<VillagerTrades.ItemListing>> trades = event.getTrades();
-        if(!(event.getType() == VillagerProfession.TOOLSMITH))
-            return;
-        trades.get(2).add((t, r) -> new MerchantOffer(
-                new ItemCost(Items.EMERALD, 5),
-                new ItemStack(CDGItems.LIGHTER.get()),
-                10,8,0.02f));
-    }
-
-    @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
     public static void addToItemTooltip(ItemTooltipEvent event) {
         if (!AllConfigs.client().tooltips.get())
@@ -168,14 +164,14 @@ public class GameEvents {
 
         List<Component> tooltip = event.getToolTip();
         Item item = event.getItemStack().getItem();
-        if ((item instanceof BucketItem || item instanceof MilkBucketItem) && CDGConfig.FUEL_TOOLTIPS.get()) {
+        if ((item instanceof BucketItem || item == Items.MILK_BUCKET) && CDGConfig.FUEL_TOOLTIPS.get()) {
             Fluid fluid = NeoForgeMod.MILK.get();
             if (item instanceof BucketItem bi)
                 fluid = bi.content;
 
             FuelType type = FuelType.getTypeFor(Minecraft.getInstance().level.registryAccess().lookupOrThrow(CDGRegistries.FUEL_TYPE), fluid);
 
-            if (Screen.hasAltDown() && type.normal().speed() != 0) {
+            if (com.simibubi.create.AllKeys.altDown() && type.normal().speed() != 0) {
 
                 tooltip.add(1, Component.translatable("createdieselgenerators.tooltip.holdForFuelStats", Component.translatable("createdieselgenerators.tooltip.keyAlt").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.DARK_GRAY));
                 tooltip.add(2, Component.empty());
@@ -240,9 +236,9 @@ public class GameEvents {
         LangBuilder rpmUnit = CreateLang.translate("generic.unit.rpm");
         LangBuilder suUnit = CreateLang.translate("generic.unit.stress");
 
-        CreateLang.translate("tooltip.capacityProvided")
+        tooltip.add(CreateLang.translate("tooltip.capacityProvided")
                 .style(GRAY)
-                .addTo(tooltip);
+                .component());
 
         IRotate.StressImpact impactId = highestCapacity >= config.highCapacity.get() ? IRotate.StressImpact.HIGH
                 : (highestCapacity >= config.mediumCapacity.get() ? IRotate.StressImpact.MEDIUM : IRotate.StressImpact.LOW);
@@ -252,20 +248,20 @@ public class GameEvents {
                         .style(opposite.getAbsoluteColor()));
 
         if (hasGoggles) {
-            builder.add(CreateLang.number(highestCapacity))
+            tooltip.add(builder.add(CreateLang.number(highestCapacity))
                     .text("x ")
                     .add(rpmUnit)
-                    .addTo(tooltip);
+                    .component());
             LangBuilder amount = CreateLang.number(highestStressCapacity)
                     .add(suUnit);
-            CreateLang.text(" -> ")
+            tooltip.add(CreateLang.text(" -> ")
                     .add(CreateLang.translate("tooltip.up_to", amount))
                     .style(DARK_GRAY)
-                    .addTo(tooltip);
+                    .component());
 
         } else
-            builder.translate("tooltip.capacityProvided." + Lang.asId(impactId.name()))
-                    .addTo(tooltip);
+            tooltip.add(builder.translate("tooltip.capacityProvided." + Lang.asId(impactId.name()))
+                    .component());
 
     }
 }

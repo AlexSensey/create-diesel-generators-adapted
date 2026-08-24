@@ -13,7 +13,7 @@ import com.simibubi.create.content.trains.track.TrackPlacement;
 import com.simibubi.create.foundation.utility.CreateLang;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateItemModelProvider;
-import net.createmod.catnip.data.Pair;
+import net.createmod.catnip.api.data.Pair;
 import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.BlockPos;
@@ -186,7 +186,7 @@ public class TrackLayersBagItem extends Item {
         }
 
         if (player.isShiftKeyDown()) {
-            return clearSelection(bag, level, player).getResult();
+            return clearSelection(bag, level, player);
         }
 
         boolean placing = !(state.getBlock() instanceof ITrackBlock);
@@ -207,15 +207,15 @@ public class TrackLayersBagItem extends Item {
                 level, player, pos, state, bag, hasGirder, false
         );
 
-        if (info.message != null && !level.isClientSide)
-            player.displayClientMessage(CreateLang.translateDirect(info.message), true);
+        if (info.message != null && !level.isClientSide())
+            player.sendSystemMessage(CreateLang.translateDirect(info.message));
 
         if (!info.valid) {
             AllSoundEvents.DENY.playFrom(player, 1, 1);
             return InteractionResult.FAIL;
         }
 
-        if (level.isClientSide)
+        if (level.isClientSide())
             return InteractionResult.SUCCESS;
 
         bag.remove(AllDataComponents.TRACK_CONNECTING_FROM);
@@ -231,7 +231,7 @@ public class TrackLayersBagItem extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
+    public InteractionResult use(Level level, Player player, InteractionHand usedHand) {
         ItemStack stack = player.getItemInHand(usedHand);
         if (player.isShiftKeyDown() && isFoil(stack)) {
             return clearSelection(stack, level, player);
@@ -240,14 +240,14 @@ public class TrackLayersBagItem extends Item {
         }
     }
 
-    public static InteractionResultHolder<ItemStack> clearSelection(ItemStack stack, Level level, Player player) {
-        if (level.isClientSide) {
+    public static InteractionResult clearSelection(ItemStack stack, Level level, Player player) {
+        if (level.isClientSide()) {
             level.playSound(player, player.blockPosition(), SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 0.75f, 1.0f);
         } else {
-            player.displayClientMessage(CreateLang.translateDirect("track.selection_cleared"), true);
+            player.sendSystemMessage(CreateLang.translateDirect("track.selection_cleared"));
             stack.remove(AllDataComponents.TRACK_CONNECTING_FROM);
         }
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     public static boolean select(LevelAccessor world, BlockPos pos, Vec3 lookVec, ItemStack heldItem) {
@@ -269,21 +269,13 @@ public class TrackLayersBagItem extends Item {
 
     public void registerModelOverrides() {
        CatnipServices.PLATFORM.executeOnClientOnly(() -> () ->
-               ItemProperties.register(CDGItems.TRACK_LAYERS_BAG.get(), CreateDieselGenerators.rl("tracks"),
+               ItemProperties.register(CDGItems.TRACK_LAYERS_BAG.get(), CreateDieselGenerators.id("tracks"),
                (stack, level, entity, seed) -> getTracks(stack).getCount()));
     }
 
     public static ItemModelBuilder addOverrideModels(DataGenContext<Item, TrackLayersBagItem> c,
                                                      RegistrateItemModelProvider p) {
-        ItemModelBuilder builder = p.generated(c::get);
-
-        builder.override()
-                .predicate(CreateDieselGenerators.rl("tracks"), 0.01f)
-                .model(p.getBuilder(c.getName() + "_filled")
-                        .parent(new ModelFile.UncheckedModelFile("item/generated"))
-                        .texture("layer0", CreateDieselGenerators.rl("item/track_layers_bag_filled")))
-                .end();
-        return builder;
+        return null;
     }
 
     public static ItemStack full() {

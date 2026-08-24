@@ -15,12 +15,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.MilkBucketItem;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
@@ -31,10 +29,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -55,7 +54,7 @@ import static net.minecraft.core.Direction.NORTH;
 import static net.minecraft.core.Direction.SOUTH;
 
 public class DieselEngineBlock extends DirectionalKineticBlock implements SpecialBlockItemRequirement, IBE<DieselEngineBlockEntity>, ProperWaterloggedBlock {
-    public static final DirectionProperty FACING = BlockStateProperties.FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
@@ -82,7 +81,7 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
         withBlockEntityDo(context.getLevel(), context.getClickedPos(), be -> {
             if(be.upgrade != EngineUpgrades.EMPTY){
-                if(!context.getLevel().isClientSide) {
+                if(!context.getLevel().isClientSide()) {
                     if (!context.getPlayer().isCreative())
                         context.getPlayer().getInventory().placeItemBackInInventory(be.upgrade.getItem());
                     be.upgrade = EngineUpgrades.EMPTY;
@@ -104,7 +103,6 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
         return fluidState(pState);
     }
 
-    @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState otherState,
                                   LevelAccessor level, BlockPos pos, BlockPos otherPos) {
         updateWater(level, state, pos);
@@ -112,7 +110,7 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos otherPos, boolean moving) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, Orientation otherPos, boolean moving) {
         boolean powered = level.hasNeighborSignal(pos);
 
         if (state.getValue(POWERED) != powered) {
@@ -155,7 +153,7 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         for (EngineUpgrades upgrade : EngineUpgrades.allUpgrades) {
             if (upgrade == EngineUpgrades.EMPTY)
                 continue;
@@ -171,35 +169,36 @@ public class DieselEngineBlock extends DirectionalKineticBlock implements Specia
                     be.upgrade = upgrade;
                     IWrenchable.playRotateSound(level, pos);
                 });
-                return ItemInteractionResult.SUCCESS;
+                return InteractionResult.SUCCESS;
             }
         }
 
         if(!CDGConfig.ENGINES_FILLED_WITH_ITEMS.get() || stack.isEmpty() || !(level.getBlockEntity(pos) instanceof SmartBlockEntity be))
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
 
-        IFluidHandler tank = level.getCapability(Capabilities.FluidHandler.BLOCK, be.getBlockPos(), null);
+        IFluidHandler tank = com.jesz.createdieselgenerators.foundation.FluidCompatibility.fluidHandler(
+                level.getCapability(Capabilities.Fluid.BLOCK, be.getBlockPos(), null));
         if(tank == null)
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
 
-        if (stack.getItem() instanceof BucketItem || stack.getItem() instanceof MilkBucketItem) {
+        if (stack.getItem() instanceof BucketItem || stack.getItem() == Items.MILK_BUCKET) {
             Fluid fluid = stack.getItem() instanceof BucketItem bi ? bi.content : NeoForgeMod.MILK.get();
 
             if (!tank.getFluidInTank(0).isEmpty())
-                return ItemInteractionResult.FAIL;
+                return InteractionResult.FAIL;
 
             tank.fill(new FluidStack(fluid, 1000), IFluidHandler.FluidAction.EXECUTE);
             if (!player.isCreative())
                 player.setItemInHand(hand, new ItemStack(Items.BUCKET));
 
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
-        IFluidHandlerItem itemTank = Capabilities.FluidHandler.ITEM.getCapability(stack, null);
+        IFluidHandler itemTank = com.jesz.createdieselgenerators.foundation.FluidCompatibility.fluidHandler(stack);
         if(itemTank == null)
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         itemTank.drain(tank.fill(itemTank.getFluidInTank(0), IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
-        return ItemInteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override

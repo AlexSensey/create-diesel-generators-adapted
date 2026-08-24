@@ -54,7 +54,7 @@ public class BurnerBlockEntity extends KineticBlockEntity {
 
         if (valveState == 0 || !containsValidFuel) {
             heat = -1;
-            if (!level.isClientSide) {
+            if (!level.isClientSide()) {
                 if (ignited)
                     level.playSound(null, worldPosition, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.3f, level.getRandom().nextFloat() * 0.4F + 0.7F);
 
@@ -64,7 +64,7 @@ public class BurnerBlockEntity extends KineticBlockEntity {
         }
         if (containsValidFuel && valveOrRedstoneState != 0) {
             heat = (valveOrRedstoneState + 1) * multiplier;
-            if (level.isClientSide)
+            if (level.isClientSide())
                 return;
             if (tick % 5 == 0) {
                 if(!ignited){
@@ -80,7 +80,7 @@ public class BurnerBlockEntity extends KineticBlockEntity {
                 setChanged();
             }
         }
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
         if (getBlockState().getValue(BurnerBlock.HEAT_LEVEL) != calculateHeatLevel(heat)) {
             level.setBlockAndUpdate(worldPosition, getBlockState().setValue(BurnerBlock.HEAT_LEVEL, calculateHeatLevel(heat)).setValue(BurnerBlock.LIT, heat > 0));
@@ -163,7 +163,7 @@ public class BurnerBlockEntity extends KineticBlockEntity {
         tag.putFloat("ValveState", valveState);
         tag.putFloat("Heat", heat);
         tag.putInt("Tick", tick);
-        tag.put("FluidContent", tank.writeToNBT(registries, new CompoundTag()));
+        tag.put("FluidContent", com.jesz.createdieselgenerators.foundation.FluidCompatibility.writeTank(registries, tank));
         tag.putInt("RedstonePower", redstonePower);
         tag.putByte("RedstoneOutput", (byte) redstoneOutput);
         super.write(tag, registries, clientPacket);
@@ -171,24 +171,24 @@ public class BurnerBlockEntity extends KineticBlockEntity {
 
     @Override
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
-        valveState = tag.getFloat("ValveState");
-        heat = tag.getFloat("Heat");
-        tick = tag.getInt("Tick");
-        tank.readFromNBT(registries, tag.getCompound("FluidContent"));
-        redstonePower = tag.getInt("RedstonePower");
-        if (tag.getBoolean("RedstonePower"))
+        valveState = tag.getFloatOr("ValveState", 0);
+        heat = tag.getFloatOr("Heat", 0);
+        tick = tag.getIntOr("Tick", 0);
+        com.jesz.createdieselgenerators.foundation.FluidCompatibility.readTank(registries, tag.getCompoundOrEmpty("FluidContent"), tank);
+        redstonePower = tag.getIntOr("RedstonePower", 0);
+        if (tag.getBooleanOr("RedstonePower", false))
             redstonePower = 15;
-        redstoneOutput = tag.getByte("RedstoneOutput");
+        redstoneOutput = tag.getByteOr("RedstoneOutput", (byte) 0);
         super.read(tag, registries, clientPacket);
     }
 
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
-                Capabilities.FluidHandler.BLOCK,
+                Capabilities.Fluid.BLOCK,
                 CDGBlockEntityTypes.BURNER.get(),
                 (be, context) -> {
                     if (context != Direction.UP)
-                        return be.tank;
+                        return com.jesz.createdieselgenerators.foundation.FluidCompatibility.resourceHandler(be.tank);
                     return null;
                 }
         );

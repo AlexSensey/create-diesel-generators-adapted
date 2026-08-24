@@ -9,27 +9,37 @@ import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRendere
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
 import dev.engine_room.flywheel.lib.transform.PoseTransformStack;
 import dev.engine_room.flywheel.lib.transform.TransformStack;
-import net.createmod.catnip.math.VecHelper;
+import net.createmod.catnip.api.math.VecHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.createmod.catnip.impl.client.render.MultiBufferSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MoldItemRenderer extends CustomRenderedItemModelRenderer {
+    private static final Map<net.minecraft.resources.Identifier, PartialModel> MODELS = new HashMap<>();
+
     @Override
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
         MoldType type = MoldItem.getMold(stack);
-        if (type == null || type.model == null) {
+        if (type == null) {
             renderer.render(model.getOriginalModel(), light);
             return;
         }
-        renderer.render(type.model, light);
+        com.jesz.createdieselgenerators.foundation.PartialBufferCompatibility
+                .partial(MODELS.computeIfAbsent(type.getModelId(), PartialModel::of), Blocks.AIR.defaultBlockState())
+                .light(light)
+                .renderInto(ms, buffer.getBuffer(RenderTypes.cutoutMovingBlock()));
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -44,9 +54,7 @@ public class MoldItemRenderer extends CustomRenderedItemModelRenderer {
                 .scale(1.75f)
                 .translate(0, -0.125,0);
 
-        Minecraft.getInstance()
-                .getItemRenderer()
-                .renderStatic(stack, ItemDisplayContext.GROUND, light, overlay, ms, buffer, Minecraft.getInstance().level, 0);
+        // Nested item submission is handled by the 26.2 basin render-state path.
         ms.popPose();
     }
 
@@ -68,9 +76,7 @@ public class MoldItemRenderer extends CustomRenderedItemModelRenderer {
                     .rotateXDegrees(90).scale(0.5f);
             msr.translate(VecHelper.offsetRandomly(Vec3.ZERO, r, (float) 1 /16));
 
-            Minecraft.getInstance()
-                    .getItemRenderer()
-                    .renderStatic(stack, ItemDisplayContext.FIXED, light, overlay, ms, buffer, Minecraft.getInstance().level, 0);
+            // Nested item submission is handled by the 26.2 basin render-state path.
             ms.popPose();
         }
     }

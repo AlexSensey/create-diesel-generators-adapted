@@ -53,7 +53,7 @@ public class CDGPartialModels {
     public static final PartialModel TURRET_OPERATOR_HAT = model("entity/turret_operator_hat");
 
     public static PartialModel model(String id){
-        return PartialModel.of(CreateDieselGenerators.rl(id));
+        return PartialModel.of(CreateDieselGenerators.id(id));
     }
 
     public static void init(){}

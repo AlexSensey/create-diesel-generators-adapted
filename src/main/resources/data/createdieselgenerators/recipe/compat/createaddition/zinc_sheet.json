@@ -1,20 +1,17 @@
 {
-  "type": "createdieselgenerators:hammering",
-  "ingredients": [
-    {
-      "tag": "c:ingots/zinc"
-    }
-  ],
-  "results": [
-    {
-      "id": "createaddition:zinc_sheet"
-    }
-  ],
-
-  "neoforge:conditions": [
-    {
-      "type": "neoforge:mod_loaded",
-      "modid": "createaddition"
-    }
-  ]
+    "type":  "createdieselgenerators:hammering",
+    "ingredients":  [
+                        "#c:ingots/zinc"
+                    ],
+    "results":  [
+                    {
+                        "id":  "createaddition:zinc_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "neoforge:mod_loaded",
+                                    "modid":  "createaddition"
+                                }
+                            ]
 }

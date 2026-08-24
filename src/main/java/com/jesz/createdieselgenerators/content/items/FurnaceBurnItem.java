@@ -3,6 +3,7 @@ package com.jesz.createdieselgenerators.content.items;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.block.entity.FuelValues;
 
 public class FurnaceBurnItem extends Item {
     int burnTime;
@@ -11,7 +12,7 @@ public class FurnaceBurnItem extends Item {
         this.burnTime = burnTime;
     }
     @Override
-    public int getBurnTime(ItemStack stack, RecipeType<?> recipeType) {
+    public int getBurnTime(ItemStack stack, RecipeType<?> recipeType, FuelValues fuelValues) {
         return burnTime;
     }
 }

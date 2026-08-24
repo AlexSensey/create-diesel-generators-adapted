@@ -7,12 +7,14 @@ import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -37,12 +39,13 @@ public class BurnerBlock extends HorizontalAxisKineticBlock implements IBE<Burne
         super.createBlockStateDefinition(builder);
     }
 
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
+    @Override
+    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean precise) {
         if (state.getValue(LIT) && entity instanceof LivingEntity) {
             entity.hurt(level.damageSources().campfire(), 1);
         }
 
-        super.entityInside(state, level, pos, entity);
+        super.entityInside(state, level, pos, entity, effectApplier, precise);
     }
 
     @Override
@@ -51,7 +54,7 @@ public class BurnerBlock extends HorizontalAxisKineticBlock implements IBE<Burne
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos otherPos, boolean moved) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, Orientation otherPos, boolean moved) {
         if (level.getBlockEntity(pos) instanceof BurnerBlockEntity be)
             be.redstonePower = level.getBestNeighborSignal(pos);
     }
@@ -62,7 +65,7 @@ public class BurnerBlock extends HorizontalAxisKineticBlock implements IBE<Burne
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, net.minecraft.core.Direction direction) {
         if (level.getBlockEntity(pos) instanceof BurnerBlockEntity be)
             return be.redstoneOutput;
 

@@ -1,20 +1,17 @@
 {
-  "type": "createdieselgenerators:hammering",
-  "ingredients": [
-    {
-      "tag": "c:ingots/nickel"
-    }
-  ],
-  "results": [
-    {
-      "id": "immersiveengineering:plate_nickel"
-    }
-  ],
-
-  "neoforge:conditions": [
-    {
-      "type": "neoforge:mod_loaded",
-      "modid": "immersiveengineering"
-    }
-  ]
+    "type":  "createdieselgenerators:hammering",
+    "ingredients":  [
+                        "#c:ingots/nickel"
+                    ],
+    "results":  [
+                    {
+                        "id":  "immersiveengineering:plate_nickel"
+                    }
+                ],
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "neoforge:mod_loaded",
+                                    "modid":  "immersiveengineering"
+                                }
+                            ]
 }

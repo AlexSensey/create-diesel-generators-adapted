@@ -1,18 +1,26 @@
 package com.jesz.createdieselgenerators.compat.computercraft.peripherals;
 
 import com.jesz.createdieselgenerators.content.turret.ChemicalTurretBlockEntity;
-import com.simibubi.create.compat.computercraft.implementation.peripherals.SyncedPeripheral;
 import dan200.computercraft.api.lua.LuaFunction;
+import dan200.computercraft.api.peripheral.IPeripheral;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.util.Mth;
 
-public class ChemicalTurretPeripheral extends SyncedPeripheral<ChemicalTurretBlockEntity> {
+public class ChemicalTurretPeripheral implements IPeripheral {
+    private final ChemicalTurretBlockEntity blockEntity;
+
     public ChemicalTurretPeripheral(ChemicalTurretBlockEntity blockEntity) {
-        super(blockEntity);
+        this.blockEntity = blockEntity;
     }
 
     @Override
     public String getType() {
         return "CDG_ChemicalTurret";
+    }
+
+    @Override
+    public boolean equals(@Nullable IPeripheral other) {
+        return this == other;
     }
 
     @LuaFunction

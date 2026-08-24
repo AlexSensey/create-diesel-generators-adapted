@@ -15,6 +15,7 @@ import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
@@ -22,26 +23,21 @@ import static com.jesz.createdieselgenerators.CreateDieselGenerators.REGISTRATE;
 
 public class StrutYourStuffRegistryEntries {
     public static final StrutModelType ANDESITE_GIRDER_MODEL =
-            new StrutModelType(CreateDieselGenerators.rl("block/girder_strut/andesite_girder"),
-                    CreateDieselGenerators.rl("block/andesite_girder_strut_end"), () -> RenderType::cutout);
+            new StrutModelType(legacyId("block/girder_strut/andesite_girder"),
+                    legacyId("block/andesite_girder_strut_end"), () -> RenderType::cutout);
 
 
     public static final BlockEntry<TrussGirderStrutBlock> ANDESITE_GIRDER_STRUT = REGISTRATE.block("andesite_girder_strut",
                     props -> new TrussGirderStrutBlock(props, ANDESITE_GIRDER_MODEL))
             .properties(p -> p.strength(3f, 6f))
             .properties(BlockBehaviour.Properties::noOcclusion)
-            .blockstate((c, p) -> p.directionalBlock(
-                    c.get(),
-                    (state) -> p.models().getExistingFile(
-                            CreateDieselGenerators.rl("block/girder_strut/andesite_girder_strut_attachment"))
-            ))
             .onRegisterAfter(
                     Registries.ITEM,
                     v -> ItemDescription.useKey(v, "block.bits_n_bobs.girder_strut")
             )
             .item(StrutBlockItem::new)
             .model((c, p) ->
-                    p.withExistingParent(c.getName(), CreateDieselGenerators.rl("block/girder_strut/andesite_girder_item")))
+                    p.withExistingParent(c.getName(), legacyId("block/girder_strut/andesite_girder_item")))
             .build()
             .register();
 
@@ -54,6 +50,10 @@ public class StrutYourStuffRegistryEntries {
 
     public static void register() {
 
+    }
+
+    private static ResourceLocation legacyId(String path) {
+        return ResourceLocation.fromNamespaceAndPath(CreateDieselGenerators.ID, path);
     }
 
     public static void fillCreativeTab(CreativeModeTab.Output output) {

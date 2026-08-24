@@ -1,17 +1,16 @@
 {
-  "type": "createdieselgenerators:casting",
-  "ingredients": [
-    {
-      "type": "fluid_stack",
-      "fluid": "create:chocolate",
-      "amount": 250
-    }
-  ],
-  "mold": "createdieselgenerators:bar",
-  "results": [
-    {
-      "id": "create:bar_of_chocolate",
-      "count": 1
-    }
-  ]
+    "type":  "createdieselgenerators:casting",
+    "ingredients":  [
+                        {
+                            "ingredient":  "create:chocolate",
+                            "amount":  250
+                        }
+                    ],
+    "mold":  "createdieselgenerators:bar",
+    "results":  [
+                    {
+                        "id":  "create:bar_of_chocolate",
+                        "count":  1
+                    }
+                ]
 }

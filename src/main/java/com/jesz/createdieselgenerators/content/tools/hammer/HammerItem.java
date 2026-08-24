@@ -5,9 +5,8 @@ import com.google.common.collect.Multimap;
 import com.jesz.createdieselgenerators.CDGDataComponents;
 import com.jesz.createdieselgenerators.CDGRecipes;
 import com.simibubi.create.content.equipment.sandPaper.SandPaperItemComponent;
-import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
-import net.createmod.catnip.animation.AnimationTickHolder;
-import net.createmod.catnip.math.VecHelper;
+import net.createmod.catnip.api.client.animation.AnimationTickHolder;
+import net.createmod.catnip.api.math.VecHelper;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -29,9 +28,6 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
 import java.util.Optional;
 
@@ -49,7 +45,7 @@ public class HammerItem extends Item {
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        return use(context.getLevel(), context.getPlayer(), context.getHand()).getResult();
+        return use(context.getLevel(), context.getPlayer(), context.getHand());
     }
 
     @Override
@@ -61,13 +57,13 @@ public class HammerItem extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         InteractionHand otherHand = InteractionHand.values()[(~hand.ordinal()) & 1];
         ItemStack itemInHand = player.getItemInHand(hand);
         ItemStack itemInOtherHand = player.getItemInHand(otherHand);
 
         HammerRecipe.HammerInv hammerInv = new HammerRecipe.HammerInv(itemInOtherHand);
-        Optional<RecipeHolder<HammerRecipe>> recipe = level.getRecipeManager().getRecipeFor(CDGRecipes.HAMMERING.getType(), hammerInv, level);
+        Optional<RecipeHolder<HammerRecipe>> recipe = CDGRecipes.HAMMERING.find(hammerInv, level);
         if (recipe.isPresent()) {
             ItemStack processingItem = itemInOtherHand.copy();
             itemInOtherHand.shrink(1);
@@ -75,7 +71,7 @@ public class HammerItem extends Item {
 
             itemInHand.set(CDGDataComponents.PROCESSING_ITEM,  new SandPaperItemComponent(processingItem));
             player.startUsingItem(hand);
-            return InteractionResultHolder.success(itemInHand);
+            return InteractionResult.SUCCESS;
         }
         return super.use(level, player, hand);
     }
@@ -90,7 +86,7 @@ public class HammerItem extends Item {
             ItemStack processingItem = stack.get(CDGDataComponents.PROCESSING_ITEM).item();
 
             HammerRecipe.HammerInv hammerInv = new HammerRecipe.HammerInv(processingItem);
-            Optional<RecipeHolder<HammerRecipe>> recipe = level.getRecipeManager().getRecipeFor(CDGRecipes.HAMMERING.getType(), hammerInv, level);
+            Optional<RecipeHolder<HammerRecipe>> recipe = CDGRecipes.HAMMERING.find(hammerInv, level);
 
             stack.remove(CDGDataComponents.PROCESSING_ITEM);
 
@@ -98,8 +94,8 @@ public class HammerItem extends Item {
                 player.getInventory().placeItemBackInInventory(processingItem);
                 return stack;
             }
-            recipe.get().value().rollResults(level.random);
-            player.getInventory().placeItemBackInInventory(recipe.get().value().assemble(hammerInv, level.registryAccess()).copy());
+            recipe.get().value().rollResults(level.getRandom());
+            player.getInventory().placeItemBackInInventory(recipe.get().value().assemble(hammerInv).copy());
             if (level instanceof ServerLevel sl)
                 stack.hurtAndBreak(1, sl, player, i -> {});
             return stack;
@@ -122,7 +118,7 @@ public class HammerItem extends Item {
                 Vec3 offset = VecHelper.offsetRandomly(entity.position().add(Math.sin(-entity.getYRot() / 180 * Math.PI) / 2, 1.3, Math.cos(-entity.getYRot() / 180 * Math.PI) / 2), level.getRandom(), .3f);
                 Vec3 motion = VecHelper.offsetRandomly(Vec3.ZERO, level.getRandom(), .1f);
 
-                level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, processingItem), offset.x(), offset.y(),
+                level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, processingItem.getItem()), offset.x(), offset.y(),
                         offset.z(), motion.x(), motion.y(), motion.z());
             }
         }
@@ -130,16 +126,17 @@ public class HammerItem extends Item {
     }
 
     @Override
-    public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int tick) {
+    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int tick) {
         synchronized ("hammer_release") {
             if (!(entity instanceof Player player))
-                return;
+                return false;
             if (!stack.has(CDGDataComponents.PROCESSING_ITEM))
-                return;
+                return false;
 
             ItemStack processingItem = stack.get(CDGDataComponents.PROCESSING_ITEM).item();
             player.getInventory().placeItemBackInInventory(processingItem);
             stack.remove(CDGDataComponents.PROCESSING_ITEM);
+            return true;
         }
     }
 
@@ -151,11 +148,6 @@ public class HammerItem extends Item {
     @Override
     public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return 90;
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public void registerExtension(RegisterClientExtensionsEvent event) {
-        event.registerItem(SimpleCustomRenderer.create(this, new HammerItemRenderer()), this);
     }
 
 }

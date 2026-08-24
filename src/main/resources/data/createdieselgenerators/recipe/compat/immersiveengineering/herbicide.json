@@ -1,30 +1,24 @@
 {
-  "type": "createdieselgenerators:bulk_fermenting",
-  "ingredients": [
-    {
-      "type": "fluid_tag",
-      "fluid_tag": "c:ethanol",
-      "amount": 500
-    },
-    {
-      "tag": "c:dusts/sulfur"
-    },
-    {
-      "tag": "c:dusts/copper"
-    }
-  ],
-  "processingTime": 400,
-  "results": [
-    {
-      "id": "immersiveengineering:herbicide",
-      "amount": 500
-    }
-  ],
-
-  "neoforge:conditions": [
-    {
-      "type": "neoforge:mod_loaded",
-      "modid": "immersiveengineering"
-    }
-  ]
+    "type":  "createdieselgenerators:bulk_fermenting",
+    "ingredients":  [
+                        {
+                            "ingredient":  "#c:ethanol",
+                            "amount":  500
+                        },
+                        "#c:dusts/sulfur",
+                        "#c:dusts/copper"
+                    ],
+    "processingTime":  400,
+    "results":  [
+                    {
+                        "id":  "immersiveengineering:herbicide",
+                        "amount":  500
+                    }
+                ],
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "neoforge:mod_loaded",
+                                    "modid":  "immersiveengineering"
+                                }
+                            ]
 }

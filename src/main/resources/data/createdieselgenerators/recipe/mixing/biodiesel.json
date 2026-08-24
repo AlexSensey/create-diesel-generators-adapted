@@ -1,21 +1,19 @@
 {
-  "type": "create:mixing",
-  "ingredients": [
-    {
-      "type": "fluid_tag",
-      "fluid_tag": "c:plantoil",
-      "amount": 100
-    },
-    {
-      "type": "fluid_tag",
-      "fluid_tag": "c:ethanol",
-      "amount": 100
-    }
-  ],
-  "results": [
-    {
-      "id": "createdieselgenerators:biodiesel",
-      "amount": 200
-    }
-  ]
+    "type":  "create:mixing",
+    "ingredients":  [
+                        {
+                            "ingredient":  "#c:plantoil",
+                            "amount":  100
+                        },
+                        {
+                            "ingredient":  "#c:ethanol",
+                            "amount":  100
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "createdieselgenerators:biodiesel",
+                        "amount":  200
+                    }
+                ]
 }

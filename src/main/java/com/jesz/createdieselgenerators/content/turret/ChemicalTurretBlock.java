@@ -11,7 +11,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -21,6 +20,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -62,31 +62,41 @@ public class ChemicalTurretBlock extends KineticBlock implements IBE<ChemicalTur
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
 
         if (blockEntity instanceof ChemicalTurretBlockEntity be) {
-            if (player.getItemInHand(hand).isEmpty())
-                if (be.controllingPlayer == player) {
-                    be.removePlayer();
-                    return ItemInteractionResult.SUCCESS;
-                } else if (be.controllingPlayer == null) {
-                    be.setControllingPlayer(player);
-                    return ItemInteractionResult.SUCCESS;
-                }
             if (player.getItemInHand(hand).is(CDGItems.LIGHTER.get())) {
                 if (!be.lighterUpgrade) {
                     be.lighterUpgrade = true;
-                    if (!level.isClientSide)
+                    if (!level.isClientSide())
                         be.notifyUpdate();
                     if (!player.isCreative())
                         player.getItemInHand(hand).shrink(1);
                     IWrenchable.playRotateSound(level, pos);
-                    return ItemInteractionResult.SUCCESS;
+                    return InteractionResult.SUCCESS;
                 }
             }
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                               BlockHitResult hitResult) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (!(blockEntity instanceof ChemicalTurretBlockEntity be))
+            return super.useWithoutItem(state, level, pos, player, hitResult);
+
+        if (be.controllingPlayer == player) {
+            be.removePlayer();
+            return InteractionResult.SUCCESS;
+        }
+        if (be.controllingPlayer == null) {
+            be.setControllingPlayer(player);
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.PASS;
     }
 
     @Override
@@ -95,7 +105,7 @@ public class ChemicalTurretBlock extends KineticBlock implements IBE<ChemicalTur
         if(blockEntity instanceof ChemicalTurretBlockEntity be){
             if(be.lighterUpgrade) {
                 be.lighterUpgrade = false;
-                if(!context.getLevel().isClientSide)
+                if(!context.getLevel().isClientSide())
                     be.notifyUpdate();
                 if(!context.getPlayer().isCreative())
                     context.getPlayer().getInventory().placeItemBackInInventory(CDGItems.LIGHTER.asStack());
@@ -107,7 +117,7 @@ public class ChemicalTurretBlock extends KineticBlock implements IBE<ChemicalTur
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos otherPos, boolean isMoving) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, Orientation otherPos, boolean isMoving) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if(blockEntity instanceof ChemicalTurretBlockEntity be)
             be.redstoneSignal = level.getBestNeighborSignal(pos);

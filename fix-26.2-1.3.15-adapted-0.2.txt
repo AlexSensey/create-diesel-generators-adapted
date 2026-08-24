@@ -1,0 +1,40 @@
+Create Diesel Generators: Adapted 26.2-1.3.15-adapted-0.2
+Minecraft: 26.2
+NeoForge: 26.2.0.57 or newer
+Requires Create: Adapted 6.0.11-adapted-0.92 or newer
+
+English
+- Completed the Minecraft 26.2 and NeoForge adaptation of blocks, items, fluids, recipes, menus, networking, sounds, data components, and optional compatibility hooks.
+- Restored Flywheel rendering for normal, Modular, and Huge Diesel Engines, including moving pistons, linkages, powered shafts, Turbochargers, and Engine Silencers.
+- Fixed Huge Diesel Engine visual lifecycle, shaft rotation, removal cleanup, and partial invisible shaft remnants.
+- Restored Pumpjack moving parts and the rope descending into the Pumpjack Hole.
+- Fixed flickering and z-fighting on Pumpjack, Chemical Turret, Huge Engine connector, and silencer parts.
+- Fixed Modular Engine upgrades appearing only after a second interaction.
+- Restored Chemical Turret targeting, manual control, filters, firing, projectile ownership, mob experience drops, and muzzle-positioned firing effects.
+- Fixed the Chemical Sprayer use animation and firing effect position.
+- Fixed Oil and Cement fluids trapping players against their surfaces.
+- Restored oil extraction, distillation into diesel, seed fermentation into fuel, and supported processing recipes.
+- Restored the original event-driven Distillation Tower heat update when the Blaze Burner state below the controller changes.
+- Fixed fluid pipes and pumps retaining an obsolete Distillation Tank handler after the tower forms or changes controller.
+- Restored Basin molds, casting, compression molding, and correct mold return behavior.
+- Fixed Entity Filter scrolling and filter installation.
+- Restored Track Layers Bag placement and preview behavior.
+- Restored readable item and block names, item models, fluid models, textures, and Ukrainian translations.
+
+Українська
+- Завершено адаптацію блоків, предметів, рідин, рецептів, меню, мережі, звуків, компонентів даних і додаткових інтеграцій до Minecraft 26.2 та NeoForge.
+- Відновлено Flywheel-рендер звичайного, Modular і Huge Diesel Engine, включно з поршнями, тягами, приводними валами, Turbocharger і глушниками.
+- Виправлено життєвий цикл візуалізації Huge Diesel Engine, напрямок обертання валів, очищення після руйнування та залишки частково прозорих валів.
+- Відновлено рухомі деталі Pumpjack і трос, що опускається у Pumpjack Hole.
+- Усунено мерехтіння та z-fighting деталей Pumpjack, Chemical Turret, з'єднувача Huge Engine і глушників.
+- Виправлено встановлення покращень Modular Engine з першого кліку.
+- Відновлено наведення, ручне керування, фільтри та стрільбу Chemical Turret, власника снаряда, випадіння досвіду з мобів і ефект пострілу з дула.
+- Виправлено анімацію використання Chemical Sprayer і положення ефекту пострілу.
+- Виправлено прилипання гравця до поверхонь Oil і Cement.
+- Відновлено видобування нафти, дистиляцію дизеля, ферментацію насіння в паливо та пов'язані рецепти обробки.
+- Відновлено оригінальне подієве оновлення нагріву Distillation Tower при зміні стану Blaze Burner під контролером.
+- Виправлено утримання трубами й помпами застарілого обробника Distillation Tank після формування башти або зміни її контролера.
+- Відновлено форми Basin, лиття, compression molding і правильне повернення форм.
+- Виправлено прокручування та встановлення Entity Filter.
+- Відновлено встановлення й попередній перегляд Track Layers Bag.
+- Відновлено зрозумілі назви блоків і предметів, моделі предметів і рідин, текстури та український переклад.

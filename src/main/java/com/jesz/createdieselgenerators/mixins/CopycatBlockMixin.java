@@ -5,6 +5,7 @@ import com.jesz.createdieselgenerators.content.oil_barrel.OilBarrelBlock;
 import com.simibubi.create.content.decoration.copycat.CopycatBlock;
 import com.simibubi.create.content.decoration.copycat.CopycatBlockEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -23,10 +24,11 @@ public class CopycatBlockMixin {
     @Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true, remap = false)
     public void use(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
 
-        if (stack.getItem() instanceof DyeItem di) {
+        if (stack.getItem() instanceof DyeItem && stack.has(DataComponents.DYE)) {
             if (level.getBlockEntity(pos) instanceof CopycatBlockEntity be){
                 if(CDGBlocks.OIL_BARREL.has(be.getMaterial()))
-                    be.setMaterial(be.getMaterial().setValue(OilBarrelBlock.OIL_BARREL_COLOR, OilBarrelBlock.OilBarrelColor.getForDyeColor(di.getDyeColor())));
+                    be.setMaterial(be.getMaterial().setValue(OilBarrelBlock.OIL_BARREL_COLOR,
+                            OilBarrelBlock.OilBarrelColor.getForDyeColor(stack.get(DataComponents.DYE))));
             }
             if (!player.isCreative())
                 stack.shrink(1);

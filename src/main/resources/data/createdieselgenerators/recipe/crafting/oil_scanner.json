@@ -1,26 +1,18 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "ACA",
-    "SIS",
-    " I "
-  ],
-  "key": {
-    "A": {
-      "item": "create:andesite_alloy"
-    },
-    "S": {
-      "tag": "c:plates/iron"
-    },
-    "I": {
-      "tag": "c:ingots/iron"
-    },
-    "C": {
-      "item": "minecraft:clock"
-    }
-  },
-  "result": {
-    "id": "createdieselgenerators:oil_scanner",
-    "count": 1
-  }
+    "type":  "minecraft:crafting_shaped",
+    "pattern":  [
+                    "ACA",
+                    "SIS",
+                    " I "
+                ],
+    "key":  {
+                "A":  "create:andesite_alloy",
+                "S":  "#c:plates/iron",
+                "I":  "#c:ingots/iron",
+                "C":  "minecraft:clock"
+            },
+    "result":  {
+                   "id":  "createdieselgenerators:oil_scanner",
+                   "count":  1
+               }
 }

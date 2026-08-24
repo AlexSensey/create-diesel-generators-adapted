@@ -6,10 +6,10 @@ import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.simibubi.create.infrastructure.ponder.AllCreatePonderTags;
 import com.tterrag.registrate.util.entry.ItemProviderEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
-import net.createmod.ponder.api.registration.PonderPlugin;
-import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper;
-import net.createmod.ponder.api.registration.PonderTagRegistrationHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.createmod.ponder.api.client.registration.PonderPlugin;
+import net.createmod.ponder.api.client.registration.PonderSceneRegistrationHelper;
+import net.createmod.ponder.api.client.registration.PonderTagRegistrationHelper;
+import net.minecraft.resources.Identifier;
 
 public class CDGPonderPlugin implements PonderPlugin {
     @Override
@@ -18,7 +18,7 @@ public class CDGPonderPlugin implements PonderPlugin {
     }
 
     @Override
-    public void registerScenes(PonderSceneRegistrationHelper<ResourceLocation> helper) {
+    public void registerScenes(PonderSceneRegistrationHelper<Identifier> helper) {
         PonderPlugin.super.registerScenes(helper);
 
         helper.forComponents(CDGItems.DISTILLATION_CONTROLLER.getId())
@@ -43,7 +43,7 @@ public class CDGPonderPlugin implements PonderPlugin {
     }
 
     @Override
-    public void registerTags(PonderTagRegistrationHelper<ResourceLocation> helper) {
+    public void registerTags(PonderTagRegistrationHelper<Identifier> helper) {
         PonderPlugin.super.registerTags(helper);
 
         helper.addToTag(AllCreatePonderTags.KINETIC_SOURCES)

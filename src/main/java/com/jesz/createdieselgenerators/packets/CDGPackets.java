@@ -17,7 +17,7 @@ public enum CDGPackets implements BasePacketPayload.PacketTypeProvider {
     <T extends BasePacketPayload> CDGPackets(Class<T> clazz, StreamCodec<? super RegistryFriendlyByteBuf, T> codec) {
         String name = this.name().toLowerCase(Locale.ROOT);
         this.type = new CatnipPacketRegistry.PacketType<>(
-                new CustomPacketPayload.Type<>(CreateDieselGenerators.rl(name)),
+                new CustomPacketPayload.Type<>(CreateDieselGenerators.id(name)),
                 clazz, codec
         );
     }
@@ -29,7 +29,7 @@ public enum CDGPackets implements BasePacketPayload.PacketTypeProvider {
     }
 
     public static void register() {
-        CatnipPacketRegistry packetRegistry = new CatnipPacketRegistry(CreateDieselGenerators.ID, 1);
+        CatnipPacketRegistry packetRegistry = new CatnipPacketRegistry(CreateDieselGenerators.ID, "1");
         for (CDGPackets packet : CDGPackets.values()) {
             packetRegistry.registerPacket(packet.type);
         }

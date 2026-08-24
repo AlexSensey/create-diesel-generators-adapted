@@ -5,9 +5,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.createmod.catnip.impl.client.render.MultiBufferSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 
 import java.util.Locale;
 
@@ -19,19 +21,26 @@ public class LighterItemRenderer extends CustomRenderedItemModelRenderer {
         LighterSkinEntry lighterSkinEntry = LighterModel.lighterSkinModels.get(LighterModel.lighterSkinIDs.get(stack.getHoverName().getString().toLowerCase(Locale.ROOT)));
         if (lighterSkinEntry != null) {
             if (lighterState == LighterState.CLOSED)
-                renderer.render(lighterSkinEntry.closedModel().get(), light);
+                renderPartial(lighterSkinEntry.closedModel(), ms, buffer, light);
             else if (lighterState == LighterState.OPEN)
-                renderer.render(lighterSkinEntry.openModel().get(), light);
+                renderPartial(lighterSkinEntry.openModel(), ms, buffer, light);
             else
-                renderer.render(lighterSkinEntry.ignitedModel().get(), light);
+                renderPartial(lighterSkinEntry.ignitedModel(), ms, buffer, light);
             return;
         }
         LighterSkinEntry standardEntry = LighterSkinEntry.STANDARD;
         if (lighterState == LighterState.CLOSED)
-            renderer.render(standardEntry.closedModel().get(), light);
+            renderPartial(standardEntry.closedModel(), ms, buffer, light);
         else if (lighterState == LighterState.OPEN)
-            renderer.render(standardEntry.openModel().get(), light);
+            renderPartial(standardEntry.openModel(), ms, buffer, light);
         else
-            renderer.render(standardEntry.ignitedModel().get(), light);
+            renderPartial(standardEntry.ignitedModel(), ms, buffer, light);
+    }
+
+    private static void renderPartial(LighterModel model, PoseStack ms, MultiBufferSource buffer, int light) {
+        com.jesz.createdieselgenerators.foundation.PartialBufferCompatibility
+                .partial(model.get(), Blocks.AIR.defaultBlockState())
+                .light(light)
+                .renderInto(ms, buffer.getBuffer(RenderTypes.cutoutMovingBlock()));
     }
 }

@@ -13,6 +13,6 @@ public class CDGEntityTypes {
                     .properties(b -> b.sized(0.5f, 0.5f).clientTrackingRange(4)
                             .setUpdateInterval(20)
                             .setShouldReceiveVelocityUpdates(true))
-                    .renderer(() -> ChemicalSprayerProjectileRenderer::new).register();
+                    .register();
     public static void register(){}
 }

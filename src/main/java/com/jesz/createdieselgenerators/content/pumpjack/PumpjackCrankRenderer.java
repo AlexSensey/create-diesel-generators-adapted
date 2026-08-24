@@ -1,15 +1,23 @@
 package com.jesz.createdieselgenerators.content.pumpjack;
 
+import java.util.List;
+
 import com.jesz.createdieselgenerators.CDGPartialModels;
+import com.jesz.createdieselgenerators.foundation.ScrollOptionOverlayRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.content.kinetics.base.ShaftRenderer;
-import dev.engine_room.flywheel.api.visualization.VisualizationManager;
-import net.createmod.catnip.math.AngleHelper;
-import net.createmod.catnip.render.CachedBuffers;
-import net.createmod.catnip.render.SuperByteBuffer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+
+import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import net.createmod.catnip.api.math.AngleHelper;
+import net.createmod.catnip.impl.client.render.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelRenderState;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
@@ -23,63 +31,99 @@ public class PumpjackCrankRenderer extends ShaftRenderer<PumpjackCrankBlockEntit
     }
 
     @Override
-    protected void renderSafe(PumpjackCrankBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer,
-                              int light, int overlay) {
-        if (VisualizationManager.supportsVisualization(be.getLevel()))
+    public void submit(BlockEntityRenderState state, PoseStack ms, SubmitNodeCollector collector,
+                       CameraRenderState cameraRenderState) {
+        if (!(state instanceof KineticRenderState kineticState)
+                || !(kineticState.blockEntity instanceof PumpjackCrankBlockEntity be)
+                || isInvalid(be))
             return;
+
+        ScrollOptionOverlayRenderer.render(be, be.crankSize, ms, collector);
+        submitShaft(be, kineticState.partialTicks, state, ms, collector);
+
         BlockState blockState = be.getBlockState();
         BlockPos pos = be.getBlockPos();
-        float angle = AngleHelper.angleLerp(partialTicks, be.prevAngle, be.angle);
-
+        float angle = AngleHelper.angleLerp(kineticState.partialTicks, be.prevAngle, be.angle);
         boolean isXAxis = blockState.getValue(HORIZONTAL_FACING).getAxis() == Direction.Axis.X;
         double v = ((isXAxis ? angle : -angle) + 90) / 180 * Math.PI;
+        double radius = be.crankSize.getValue() == 0 ? .8125 : 1.125;
+        double sin = Math.sin(v) * radius;
+        double cos = Math.cos(v) * radius;
 
-        double sin = Math.sin(v) * (be.crankSize.getValue() == 0 ? 0.8125 : 1.125);
-        double cos = Math.cos(v) * (be.crankSize.getValue() == 0 ? 0.8125 : 1.125);
-        SuperByteBuffer crank = CachedBuffers.partial(be.crankSize.getValue() == 0 ? CDGPartialModels.PUMPJACK_CRANK_SMALL : CDGPartialModels.PUMPJACK_CRANK_LARGE, blockState);
-        SuperByteBuffer rod = CachedBuffers.partial(be.crankSize.getValue() == 0 ? CDGPartialModels.PUMPJACK_CRANK_ROD_SMALL : CDGPartialModels.PUMPJACK_CRANK_ROD_LARGE, blockState);
-
-        double dstY = -1000-sin-1.25 - pos.getY();
-        double dstX = pos.getX()-cos-0.5 - pos.getX();
-        double dstZ = pos.getZ()-cos-0.5 - pos.getZ();
-
+        double dstY = -1000 - sin - 1.25 - pos.getY();
+        double dstX = -.5 - cos;
+        double dstZ = -.5 - cos;
         if (be.bearingPos != null) {
             PumpjackBearingBlockEntity bearing = be.bearing.get();
-
-            float interpolatedAngle = 0;
-            if (bearing != null)
-                interpolatedAngle = bearing.getInterpolatedAngle(partialTicks);
-            if (be.inPonderAngle != Integer.MIN_VALUE){
-                interpolatedAngle = be.inPonderAngle;
-            }
-
+            float bearingAngle = bearing == null ? 0 : bearing.getInterpolatedAngle(kineticState.partialTicks);
+            if (be.inPonderAngle != Integer.MIN_VALUE)
+                bearingAngle = be.inPonderAngle;
             if (!isXAxis)
-                interpolatedAngle *= -1;
-            Vec2 crankBearingLocation = new Vec2(
-                    (float) ((be.crankBearingLocation.x) * Math.cos(interpolatedAngle/180 * Math.PI) - (be.crankBearingLocation.y) * Math.sin(interpolatedAngle/180*Math.PI))+0.5f,
-                    (float) ((be.crankBearingLocation.x) * Math.sin(interpolatedAngle/180 * Math.PI) + (be.crankBearingLocation.y) * Math.cos(interpolatedAngle/180*Math.PI))+0.5f);
-            if (isXAxis)
-                crankBearingLocation = crankBearingLocation.add(new Vec2((float) be.bearingPos.getX(), (float) be.bearingPos.getY()));
-            else
-                crankBearingLocation = crankBearingLocation.add(new Vec2((float) be.bearingPos.getZ(), (float) be.bearingPos.getY()));
-
-            dstY = crankBearingLocation.y-sin-1.25 - pos.getY();
-            dstX = crankBearingLocation.x-cos-0.5 - pos.getX();
-            dstZ = crankBearingLocation.x-cos-0.5 - pos.getZ();
+                bearingAngle *= -1;
+            Vec2 location = new Vec2(
+                    (float) (be.crankBearingLocation.x * Math.cos(Math.toRadians(bearingAngle))
+                            - be.crankBearingLocation.y * Math.sin(Math.toRadians(bearingAngle))) + .5f,
+                    (float) (be.crankBearingLocation.x * Math.sin(Math.toRadians(bearingAngle))
+                            + be.crankBearingLocation.y * Math.cos(Math.toRadians(bearingAngle))) + .5f);
+            location = location.add(new Vec2(isXAxis ? be.bearingPos.getX() : be.bearingPos.getZ(), be.bearingPos.getY()));
+            dstY = location.y - sin - 1.25 - pos.getY();
+            dstX = location.x - cos - .5 - pos.getX();
+            dstZ = location.x - cos - .5 - pos.getZ();
         }
 
+        PartialModel crankModel = be.crankSize.getValue() == 0
+                ? CDGPartialModels.PUMPJACK_CRANK_SMALL : CDGPartialModels.PUMPJACK_CRANK_LARGE;
+        PartialModel rodModel = be.crankSize.getValue() == 0
+                ? CDGPartialModels.PUMPJACK_CRANK_ROD_SMALL : CDGPartialModels.PUMPJACK_CRANK_ROD_LARGE;
+
+        ms.pushPose();
+        if (isXAxis)
+            ms.translate(.5, 1.25, 0);
+        else {
+            ms.translate(0, 1.25, .5);
+            ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90));
+        }
+        ms.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(angle));
+        submitPart(crankModel, state, ms, collector);
+        ms.popPose();
+
+        ms.pushPose();
         if (isXAxis) {
-            crank.translate(0.5, 1.25, 0).rotateZDegrees(angle);
-            rod.translate(0.5, 1.25, 0).translate(cos, sin, 0).rotateZDegrees((float) (Math.atan2(dstY, dstX)*180/Math.PI-90));
+            ms.translate(.5 + cos, 1.25 + sin, 0);
+            ms.mulPose(com.mojang.math.Axis.ZP.rotationDegrees((float) Math.toDegrees(Math.atan2(dstY, dstX)) - 90));
         } else {
-            crank.translate(0, 1.25, 0.5).rotateYDegrees(90).rotateZDegrees(angle);
-            rod.translate(0, 1.25, 0.5).translate(0, sin, cos).rotateYDegrees(90).rotateZDegrees((float) (Math.atan2(dstZ, dstY)*180/Math.PI));
+            ms.translate(0, 1.25 + sin, .5 + cos);
+            ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90));
+            ms.mulPose(com.mojang.math.Axis.ZP.rotationDegrees((float) Math.toDegrees(Math.atan2(dstZ, dstY))));
         }
-
-        rod.light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()));
-        crank.light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()));
-        super.renderSafe(be, partialTicks, ms, buffer, light, overlay);
+        submitPart(rodModel, state, ms, collector);
+        ms.popPose();
     }
 
+    private void submitShaft(PumpjackCrankBlockEntity be, float partialTicks, BlockEntityRenderState state,
+                             PoseStack ms, SubmitNodeCollector collector) {
+        BlockState renderedState = getRenderedBlockState(be);
+        List<BlockStateModelPart> parts = getRotatingModelParts(be, renderedState);
+        if (parts.isEmpty())
+            return;
+        ms.pushPose();
+        transformRotatingModel(be, ms, partialTicks);
+        collector.submitBlockModel(ms, getRotatingRenderType(parts), parts, BlockModelRenderState.EMPTY_TINTS,
+                state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+        ms.popPose();
+    }
 
+    private static void submitPart(PartialModel model, BlockEntityRenderState state, PoseStack ms,
+                                   SubmitNodeCollector collector) {
+        BlockStateModelPart part = model.get();
+        if (part != null)
+            collector.submitBlockModel(ms, RenderTypes.cutoutMovingBlock(), List.of(part),
+                    BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+    }
+
+    @Override
+    protected void renderSafe(PumpjackCrankBlockEntity be, float partialTicks, PoseStack ms,
+                              MultiBufferSource buffer, int light, int overlay) {
+        // Minecraft 26.2 renders block entities through submit().
+    }
 }

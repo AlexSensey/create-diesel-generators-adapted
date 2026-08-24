@@ -8,7 +8,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -25,15 +24,15 @@ public class PumpjackBearingBlock extends BearingBlock implements IBE<PumpjackBe
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (!stack.isEmpty())
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         if (!player.mayBuild())
-            return ItemInteractionResult.FAIL;
+            return InteractionResult.FAIL;
         if (player.isShiftKeyDown())
-            return ItemInteractionResult.FAIL;
-        if (level.isClientSide)
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.FAIL;
+        if (level.isClientSide())
+            return InteractionResult.SUCCESS;
 
         withBlockEntityDo(level, pos, be -> {
             if (be.isRunning())
@@ -41,7 +40,7 @@ public class PumpjackBearingBlock extends BearingBlock implements IBE<PumpjackBe
             else
                 be.assembleNextTick();
         });
-        return ItemInteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override

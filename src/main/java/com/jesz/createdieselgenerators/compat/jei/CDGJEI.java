@@ -9,10 +9,10 @@ import com.jesz.createdieselgenerators.content.tools.wire_cutters.WireCuttingRec
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.compat.jei.*;
-import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.content.processing.basin.BasinRecipe;
 import com.simibubi.create.foundation.gui.menu.AbstractSimiContainerScreen;
 import com.simibubi.create.foundation.recipe.IRecipeTypeInfo;
+import com.simibubi.create.foundation.recipe.CreateRecipeClientCache;
 import com.simibubi.create.infrastructure.config.CRecipes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -22,7 +22,9 @@ import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.registration.*;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.createmod.catnip.api.client.gui.element.GuiGameElement;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
@@ -44,19 +46,19 @@ import static mezz.jei.api.recipe.RecipeType.createRecipeHolderType;
 @ParametersAreNonnullByDefault
 public class CDGJEI implements IModPlugin {
 
-    private static final ResourceLocation ID = CreateDieselGenerators.rl("jei_plugin");
+    private static final Identifier ID = CreateDieselGenerators.id("jei_plugin");
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return ID;
     }
 
 
-    private final List<CreateRecipeCategory<?>> allCategories = new ArrayList<>();
+    private final List<CDGRecipeCategory<?>> allCategories = new ArrayList<>();
 
     private void loadCategories() {
         allCategories.clear();
 
-        CreateRecipeCategory<?>
+        CDGRecipeCategory<?>
         basin_fermenting = builder(BasinRecipe.class)
                 .addTypedRecipes(CDGRecipes.BASIN_FERMENTING)
                 .catalyst(CDGBlocks.BASIN_LID::get)
@@ -134,13 +136,6 @@ public class CDGJEI implements IModPlugin {
                 return stack.get(CDGDataComponents.MOLD_TYPE);
             }
 
-            @Override
-            public String getLegacyStringSubtypeInfo(ItemStack stack, UidContext context) {
-                ResourceLocation mold = stack.get(CDGDataComponents.MOLD_TYPE);
-                if (mold == null)
-                    return "";
-                return "createdieselgenerators:mold:" + mold.toString();
-            }
         });
     }
 
@@ -173,11 +168,11 @@ public class CDGJEI implements IModPlugin {
         }
 
         public <I extends RecipeInput, R extends Recipe<I>> CategoryBuilder<T> addTypedRecipes(Supplier<RecipeType<R>> recipeType) {
-            return addRecipeListConsumer(recipes -> CreateJEI.<T>consumeTypedRecipes(recipe -> {
-                if (recipeClass.isInstance(recipe.value()))
+            return addRecipeListConsumer(recipes -> CreateRecipeClientCache.getRecipes().forEach(recipe -> {
+                if (recipe.value().getType() == recipeType.get() && recipeClass.isInstance(recipe.value()))
                     //noinspection unchecked - checked by if statement above
                     recipes.add((RecipeHolder<T>) recipe);
-            }, recipeType.get()));
+            }));
         }
 
         public CategoryBuilder<T> catalystStack(Supplier<ItemStack> supplier) {
@@ -196,12 +191,12 @@ public class CDGJEI implements IModPlugin {
         }
 
         public CategoryBuilder<T> itemIcon(ItemLike item) {
-            icon(new ItemIcon(() -> new ItemStack(item)));
+            icon(new StackIcon(() -> new ItemStack(item)));
             return this;
         }
 
         public CategoryBuilder<T> doubleItemIcon(ItemLike item1, ItemLike item2) {
-            icon(new DoubleItemIcon(() -> new ItemStack(item1), () -> new ItemStack(item2)));
+            icon(new TwoStackIcon(() -> new ItemStack(item1), () -> new ItemStack(item2)));
             return this;
         }
 
@@ -211,11 +206,11 @@ public class CDGJEI implements IModPlugin {
         }
 
         public CategoryBuilder<T> emptyBackground(int width, int height) {
-            background(new EmptyBackground(width, height));
+            background(new BlankDrawable(width, height));
             return this;
         }
 
-        public CreateRecipeCategory<T> build(String name, CreateRecipeCategory.Factory<T> factory) {
+        public CDGRecipeCategory<T> build(String name, CDGRecipeCategory.Factory<T> factory) {
 
             Supplier<List<RecipeHolder<T>>> recipesSupplier;
             recipesSupplier = () -> {
@@ -226,17 +221,52 @@ public class CDGJEI implements IModPlugin {
                 return recipes;
             };
 
-            CreateRecipeCategory.Info<T> info = new CreateRecipeCategory.Info<>(
-                    createRecipeHolderType(CreateDieselGenerators.rl(name)),
+            CDGRecipeCategory.Info<T> info = new CDGRecipeCategory.Info<>(
+                    createRecipeHolderType(CreateDieselGenerators.id(name)),
                     Component.translatable(CreateDieselGenerators.ID + ".recipe." + name),
                     background,
                     icon,
                     recipesSupplier,
                     catalysts
             );
-            CreateRecipeCategory<T> category = factory.create(info);
+            CDGRecipeCategory<T> category = factory.create(info);
             allCategories.add(category);
             return category;
+        }
+    }
+
+    private record BlankDrawable(int width, int height) implements IDrawable {
+        @Override public int getWidth() { return width; }
+        @Override public int getHeight() { return height; }
+        @Override public void draw(GuiGraphicsExtractor graphics, int x, int y) {}
+    }
+
+    private static class StackIcon implements IDrawable {
+        private final Supplier<ItemStack> supplier;
+        private ItemStack stack;
+        private StackIcon(Supplier<ItemStack> supplier) { this.supplier = supplier; }
+        @Override public int getWidth() { return 18; }
+        @Override public int getHeight() { return 18; }
+        @Override public void draw(GuiGraphicsExtractor graphics, int x, int y) {
+            if (stack == null) stack = supplier.get();
+            GuiGameElement.of(stack).at(x + 1, y + 1).submit(graphics);
+        }
+    }
+
+    private static final class TwoStackIcon implements IDrawable {
+        private final StackIcon primary;
+        private final Supplier<ItemStack> secondarySupplier;
+        private ItemStack secondary;
+        private TwoStackIcon(Supplier<ItemStack> primary, Supplier<ItemStack> secondary) {
+            this.primary = new StackIcon(primary);
+            this.secondarySupplier = secondary;
+        }
+        @Override public int getWidth() { return 18; }
+        @Override public int getHeight() { return 18; }
+        @Override public void draw(GuiGraphicsExtractor graphics, int x, int y) {
+            primary.draw(graphics, x, y);
+            if (secondary == null) secondary = secondarySupplier.get();
+            GuiGameElement.of(secondary).at(x + 10, y + 10).scale(.5f).submit(graphics);
         }
     }
 }
