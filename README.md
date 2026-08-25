@@ -8,6 +8,18 @@
 </div>
 Adding Diesel Generators and industrial-like features to the <a href="https://www.curseforge.com/minecraft/mc-mods/create">Create</a> mod.
 
+## Unofficial Minecraft 26.2 adaptation
+
+This branch is an unofficial NeoForge adaptation for Minecraft 26.2 by Buggsify.
+It requires [Create: Adapted](https://www.curseforge.com/minecraft/mc-mods/create-adapted)
+and is not affiliated with the official Create development team.
+
+The adaptation includes Flywheel-compatible rendering, updated fluid and recipe APIs,
+working engines and processing machines, and JEI 30 categories for Diesel-specific
+fermenting, casting, molding, distillation, hammering, and wire-cutting recipes.
+
+See [ADAPTED-CHANGELOG.md](ADAPTED-CHANGELOG.md) for adaptation-specific changes.
+
 ### Overview
 The main focus of this mod is to provide a streamlined implementation of industrial-like features to the create mod while maintaining its style.
 

@@ -48,6 +48,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.event.LootTableLoadEvent;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -61,6 +62,12 @@ import static net.minecraft.ChatFormatting.GRAY;
 
 @EventBusSubscriber(modid = CreateDieselGenerators.ID)
 public class GameEvents {
+
+    @SubscribeEvent
+    public static void onDatapackSync(OnDatapackSyncEvent event) {
+        for (CDGRecipes recipe : CDGRecipes.values())
+            event.sendRecipes(recipe.getType());
+    }
 
     @SubscribeEvent
     public static void onCommandRegister(RegisterCommandsEvent event){

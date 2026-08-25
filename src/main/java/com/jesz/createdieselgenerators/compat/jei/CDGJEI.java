@@ -24,6 +24,7 @@ import mezz.jei.api.registration.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.Minecraft;
 import net.createmod.catnip.api.client.gui.element.GuiGameElement;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -35,6 +36,7 @@ import net.minecraft.world.level.ItemLike;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -168,7 +170,7 @@ public class CDGJEI implements IModPlugin {
         }
 
         public <I extends RecipeInput, R extends Recipe<I>> CategoryBuilder<T> addTypedRecipes(Supplier<RecipeType<R>> recipeType) {
-            return addRecipeListConsumer(recipes -> CreateRecipeClientCache.getRecipes().forEach(recipe -> {
+            return addRecipeListConsumer(recipes -> getLoadedRecipes().forEach(recipe -> {
                 if (recipe.value().getType() == recipeType.get() && recipeClass.isInstance(recipe.value()))
                     //noinspection unchecked - checked by if statement above
                     recipes.add((RecipeHolder<T>) recipe);
@@ -233,6 +235,13 @@ public class CDGJEI implements IModPlugin {
             allCategories.add(category);
             return category;
         }
+    }
+
+    private static Collection<RecipeHolder<?>> getLoadedRecipes() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.hasSingleplayerServer() && minecraft.getSingleplayerServer() != null)
+            return minecraft.getSingleplayerServer().getRecipeManager().getRecipes();
+        return CreateRecipeClientCache.getRecipes();
     }
 
     private record BlankDrawable(int width, int height) implements IDrawable {

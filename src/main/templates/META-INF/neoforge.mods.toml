@@ -1,7 +1,7 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
-iconFile="logo.png"
+logoFile="logo.png"
 
 [[mods]]
     modId="${mod_id}"
