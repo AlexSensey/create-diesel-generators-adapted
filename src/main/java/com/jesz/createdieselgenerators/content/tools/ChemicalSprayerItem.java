@@ -1,13 +1,10 @@
 package com.jesz.createdieselgenerators.content.tools;
 
 import com.jesz.createdieselgenerators.CDGRegistries;
-import com.jesz.createdieselgenerators.content.tools.wire_cutters.WireCuttersItemRenderer;
 import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.AllEnchantments;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.foundation.item.CustomArmPoseItem;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;

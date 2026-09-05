@@ -46,7 +46,7 @@ public class HugeDieselEngineInstance extends AbstractBlockEntityVisual<HugeDies
     }
 
     private void animate() {
-        Float angle = blockEntity.getTargetAngle();
+        Float angle = HugeDieselEngineClient.getTargetAngle(blockEntity);
         BlockState state = blockEntity.getBlockState();
         Direction facing = state.getValue(FACING);
         Direction.Axis facingAxis = facing.getAxis();

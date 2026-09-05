@@ -11,11 +11,7 @@ import com.simibubi.create.content.trains.track.ITrackBlock;
 import com.simibubi.create.content.trains.track.TrackBlockItem;
 import com.simibubi.create.content.trains.track.TrackPlacement;
 import com.simibubi.create.foundation.utility.CreateLang;
-import com.tterrag.registrate.providers.DataGenContext;
-import com.tterrag.registrate.providers.RegistrateItemModelProvider;
 import net.createmod.catnip.api.data.Pair;
-import net.createmod.catnip.platform.CatnipServices;
-import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
@@ -38,8 +34,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
 
 import java.util.Optional;
 
@@ -265,17 +259,6 @@ public class TrackLayersBagItem extends Item {
 
         heldItem.set(AllDataComponents.TRACK_CONNECTING_FROM, new TrackPlacement.ConnectingFrom(pos, axis, normal, end));
         return true;
-    }
-
-    public void registerModelOverrides() {
-       CatnipServices.PLATFORM.executeOnClientOnly(() -> () ->
-               ItemProperties.register(CDGItems.TRACK_LAYERS_BAG.get(), CreateDieselGenerators.id("tracks"),
-               (stack, level, entity, seed) -> getTracks(stack).getCount()));
-    }
-
-    public static ItemModelBuilder addOverrideModels(DataGenContext<Item, TrackLayersBagItem> c,
-                                                     RegistrateItemModelProvider p) {
-        return null;
     }
 
     public static ItemStack full() {

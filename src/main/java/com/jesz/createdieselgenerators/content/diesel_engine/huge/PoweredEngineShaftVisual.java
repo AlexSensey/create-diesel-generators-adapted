@@ -173,7 +173,7 @@ public class PoweredEngineShaftVisual extends SingleAxisRotatingVisual<PoweredEn
             linkage.light(packedLight);
             connector.light(packedLight);
 
-            Float angle = engine.getTargetAngle();
+            Float angle = HugeDieselEngineClient.getTargetAngle(engine);
             BlockState state = engine.getBlockState();
             Direction facing = state.getValue(FACING);
             Direction.Axis facingAxis = facing.getAxis();

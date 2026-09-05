@@ -7,11 +7,7 @@ import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.jesz.createdieselgenerators.world.OilChunksSavedData;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.foundation.item.TooltipHelper;
-import com.tterrag.registrate.providers.DataGenContext;
-import com.tterrag.registrate.providers.RegistrateItemModelProvider;
-import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -28,8 +24,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
 
 public class OilScannerItem extends Item {
     public OilScannerItem(Properties properties) {
@@ -97,15 +91,4 @@ public class OilScannerItem extends Item {
         super.inventoryTick(stack, level, entity, slot);
     }
 
-    public void registerModelOverrides() {
-        CatnipServices.PLATFORM.executeOnClientOnly(() -> () -> {
-            ItemProperties.register(CDGItems.OIL_SCANNER.get(), CreateDieselGenerators.id("oil_scanner_state"),
-                    (stack, level, entity, seed) -> stack.getOrDefault(CDGDataComponents.OIL_SCANNER_STATE, 0));
-        });
-    }
-
-    public static ItemModelBuilder addOverrideModels(DataGenContext<Item, OilScannerItem> c,
-                                                     RegistrateItemModelProvider p) {
-        return null;
-    }
 }

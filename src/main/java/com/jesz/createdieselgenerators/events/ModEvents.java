@@ -55,7 +55,6 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
@@ -80,7 +79,6 @@ import java.util.Optional;
 public class ModEvents {
 
     @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
     public static void onModelRegistry(ModelEvent.RegisterStandalone event){
 
         CDGPartialModels.init();
@@ -107,14 +105,12 @@ public class ModEvents {
     }
 
     @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
     public static void registerClientTooltips(RegisterClientTooltipComponentFactoriesEvent event){
         event.register(TrackLayersBagComponent.class,
                 c -> c);
     }
 
     @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
     public static void registerBlockEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(CDGEntityTypes.CHEMICAL_SPRAYER_PROJECTILE.get(), ChemicalSprayerProjectileRenderer::new);
         event.registerBlockEntityRenderer(CDGBlockEntityTypes.BURNER.get(), BurnerRenderer::new);
@@ -134,7 +130,6 @@ public class ModEvents {
     }
 
     @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
     public static void addEntityRendererLayers(EntityRenderersEvent.AddLayers event) {
         EntityRenderDispatcher dispatcher = Minecraft.getInstance()
                 .getEntityRenderDispatcher();
@@ -142,7 +137,6 @@ public class ModEvents {
         TurretOperatorHatLayer.registerOnAll(dispatcher);
     }
 
-    @OnlyIn(Dist.CLIENT)
     @SubscribeEvent
     public static void clientInit(FMLClientSetupEvent event) {
         PonderIndex.addPlugin(new CDGPonderPlugin());

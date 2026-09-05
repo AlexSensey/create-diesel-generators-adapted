@@ -4,9 +4,8 @@ import com.jesz.createdieselgenerators.compat.EveryCompatCompat;
 import com.jesz.createdieselgenerators.compat.computercraft.CCProxy;
 import com.jesz.createdieselgenerators.compat.strut_your_stuff.StrutYourStuffRegistryEntries;
 import com.jesz.createdieselgenerators.content.molds.MoldType;
-import com.jesz.createdieselgenerators.content.tools.lighter.LighterModel;
 import com.jesz.createdieselgenerators.packets.CDGPackets;
-import com.jesz.createdieselgenerators.ponder.CDGPonderPlugin;
+import com.jesz.createdieselgenerators.packets.CDGExactVersionPayload;
 import com.simibubi.create.compat.Mods;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.item.ItemDescription;
@@ -36,6 +35,7 @@ public class CreateDieselGenerators
                             .andThen(TooltipModifier.mapNull(KineticStats.create(item)))
             );
     public CreateDieselGenerators(IEventBus modEventBus, ModContainer container) {
+        CDGExactVersionPayload.register(modEventBus, container.getModInfo().getVersion().toString());
         REGISTRATE.defaultCreativeTab((ResourceKey<CreativeModeTab>) null);
         REGISTRATE.registerEventListeners(modEventBus);
 
@@ -60,15 +60,9 @@ public class CreateDieselGenerators
             EveryCompatCompat.init();
         Mods.COMPUTERCRAFT.executeIfInstalled(() -> CCProxy::register);
 
-        CatnipServices.PLATFORM.executeOnClientOnly(() -> () -> onClient(modEventBus, container));
+        CatnipServices.PLATFORM.executeOnClientOnly(() -> () -> CDGClient.init(modEventBus, container));
         container.registerConfig(ModConfig.Type.SERVER, CDGConfig.SERVER_SPEC, ID + "-server.toml");
         container.registerConfig(ModConfig.Type.COMMON, CDGConfig.COMMON_SPEC, ID + "-common.toml");
-    }
-
-    public static void onClient(IEventBus modEventBus, ModContainer container) {
-        CDGPartialModels.init();
-        container.registerConfig(ModConfig.Type.CLIENT, CDGConfig.CLIENT_SPEC, ID + "-client.toml");
-        LighterModel.initSkins();
     }
 
     public static Identifier rl(String path){

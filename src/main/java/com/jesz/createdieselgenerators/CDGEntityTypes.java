@@ -1,7 +1,6 @@
 package com.jesz.createdieselgenerators;
 
 import com.jesz.createdieselgenerators.content.tools.ChemicalSprayerProjectileEntity;
-import com.jesz.createdieselgenerators.content.tools.ChemicalSprayerProjectileRenderer;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import net.minecraft.world.entity.MobCategory;
 

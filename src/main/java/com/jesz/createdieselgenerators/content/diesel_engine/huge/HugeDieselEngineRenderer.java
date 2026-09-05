@@ -75,7 +75,7 @@ public class HugeDieselEngineRenderer extends SafeBlockEntityRenderer<HugeDiesel
         if (VisualizationManager.supportsVisualization(be.getLevel()))
             return;
 
-        Float angle = be.getTargetAngle();
+        Float angle = HugeDieselEngineClient.getTargetAngle(be);
         PoweredEngineShaftBlockEntity shaft = be.getShaft();
         if (angle == null || shaft == null) {
             ms.pushPose();

@@ -19,8 +19,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.List;
 import java.util.HashMap;
@@ -42,7 +40,6 @@ public class MoldItemRenderer extends CustomRenderedItemModelRenderer {
                 .renderInto(ms, buffer.getBuffer(RenderTypes.cutoutMovingBlock()));
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static void renderInBasin(PoseStack ms, MultiBufferSource buffer, int light, int overlay, ItemStack stack) {
         MoldType type = MoldItem.getMold(stack);
         if (type == null)
@@ -58,7 +55,6 @@ public class MoldItemRenderer extends CustomRenderedItemModelRenderer {
         ms.popPose();
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static void renderItemsOnMold(BasinBlockEntity basin, PoseStack ms, MultiBufferSource buffer, int light, int overlay, List<ItemStack> items, float partialTicks) {
 
         FilteringRenderer.renderOnBlockEntity(basin, partialTicks, ms, buffer, light, overlay);

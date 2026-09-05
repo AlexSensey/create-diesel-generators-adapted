@@ -1,5 +1,20 @@
 # Create Diesel Generators: Adapted changelog
 
+## 26.2-1.3.15-adapted-0.6
+
+- Separated client rendering, previews, screens, and input handlers from shared server logic.
+- Fixed dedicated-server class loading for menus, track placement, pumpjacks, engines, tools, and events.
+- Fixed optional Strut Your Stuff registration loading client-only classes on a server.
+- Added an automatic dedicated-server bytecode audit to release builds.
+- Updated and tested against Create: Adapted 0.98.
+
+## 26.2-1.3.15-adapted-0.5
+
+- Preserved every language file from the original 1.21.1 mod.
+- Corrected the original German filename from de_DE.json to de_de.json so
+  Minecraft recognizes the translation.
+- Added item-name aliases for translated blocks in JEI and inventories.
+
 ## 26.2-1.3.15-adapted-0.4
 
 - Fixed custom Diesel recipe categories disappearing from JEI on dedicated servers.

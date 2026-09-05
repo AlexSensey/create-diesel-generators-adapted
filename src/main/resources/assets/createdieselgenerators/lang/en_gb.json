@@ -1,5 +1,5 @@
 {
-  "block.createdieselgenerators.gasoline": "Petrol",
-  "fluid.createdieselgenerators.gasoline": "Petrol",
-  "item.createdieselgenerators.gasoline_bucket": "Petrol Bucket"
+  "block.createdieselgenerators.gasoline": "Petrol [CDG]",
+  "fluid.createdieselgenerators.gasoline": "Petrol [CDG]",
+  "item.createdieselgenerators.gasoline_bucket": "Petrol Bucket [CDG]"
 }

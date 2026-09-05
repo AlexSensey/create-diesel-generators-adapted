@@ -20,13 +20,15 @@ def createAdaptedJar = file(providers.gradleProperty('create_adapted_jar').get()
 def createAdaptedPonderJar = file(providers.gradleProperty('create_adapted_ponder_jar').get())
 def createAdaptedCatnipJar = file(providers.gradleProperty('create_adapted_catnip_jar').get())
 def createAdaptedFlywheelJar = file(providers.gradleProperty('create_adapted_flywheel_jar').get())
+def createAdaptedCompatibilityJar = file('../build/libs/create-adapted-compile-compat.jar')
 def extractedRegistrateJar = layout.buildDirectory.file('local-dependencies/registrate-adapted.jar')
-def createAdaptedClasses = file('../build/classes/java/main')
 
 def verifyCreateAdaptedDependencies = tasks.register('verifyCreateAdaptedDependencies') {
-    inputs.files(createAdaptedJar, createAdaptedPonderJar, createAdaptedCatnipJar, createAdaptedFlywheelJar)
+    inputs.files(createAdaptedJar, createAdaptedPonderJar, createAdaptedCatnipJar, createAdaptedFlywheelJar,
+            createAdaptedCompatibilityJar)
     doLast {
-        [createAdaptedJar, createAdaptedPonderJar, createAdaptedCatnipJar, createAdaptedFlywheelJar].each { dependency ->
+        [createAdaptedJar, createAdaptedPonderJar, createAdaptedCatnipJar, createAdaptedFlywheelJar,
+         createAdaptedCompatibilityJar].each { dependency ->
             if (!dependency.isFile())
                 throw new GradleException("Missing Create: Adapted dependency: ${dependency}")
         }
@@ -53,16 +55,6 @@ def extractCreateAdaptedLibraries = tasks.register('extractCreateAdaptedLibrarie
         includeEmptyDirs = false
     }
     into(extractedRegistrateJar.get().asFile.parentFile)
-}
-
-def createAdaptedCompatibilityJar = tasks.register('createAdaptedCompatibilityJar', Jar) {
-    dependsOn(verifyCreateAdaptedDependencies)
-    archiveFileName = 'create-adapted-compile-compat.jar'
-    destinationDirectory = layout.buildDirectory.dir('local-dependencies')
-    from(createAdaptedClasses) {
-        include 'net/minecraft/**'
-        include 'net/neoforged/**'
-    }
 }
 
 base {
@@ -300,7 +292,7 @@ dependencies {
     compileOnly(files(createAdaptedCatnipJar))
     compileOnly(files(createAdaptedFlywheelJar))
     compileOnly(files(extractedRegistrateJar))
-    compileOnly(files(createAdaptedCompatibilityJar.flatMap { it.archiveFile }))
+    compileOnly(files(createAdaptedCompatibilityJar))
 
     localRuntime(files(sanitizeCreateAdaptedRuntime.flatMap { it.archiveFile }))
     localRuntime(files(createAdaptedCatnipJar))
@@ -378,6 +370,83 @@ tasks.withType(JavaCompile).configureEach {
     dependsOn(extractCreateAdaptedLibraries)
     options.encoding = 'UTF-8'
     options.compilerArgs += ['-Xmaxerrs', '500']
+}
+
+// Common entry points must remain loadable on a dedicated server. Checking the
+// compiled constant pools catches accidental client imports before a jar ships.
+def dedicatedServerClasses = [
+        'com/jesz/createdieselgenerators/CreateDieselGenerators.class',
+        'com/jesz/createdieselgenerators/events/GameEvents.class',
+        'com/jesz/createdieselgenerators/events/CommonModEvents.class',
+        'com/jesz/createdieselgenerators/CDGBlocks.class',
+        'com/jesz/createdieselgenerators/CDGItems.class',
+        'com/jesz/createdieselgenerators/CDGBlockEntityTypes.class',
+        'com/jesz/createdieselgenerators/CDGEntityTypes.class',
+        'com/jesz/createdieselgenerators/CDGMenuTypes.class',
+        'com/jesz/createdieselgenerators/content/tools/OilScannerItem.class',
+        'com/jesz/createdieselgenerators/content/track_layers_bag/TrackLayersBagItem.class',
+        'com/jesz/createdieselgenerators/content/track_layers_bag/TrackLayersBagPlacement.class',
+        'com/jesz/createdieselgenerators/content/andesite_girder/AndesiteGirderWrenchBehaviour.class',
+        'com/jesz/createdieselgenerators/contraption/PumpjackHeadMovementBehaviour.class',
+        'com/jesz/createdieselgenerators/content/diesel_engine/huge/HugeDieselEngineBlockEntity.class',
+        'com/jesz/createdieselgenerators/content/distillation/DistillationTankBlockEntity.class',
+        'com/jesz/createdieselgenerators/compat/strut_your_stuff/StrutYourStuffRegistryEntries.class'
+]
+
+tasks.register('auditDedicatedServerClasses') {
+    dependsOn tasks.named('compileJava')
+    doLast {
+        dedicatedServerClasses.each { String relativePath ->
+            File classFile = sourceSets.main.output.classesDirs.files
+                    .collect { new File(it, relativePath) }
+                    .find { it.isFile() }
+            if (classFile == null)
+                throw new GradleException("Dedicated-server audit could not find ${relativePath}")
+
+            String constantPool = new String(java.nio.file.Files.readAllBytes(classFile.toPath()),
+                    java.nio.charset.StandardCharsets.ISO_8859_1)
+            if (constantPool.contains('net/minecraft/client/') ||
+                    constantPool.contains('net/neoforged/neoforge/client/'))
+                throw new GradleException("Client-only reference leaked into common class ${relativePath}")
+        }
+    }
+}
+
+tasks.named('check').configure {
+    dependsOn tasks.named('auditDedicatedServerClasses')
+}
+
+// Minecraft 26.2 resolves BlockItem names through item.<namespace>.<path>.
+// Mirror existing block translations into missing item keys in every language.
+def adaptedProcessedAssetsDirectory = layout.buildDirectory.dir("resources/main/assets")
+tasks.named("processResources").configure {
+    doLast {
+        File assetsDirectory = adaptedProcessedAssetsDirectory.get().asFile
+        if (!assetsDirectory.isDirectory())
+            return
+
+        assetsDirectory.eachFileRecurse(groovy.io.FileType.FILES) { File languageFile ->
+            if (languageFile.parentFile.name != "lang" || !languageFile.name.endsWith(".json"))
+                return
+
+            Map<String, Object> translations = (Map<String, Object>) new groovy.json.JsonSlurper().parse(languageFile, "UTF-8")
+            Map<String, Object> aliases = new LinkedHashMap<>()
+
+            translations.each { String key, Object value ->
+                def matcher = key =~ /^block\.([^.]+)\.(.+)$/
+                if (matcher.matches()) {
+                    String itemKey = "item.${matcher.group(1)}.${matcher.group(2)}"
+                    if (!translations.containsKey(itemKey))
+                        aliases.put(itemKey, value)
+                }
+            }
+
+            if (!aliases.isEmpty()) {
+                translations.putAll(aliases)
+                languageFile.setText(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(translations)) + System.lineSeparator(), "UTF-8")
+            }
+        }
+    }
 }
 
 jar {

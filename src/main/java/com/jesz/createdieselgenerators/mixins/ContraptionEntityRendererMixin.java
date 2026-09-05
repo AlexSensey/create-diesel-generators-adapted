@@ -1,6 +1,7 @@
 package com.jesz.createdieselgenerators.mixins;
 
 import com.jesz.createdieselgenerators.contraption.PumpjackHeadMovementBehaviour;
+import com.jesz.createdieselgenerators.contraption.PumpjackHeadMovementBehaviourClient;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
@@ -45,7 +46,7 @@ public abstract class ContraptionEntityRendererMixin {
                 continue;
 
             MovementBehaviour behaviour = MovementBehaviour.REGISTRY.get(blockInfo.state());
-            if (!(behaviour instanceof PumpjackHeadMovementBehaviour pumpjack))
+            if (!(behaviour instanceof PumpjackHeadMovementBehaviour))
                 continue;
 
             BlockPos lightPos = BlockPos.containing(
@@ -55,7 +56,7 @@ public abstract class ContraptionEntityRendererMixin {
 
             ms.pushPose();
             ms.translate(blockInfo.pos().getX(), blockInfo.pos().getY(), blockInfo.pos().getZ());
-            pumpjack.submitRopeInContraption(context, ms, collector, light, partialTicks);
+            PumpjackHeadMovementBehaviourClient.submitRope(context, ms, collector, light, partialTicks);
             ms.popPose();
         }
     }

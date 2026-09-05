@@ -9,7 +9,6 @@ import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.contraptions.bearing.WindmillBearingBlockEntity;
 import com.simibubi.create.content.kinetics.base.IRotate;
-import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.content.kinetics.steamEngine.PoweredShaftBlockEntity;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -34,8 +33,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -235,31 +232,6 @@ public class HugeDieselEngineBlockEntity extends SmartBlockEntity implements IHa
         }
 
         return containedFluidTooltip(tooltip, isPlayerSneaking, tank.getCapability());
-    }
-
-    public Float getTargetAngle() {
-        float angle;
-        BlockState state = getBlockState();
-        if (!CDGBlocks.HUGE_DIESEL_ENGINE.has(state))
-            return null;
-
-        Direction facing = state.getValue(FACING);
-        PoweredEngineShaftBlockEntity shaft = getShaft();
-        Direction.Axis facingAxis = facing.getAxis();
-        Direction.Axis axis;
-
-        if (shaft == null)
-            return null;
-
-        axis = KineticBlockEntityRenderer.getRotationAxisOf(shaft);
-        angle = KineticBlockEntityRenderer.getAngleForBe(shaft, shaft.getBlockPos(), axis);
-        if (axis == facingAxis)
-            return null;
-        if (axis.isHorizontal() && (facingAxis == Direction.Axis.X ^ facing.getAxisDirection() == Direction.AxisDirection.POSITIVE))
-            angle *= -1;
-        if (axis == Direction.Axis.X && facing == Direction.DOWN)
-            angle *= -1;
-        return angle;
     }
 
     @Override

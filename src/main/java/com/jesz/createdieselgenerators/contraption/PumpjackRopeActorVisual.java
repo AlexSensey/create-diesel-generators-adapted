@@ -46,7 +46,7 @@ public class PumpjackRopeActorVisual extends ActorVisual {
 
     @Override
     public void beginFrame() {
-        BlockPos hole = PumpjackHeadMovementBehaviour.findHoleForRendering(context);
+        BlockPos hole = PumpjackHeadMovementBehaviourClient.findHole(context);
         if (hole == null || context.position == null
                 || !(context.contraption instanceof BearingContraption bearingContraption)
                 || !(context.contraption.entity instanceof ControlledContraptionEntity entity)) {
