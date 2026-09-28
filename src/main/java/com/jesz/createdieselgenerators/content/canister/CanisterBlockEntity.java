@@ -81,7 +81,7 @@ public class CanisterBlockEntity extends SmartBlockEntity implements IHaveGoggle
     public void setComponentPatch(DataComponentPatch componentPatch) {
         this.componentPatch = componentPatch;
         Optional<? extends SimpleFluidContent> content = Optional.ofNullable(
-                componentPatch.getPatch(CDGDataComponents.FLUID_CONTENTS)).flatMap(value -> value);
+                componentPatch.getPatch(CDGDataComponents.FLUID_CONTENTS));
         if (content == null || content.isEmpty())
             return;
 

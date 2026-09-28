@@ -7,8 +7,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.foundation.blockEntity.renderer.SafeBlockEntityRenderer;
-import dev.engine_room.flywheel.api.visualization.VisualizationManager;
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import dev.engine_room.create_flywheel.api.visualization.VisualizationManager;
+import dev.engine_room.create_flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.api.math.AngleHelper;
 import net.createmod.catnip.impl.client.render.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -115,7 +115,7 @@ public class HugeDieselEngineRenderer extends SafeBlockEntityRenderer<HugeDiesel
         ms.translate(-.5, -.5, -.5);
         ms.translate(0, piston, 0);
         ms.translate(0, 4 / 16f, 8 / 16f);
-        ms.mulPose(Axis.XP.rotationDegrees(sine2 * 23f));
+        ms.rotate(Axis.XP.rotationDegrees(sine2 * 23f));
         ms.translate(0, -4 / 16f, -8 / 16f);
         submitPart(CDGPartialModels.ENGINE_PISTON_LINKAGE, ms, collector, state.lightCoords);
         ms.popPose();
@@ -127,7 +127,7 @@ public class HugeDieselEngineRenderer extends SafeBlockEntityRenderer<HugeDiesel
             ms.translate(.5, .5, .5);
             float connectorAngle = -angle + Mth.HALF_PI
                     - (facingAxis.isVertical() ? Mth.PI : 0);
-            ms.mulPose(Axis.XP.rotation(connectorAngle));
+            ms.rotate(Axis.XP.rotation(connectorAngle));
             ms.translate(-.5, -.5, -.5);
             submitPart(CDGPartialModels.ENGINE_PISTON_CONNECTOR, ms, collector, state.lightCoords);
             ms.popPose();
@@ -136,10 +136,10 @@ public class HugeDieselEngineRenderer extends SafeBlockEntityRenderer<HugeDiesel
 
     private static void transform(PoseStack ms, Direction facing, boolean roll90) {
         ms.translate(.5, .5, .5);
-        ms.mulPose(Axis.YP.rotationDegrees(AngleHelper.horizontalAngle(facing)));
-        ms.mulPose(Axis.XP.rotationDegrees(AngleHelper.verticalAngle(facing) + 90));
+        ms.rotate(Axis.YP.rotationDegrees(AngleHelper.horizontalAngle(facing)));
+        ms.rotate(Axis.XP.rotationDegrees(AngleHelper.verticalAngle(facing) + 90));
         if (roll90)
-            ms.mulPose(Axis.YP.rotationDegrees(-90));
+            ms.rotate(Axis.YP.rotationDegrees(-90));
         ms.translate(-.5, -.5, -.5);
     }
 
@@ -149,11 +149,11 @@ public class HugeDieselEngineRenderer extends SafeBlockEntityRenderer<HugeDiesel
         ms.pushPose();
         ms.translate(.5, .5, .5);
         if (facing.getAxis().isVertical()) {
-            ms.mulPose(Axis.ZP.rotationDegrees(90));
-            ms.mulPose(Axis.YP.rotationDegrees(
+            ms.rotate(Axis.ZP.rotationDegrees(90));
+            ms.rotate(Axis.YP.rotationDegrees(
                     facing.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 270 : 90));
         } else {
-            ms.mulPose(Axis.YP.rotationDegrees(
+            ms.rotate(Axis.YP.rotationDegrees(
                     facing.getAxis() == Direction.Axis.X ? facing.toYRot() : facing.toYRot() + 180));
         }
         ms.translate(-.5, -.5, -.5);

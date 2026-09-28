@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.141'
+    id 'net.neoforged.moddev' version '2.0.147'
     id 'idea'
 }
 
@@ -49,11 +49,8 @@ def sanitizeCreateAdaptedRuntime = tasks.register('sanitizeCreateAdaptedRuntime'
 // on task execution order after upgrading the Create dependency.
 def extractCreateAdaptedLibraries = tasks.register('extractCreateAdaptedLibraries', Copy) {
     dependsOn(verifyCreateAdaptedDependencies)
-    from(zipTree(createAdaptedJar)) {
-        include 'META-INF/jarjar/Registrate-*.jar'
-        eachFile { details -> details.path = 'registrate-adapted.jar' }
-        includeEmptyDirs = false
-    }
+    from(new File(createAdaptedPonderJar.parentFile, 'Registrate-MC1.21-1.3.0+67.jar'))
+    rename { 'registrate-adapted.jar' }
     into(extractedRegistrateJar.get().asFile.parentFile)
 }
 
@@ -310,7 +307,6 @@ dependencies {
     implementation("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
     compileOnly("cc.tweaked:cc-tweaked-${minecraft_version}-core-api:${cc_tweaked_version}")
     compileOnly("cc.tweaked:cc-tweaked-${minecraft_version}-forge-api:${cc_tweaked_version}")
-    compileOnly("cc.tweaked:cc-tweaked-${minecraft_version}-forge:${cc_tweaked_version}") { transitive = false }
 
     compileOnly("curse.maven:selene-499980:7522321") { transitive = false }
     annotationProcessor "org.spongepowered:mixin:0.8.5:processor"

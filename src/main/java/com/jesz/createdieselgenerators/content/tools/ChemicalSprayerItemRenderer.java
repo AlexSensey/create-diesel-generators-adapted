@@ -6,7 +6,7 @@ import com.mojang.math.Axis;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import dev.engine_room.create_flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.api.client.animation.AnimationTickHolder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -30,7 +30,7 @@ public class ChemicalSprayerItemRenderer extends CustomRenderedItemModelRenderer
         angle %= 360;
 
         ms.pushPose();
-        ms.mulPose(Axis.ZP.rotationDegrees(angle));
+        ms.rotate(Axis.ZP.rotationDegrees(angle));
         ms.translate(0.5, 0.5, 0.53125);
         com.jesz.createdieselgenerators.foundation.PartialBufferCompatibility
                 .partial(COG, Blocks.AIR.defaultBlockState())

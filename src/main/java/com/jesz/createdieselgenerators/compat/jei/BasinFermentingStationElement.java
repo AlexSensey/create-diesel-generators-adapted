@@ -30,7 +30,7 @@ public class BasinFermentingStationElement extends AnimatedKinetics {
                 .submit(graphics);
         blockElement(CDGPartialModels.SMALL_GAUGE_DIAL).atLocal(0.5625f, 0.375f, 0.5625f).at(xOffset, yOffset)
                 .scale(scale)
-                .rotate(0, 0, getCurrentAngle()/4)
+                .rotateBlock(0, 0, getCurrentAngle()/4)
                 .submit(graphics);
     }
 }

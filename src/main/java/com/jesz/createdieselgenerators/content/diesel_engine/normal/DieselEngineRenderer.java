@@ -6,7 +6,7 @@ import com.jesz.createdieselgenerators.foundation.ScrollOptionOverlayRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.content.kinetics.base.ShaftRenderer;
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import dev.engine_room.create_flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.impl.client.render.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.BlockModelRenderState;
@@ -94,13 +94,13 @@ public class DieselEngineRenderer extends ShaftRenderer<DieselEngineBlockEntity>
         ms.pushPose();
         ms.translate(.5, .5, .5);
         if (facing.getAxis().isHorizontal()) {
-            ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(facing.toYRot()));
+            ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(facing.toYRot()));
         } else if (piston) {
-            ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(facing == Direction.DOWN ? 180 : 270));
+            ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(facing == Direction.DOWN ? 180 : 270));
             if (facing == Direction.DOWN)
-                ms.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(180));
+                ms.rotate(com.mojang.math.Axis.ZP.rotationDegrees(180));
         } else {
-            ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(
+            ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(
                     facing.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 270 : 180));
         }
         ms.translate(-.5, -.5, -.5);

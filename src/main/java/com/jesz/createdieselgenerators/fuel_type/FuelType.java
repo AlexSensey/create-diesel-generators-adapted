@@ -7,7 +7,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.RegistryCodecs;
+import net.minecraft.core.registries.codec.RegistryCodecs;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
@@ -15,7 +15,7 @@ import net.minecraft.world.level.material.Fluid;
 public record FuelType(HolderSet<Fluid> fluid, PerEngineProperties normal, PerEngineProperties modular, PerEngineProperties huge, float soundPitch, float burnerStrength) {
 
     public static final Codec<FuelType> CODEC = RecordCodecBuilder.create(i -> i.group(
-            RegistryCodecs.homogeneousList(Registries.FLUID).fieldOf("fluid").forGetter(FuelType::fluid),
+            RegistryCodecs.holderSet(Registries.FLUID).fieldOf("fluid").forGetter(FuelType::fluid),
             PerEngineProperties.CODEC.fieldOf("normal").forGetter(FuelType::normal),
             PerEngineProperties.CODEC.fieldOf("modular").forGetter(FuelType::modular),
             PerEngineProperties.CODEC.fieldOf("huge").forGetter(FuelType::huge),
@@ -26,7 +26,7 @@ public record FuelType(HolderSet<Fluid> fluid, PerEngineProperties normal, PerEn
     // Since the client doesn't have the tags when it joins a server and receives fuel types, this different codec is needed to not cause an error when joining a server.
     // this codec sends all the fluids, instead of sometimes sending just the tag.
     public static final Codec<FuelType> NCODEC = RecordCodecBuilder.create(i -> i.group(
-            RegistryCodecs.homogeneousList(Registries.FLUID).fieldOf("fluid").forGetter(type -> HolderSet.direct(type.fluid.stream().toList())),
+            RegistryCodecs.holderSet(Registries.FLUID).fieldOf("fluid").forGetter(type -> HolderSet.direct(type.fluid.stream().toList())),
             PerEngineProperties.CODEC.fieldOf("normal").forGetter(FuelType::normal),
             PerEngineProperties.CODEC.fieldOf("modular").forGetter(FuelType::modular),
             PerEngineProperties.CODEC.fieldOf("huge").forGetter(FuelType::huge),

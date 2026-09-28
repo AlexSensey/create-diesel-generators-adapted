@@ -49,10 +49,10 @@ public class BurnerRenderer extends ShaftRenderer<BurnerBlockEntity> {
                                    BlockEntityRenderState state, PoseStack ms, SubmitNodeCollector collector) {
         ms.pushPose();
         ms.translate(.5, .5, .5);
-        ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(yRotation));
+        ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(yRotation));
         ms.translate(-.5, -.5, -.5);
         ms.translate(x, .25, .5);
-        ms.mulPose(com.mojang.math.Axis.XP.rotationDegrees(rotation));
+        ms.rotate(com.mojang.math.Axis.XP.rotationDegrees(rotation));
         collector.submitBlockModel(ms, RenderTypes.cutoutMovingBlock(), List.of(dial),
                 BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         ms.popPose();

@@ -25,7 +25,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import com.simibubi.create.compat.neoforge263.fluids.capability.IFluidHandler;
 
 import java.util.function.Supplier;
 

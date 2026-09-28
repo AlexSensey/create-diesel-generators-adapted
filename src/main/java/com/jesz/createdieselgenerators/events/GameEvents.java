@@ -71,8 +71,16 @@ public final class GameEvents {
                                 .map(holder -> holder.value())
                                 .orElse(null);
                         if (type != null)
-                            ReverseLootTable.ALL.computeIfAbsent(lootItem.getItem().value(), ignored -> new ArrayList<>())
-                                    .add(type);
+                            // 26.3 loads loot tables in parallel. Publish immutable snapshots
+                            // atomically so concurrent writers and filter readers are safe.
+                            ReverseLootTable.ALL.compute(lootItem.getItem().value(), (item, existing) -> {
+                                if (existing != null && existing.contains(type))
+                                    return existing;
+                                List<EntityType<?>> types = existing == null
+                                        ? new ArrayList<>() : new ArrayList<>(existing);
+                                types.add(type);
+                                return List.copyOf(types);
+                            });
                     }
                 }));
     }

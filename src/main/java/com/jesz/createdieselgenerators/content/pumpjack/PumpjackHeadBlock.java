@@ -20,12 +20,6 @@ public class PumpjackHeadBlock extends AttachedActorBlock {
         super(properties);
     }
 
-    public static final MapCodec<PumpjackHeadBlock> CODEC = simpleCodec(PumpjackHeadBlock::new);
-
-    @Override
-    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
-        return CODEC;
-    }
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {

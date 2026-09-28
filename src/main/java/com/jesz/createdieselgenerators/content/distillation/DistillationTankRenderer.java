@@ -86,13 +86,13 @@ public class DistillationTankRenderer extends SafeBlockEntityRenderer<Distillati
 
         for (Direction direction : Iterate.horizontalDirections) {
             ms.pushPose();
-            ms.mulPose(Axis.YP.rotationDegrees(-direction.toYRot() - 90));
+            ms.rotate(Axis.YP.rotationDegrees(-direction.toYRot() - 90));
             ms.translate(-.5f, -.5f, -.5f);
             ms.translate(state.width / 2f - 6 / 16f, 0, 0);
             collector.submitBlockModel(ms, RenderTypes.cutoutMovingBlock(), List.of(gauge),
                     BlockModelRenderState.EMPTY_TINTS, light, OverlayTexture.NO_OVERLAY, 0);
             ms.translate(0, dialPivotY, dialPivotZ);
-            ms.mulPose(Axis.XP.rotationDegrees(-145 * state.progress + 90));
+            ms.rotate(Axis.XP.rotationDegrees(-145 * state.progress + 90));
             ms.translate(0, -dialPivotY, -dialPivotZ);
             collector.submitBlockModel(ms, RenderTypes.cutoutMovingBlock(), List.of(dial),
                     BlockModelRenderState.EMPTY_TINTS, light, OverlayTexture.NO_OVERLAY, 0);

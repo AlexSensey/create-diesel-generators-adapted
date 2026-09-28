@@ -25,7 +25,6 @@ public class StrutYourStuffRegistryEntries {
 
     public static final BlockEntityEntry<StrutBlockEntity> ANDESITE_GIRDER_STRUT_BLOCK_ENTITY = REGISTRATE
             .blockEntity("andesite_girder_strut", StrutBlockEntity::new)
-            .visual(StrutYourStuffClient::visualFactory, false)
             .validBlocks(ANDESITE_GIRDER_STRUT)
             .renderer(StrutYourStuffClient::rendererFactory)
             .register();

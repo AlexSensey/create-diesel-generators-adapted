@@ -7,7 +7,7 @@ import com.jesz.createdieselgenerators.fuel_type.FuelType;
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import com.simibubi.create.compat.neoforge263.fluids.capability.templates.FluidTank;
 
 public interface IEngine {
 

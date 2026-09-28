@@ -22,7 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
+import com.simibubi.create.compat.neoforge263.items.wrapper.InvWrapper;
 
 public class EntityFilteringBehaviour extends FilteringBehaviour {
     public static final BehaviourType<FilteringBehaviour> TYPE = new BehaviourType<>();
@@ -56,7 +56,7 @@ public class EntityFilteringBehaviour extends FilteringBehaviour {
                             stack -> ItemStack.isSameItemSameComponents(stack, getFilter(side)), true)
                     .isEmpty())
                 player.getInventory()
-                        .placeItemBackInInventory(getFilter(side));
+                        .placeItemBackInInventory(getFilter(side), net.minecraft.util.Prediction.PREDICTED);
         }
 
         if (toApply.getItem() instanceof EntityFilterItem)

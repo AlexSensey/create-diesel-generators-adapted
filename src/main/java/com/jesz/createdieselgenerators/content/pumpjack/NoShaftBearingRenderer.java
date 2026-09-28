@@ -57,10 +57,10 @@ public class NoShaftBearingRenderer<T extends KineticBlockEntity & IBearingBlock
 
         ms.pushPose();
         ms.translate(.5, .5, .5);
-        ms.mulPose(rotation(facing.getAxis(), angle));
+        ms.rotate(rotation(facing.getAxis(), angle));
         if (facing.getAxis().isHorizontal())
-            ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(AngleHelper.horizontalAngle(facing.getOpposite())));
-        ms.mulPose(com.mojang.math.Axis.XP.rotationDegrees(-90 - AngleHelper.verticalAngle(facing)));
+            ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(AngleHelper.horizontalAngle(facing.getOpposite())));
+        ms.rotate(com.mojang.math.Axis.XP.rotationDegrees(-90 - AngleHelper.verticalAngle(facing)));
         ms.translate(-.5, -.5, -.5);
         collector.submitBlockModel(ms, RenderTypes.cutoutMovingBlock(), top, BlockModelRenderState.EMPTY_TINTS,
                 state.lightCoords, OverlayTexture.NO_OVERLAY, 0);

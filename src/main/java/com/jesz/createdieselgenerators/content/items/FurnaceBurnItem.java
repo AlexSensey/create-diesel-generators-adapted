@@ -1,18 +1,14 @@
 package com.jesz.createdieselgenerators.content.items;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.level.block.entity.FuelValues;
+import net.minecraft.world.item.component.CookingFuel;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ResolvableInt;
+import net.minecraft.world.level.storage.loot.providers.number.floats.ResolvableFloat;
 
 public class FurnaceBurnItem extends Item {
-    int burnTime;
     public FurnaceBurnItem(Properties properties, int burnTime) {
-        super(properties);
-        this.burnTime = burnTime;
-    }
-    @Override
-    public int getBurnTime(ItemStack stack, RecipeType<?> recipeType, FuelValues fuelValues) {
-        return burnTime;
+        super(properties.component(DataComponents.COOKING_FUEL,
+                new CookingFuel(new ResolvableInt.Constant(burnTime), new ResolvableFloat.Constant(1f))));
     }
 }

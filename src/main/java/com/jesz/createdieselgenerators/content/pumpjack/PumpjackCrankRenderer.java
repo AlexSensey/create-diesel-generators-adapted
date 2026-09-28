@@ -7,7 +7,7 @@ import com.jesz.createdieselgenerators.foundation.ScrollOptionOverlayRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.content.kinetics.base.ShaftRenderer;
 
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import dev.engine_room.create_flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.api.math.AngleHelper;
 import net.createmod.catnip.impl.client.render.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -81,20 +81,20 @@ public class PumpjackCrankRenderer extends ShaftRenderer<PumpjackCrankBlockEntit
             ms.translate(.5, 1.25, 0);
         else {
             ms.translate(0, 1.25, .5);
-            ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90));
+            ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(90));
         }
-        ms.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(angle));
+        ms.rotate(com.mojang.math.Axis.ZP.rotationDegrees(angle));
         submitPart(crankModel, state, ms, collector);
         ms.popPose();
 
         ms.pushPose();
         if (isXAxis) {
             ms.translate(.5 + cos, 1.25 + sin, 0);
-            ms.mulPose(com.mojang.math.Axis.ZP.rotationDegrees((float) Math.toDegrees(Math.atan2(dstY, dstX)) - 90));
+            ms.rotate(com.mojang.math.Axis.ZP.rotationDegrees((float) Math.toDegrees(Math.atan2(dstY, dstX)) - 90));
         } else {
             ms.translate(0, 1.25 + sin, .5 + cos);
-            ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90));
-            ms.mulPose(com.mojang.math.Axis.ZP.rotationDegrees((float) Math.toDegrees(Math.atan2(dstZ, dstY))));
+            ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(90));
+            ms.rotate(com.mojang.math.Axis.ZP.rotationDegrees((float) Math.toDegrees(Math.atan2(dstZ, dstY))));
         }
         submitPart(rodModel, state, ms, collector);
         ms.popPose();

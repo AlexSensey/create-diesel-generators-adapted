@@ -31,17 +31,17 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
-import net.neoforged.neoforge.fluids.capability.wrappers.FluidBucketWrapper;
+import com.simibubi.create.compat.neoforge263.fluids.capability.wrappers.FluidBucketWrapper;
 import net.neoforged.neoforge.transfer.fluid.ItemAccessFluidHandler;
-import net.neoforged.neoforge.registries.DataPackRegistryEvent;
+import net.neoforged.neoforge.registries.NewDatapackRegistryEvent;
 
 @EventBusSubscriber(modid = CreateDieselGenerators.ID)
 public final class CommonModEvents {
     private CommonModEvents() {}
 
     @SubscribeEvent
-    public static void registerDataPackRegistries(DataPackRegistryEvent.NewRegistry event) {
-        event.dataPackRegistry(CDGRegistries.FUEL_TYPE, FuelType.CODEC, FuelType.NCODEC);
+    public static void registerDataPackRegistries(NewDatapackRegistryEvent event) {
+        event.worldRegistry(CDGRegistries.FUEL_TYPE, FuelType.CODEC, FuelType.NCODEC);
     }
 
     @SubscribeEvent

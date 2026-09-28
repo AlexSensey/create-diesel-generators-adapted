@@ -44,7 +44,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import java.util.HashMap;
 import java.util.Map;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import com.simibubi.create.compat.neoforge263.fluids.capability.IFluidHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,7 +97,7 @@ public class DistillationTankBlock extends Block implements IBE<DistillationTank
                     fTank.fill(stackInTank, IFluidHandler.FluidAction.EXECUTE);
             }
             if (!context.getPlayer().isCreative())
-                context.getPlayer().getInventory().placeItemBackInInventory(DISTILLATION_CONTROLLER.asStack(width*width));
+                context.getPlayer().getInventory().placeItemBackInInventory(DISTILLATION_CONTROLLER.asStack(width*width), net.minecraft.util.Prediction.PREDICTED);
         }
 
         return InteractionResult.SUCCESS;

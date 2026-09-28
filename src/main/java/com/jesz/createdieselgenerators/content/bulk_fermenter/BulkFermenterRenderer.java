@@ -7,7 +7,7 @@ import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
 import com.simibubi.create.foundation.blockEntity.renderer.SafeBlockEntityRenderer;
 import com.simibubi.create.foundation.item.SmartInventory;
-import dev.engine_room.flywheel.lib.transform.TransformStack;
+import dev.engine_room.create_flywheel.lib.transform.TransformStack;
 import net.createmod.catnip.api.data.Iterate;
 import net.createmod.catnip.api.client.render.CachedBuffers;
 import net.createmod.catnip.impl.client.render.MultiBufferSource;
@@ -65,13 +65,13 @@ public class BulkFermenterRenderer extends SafeBlockEntityRenderer<BulkFermenter
         ms.translate(fermenterState.width / 2f, .5, fermenterState.width / 2f);
         for (Direction direction : Iterate.horizontalDirections) {
             ms.pushPose();
-            ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(direction.toYRot()));
+            ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(direction.toYRot()));
             ms.translate(-.5, -.5, -.5);
             ms.translate(fermenterState.width / 2f - 6 / 16f, 0, 0);
             collector.submitBlockModel(ms, RenderTypes.cutoutMovingBlock(), List.of(gauge),
                     BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
             ms.translate(0, dialPivotY, dialPivotZ);
-            ms.mulPose(com.mojang.math.Axis.XP.rotationDegrees(-180 * fermenterState.progress + 90));
+            ms.rotate(com.mojang.math.Axis.XP.rotationDegrees(-180 * fermenterState.progress + 90));
             ms.translate(0, -dialPivotY, -dialPivotZ);
             collector.submitBlockModel(ms, RenderTypes.cutoutMovingBlock(), List.of(dial),
                     BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);

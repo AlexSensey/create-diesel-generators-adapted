@@ -187,7 +187,7 @@ public class LighterItem extends Item implements FueledToolItem {
             return false;
 
         Vec3 entityPos = itemEntity.getPosition(1);
-        FluidState fState = itemEntity.level().getFluidState(new BlockPos(BlockPos.containing(entityPos)));
+        FluidState fState = itemEntity.level().getFluidState(BlockPos.containing(entityPos));
         if (fState.is(Fluids.WATER) || fState.is(Fluids.FLOWING_WATER)) {
             item.set(CDGDataComponents.LIGHTER_STATE, LighterState.OPEN);
             itemEntity.level().playLocalSound(entityPos.x, entityPos.y, entityPos.z, SoundEvents.CANDLE_EXTINGUISH, SoundSource.BLOCKS, 1f, 1f, false);

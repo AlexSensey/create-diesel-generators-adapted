@@ -45,8 +45,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import com.simibubi.create.compat.neoforge263.fluids.capability.IFluidHandler;
+import com.simibubi.create.compat.neoforge263.fluids.capability.IFluidHandlerItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -74,7 +74,7 @@ public class ModularDieselEngineBlock extends HorizontalKineticBlock implements 
     }
 
     @Override
-    public boolean canConnectRedstone(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
+    public boolean shouldRedstoneWireConnectTo(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
         return true;
     }
 
@@ -180,7 +180,7 @@ public class ModularDieselEngineBlock extends HorizontalKineticBlock implements 
                 return;
 
             if (!context.getPlayer().isCreative())
-                context.getPlayer().getInventory().placeItemBackInInventory(controller.upgrade.getItem());
+                context.getPlayer().getInventory().placeItemBackInInventory(controller.upgrade.getItem(), net.minecraft.util.Prediction.PREDICTED);
 
             controller.setUpgrade(EngineUpgrades.EMPTY);
             IWrenchable.playRotateSound(context.getLevel(), context.getClickedPos());

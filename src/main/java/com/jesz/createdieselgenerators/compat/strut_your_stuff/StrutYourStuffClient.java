@@ -1,13 +1,12 @@
 package com.jesz.createdieselgenerators.compat.strut_your_stuff;
 
-import com.cake.struts.compat.flywheel.StrutFlywheelVisual;
 import com.cake.struts.content.block.StrutBlockEntity;
 import com.cake.struts.content.block.StrutBlockEntityRenderer;
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateItemModelProvider;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
-import dev.engine_room.flywheel.lib.visualization.SimpleBlockEntityVisualizer;
+import dev.engine_room.create_flywheel.lib.visualization.SimpleBlockEntityVisualizer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
@@ -22,9 +21,6 @@ public final class StrutYourStuffClient {
         return RenderType::cutout;
     }
 
-    public static SimpleBlockEntityVisualizer.Factory<StrutBlockEntity> visualFactory() {
-        return StrutFlywheelVisual::new;
-    }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static NonNullFunction rendererFactory() {

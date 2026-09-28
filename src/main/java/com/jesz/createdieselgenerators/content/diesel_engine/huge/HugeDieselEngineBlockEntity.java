@@ -36,8 +36,8 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import com.simibubi.create.compat.neoforge263.fluids.capability.IFluidHandler;
+import com.simibubi.create.compat.neoforge263.fluids.capability.templates.FluidTank;
 
 import java.lang.ref.WeakReference;
 import java.util.List;

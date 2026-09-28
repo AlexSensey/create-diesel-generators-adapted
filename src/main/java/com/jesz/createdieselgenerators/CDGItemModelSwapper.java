@@ -208,7 +208,7 @@ public final class CDGItemModelSwapper {
             this.reuseTransform = reuseTransform;
         }
 
-        @Override public List<BakedQuad> prepareQuadList() { return delegate.prepareQuadList(); }
+        @Override public void setQuads(net.minecraft.client.resources.model.geometry.ItemQuads quads) { delegate.setQuads(quads); }
         @Override public void setUsesBlockLight(boolean value) { delegate.setUsesBlockLight(value); }
         @Override public void setExtents(Supplier<Vector3fc[]> value) { delegate.setExtents(value); }
         @Override public void setParticleMaterial(Material.Baked value) { delegate.setParticleMaterial(value); }

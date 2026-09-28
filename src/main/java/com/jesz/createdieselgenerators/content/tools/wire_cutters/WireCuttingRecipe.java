@@ -5,8 +5,8 @@ import com.simibubi.create.content.processing.recipe.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.recipe.StandardProcessingRecipe;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
+import com.simibubi.create.compat.neoforge263.items.ItemStackHandler;
+import com.simibubi.create.compat.neoforge263.items.wrapper.RecipeWrapper;
 
 public class WireCuttingRecipe extends StandardProcessingRecipe<WireCuttingRecipe.WireCuttingInv> {
     public WireCuttingRecipe(ProcessingRecipeParams params) {

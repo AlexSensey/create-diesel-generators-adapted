@@ -53,10 +53,10 @@ public class BasinLidRenderer extends SafeBlockEntityRenderer<BasinLidBlockEntit
 
         ms.pushPose();
         ms.translate(.5, .5, .5);
-        ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-lidState.facing.toYRot() + 180));
+        ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(-lidState.facing.toYRot() + 180));
         ms.translate(.5625f, -.375, 1.0625);
         ms.translate(-.5, -.5, -.5);
-        ms.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(lidState.progress * -90 + 90));
+        ms.rotate(com.mojang.math.Axis.ZP.rotationDegrees(lidState.progress * -90 + 90));
         collector.submitBlockModel(ms, RenderTypes.cutoutMovingBlock(), List.of(dial),
                 BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         ms.popPose();

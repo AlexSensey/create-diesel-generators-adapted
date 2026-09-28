@@ -2,7 +2,7 @@ package com.jesz.createdieselgenerators.content.tools.lighter;
 
 import com.jesz.createdieselgenerators.CreateDieselGenerators;
 import com.simibubi.create.foundation.utility.CreateLang;
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import dev.engine_room.create_flywheel.lib.model.baked.PartialModel;
 import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;

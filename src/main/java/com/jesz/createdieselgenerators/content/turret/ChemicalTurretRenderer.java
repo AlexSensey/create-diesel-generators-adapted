@@ -81,16 +81,16 @@ public class ChemicalTurretRenderer extends KineticBlockEntityRenderer<ChemicalT
         ms.pushPose();
         rotateAroundCenter(ms, horizontalRotation + 180);
         ms.translate(.5, 1.3125, .125);
-        ms.mulPose(com.mojang.math.Axis.XP.rotationDegrees(verticalRotation));
+        ms.rotate(com.mojang.math.Axis.XP.rotationDegrees(verticalRotation));
         if (cogRotation != 0)
-            ms.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(cogRotation));
+            ms.rotate(com.mojang.math.Axis.ZP.rotationDegrees(cogRotation));
         submitPart(part, state, ms, collector);
         ms.popPose();
     }
 
     private static void rotateAroundCenter(PoseStack ms, float degrees) {
         ms.translate(.5, .5, .5);
-        ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(degrees));
+        ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(degrees));
         ms.translate(-.5, -.5, -.5);
     }
 

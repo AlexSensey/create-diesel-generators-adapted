@@ -31,6 +31,7 @@ public class MultiBlockContainerBlockItem extends BlockItem {
     public InteractionResult place(BlockPlaceContext ctx) {
         if(type == null)
             type = ((IBE<?>) getBlock()).getBlockEntityType();
+        sanitizeBlockEntityData(ctx.getItemInHand());
         InteractionResult initialResult = super.place(ctx);
         if (!initialResult.consumesAction())
             return initialResult;
@@ -38,12 +39,7 @@ public class MultiBlockContainerBlockItem extends BlockItem {
         return initialResult;
     }
 
-    @Override
-    protected boolean updateCustomBlockEntityTag(BlockPos pos, Level level, Player player,
-                                                 ItemStack stack, BlockState state) {
-        MinecraftServer minecraftserver = level.getServer();
-        if (minecraftserver == null)
-            return false;
+    private void sanitizeBlockEntityData(ItemStack stack) {
         TypedEntityData<BlockEntityType<?>> blockEntityData = stack.get(DataComponents.BLOCK_ENTITY_DATA);
 
         if (blockEntityData != null) {
@@ -54,7 +50,6 @@ public class MultiBlockContainerBlockItem extends BlockItem {
             nbt.remove("LastKnownPos");
             stack.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(type, nbt));
         }
-        return super.updateCustomBlockEntityTag(pos, level, player, stack, state);
     }
 
     private <T extends BlockEntity & IMultiBlockEntityContainer> void tryMultiPlace(BlockPlaceContext ctx) {

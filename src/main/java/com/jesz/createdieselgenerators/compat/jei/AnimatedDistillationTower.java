@@ -36,7 +36,7 @@ public class AnimatedDistillationTower extends AnimatedKinetics {
                 .rotateBlock(0, 90, 0)
                 .scale(scale)
                 .submit(graphics);
-        blockElement(CDGPartialModels.DISTILLATION_GAUGE).atLocal(1, 1, 0.125f).at(xOffset, yOffset).rotate(0, -90, 0).scale(scale).submit(graphics);
-        blockElement(CDGPartialModels.DISTILLATION_GAUGE).atLocal(1-0.125f, 1, 1).at(xOffset, yOffset).rotate(0, 180, 0).scale(scale).submit(graphics);
+        blockElement(CDGPartialModels.DISTILLATION_GAUGE).atLocal(1, 1, 0.125f).at(xOffset, yOffset).rotateBlock(0, -90, 0).scale(scale).submit(graphics);
+        blockElement(CDGPartialModels.DISTILLATION_GAUGE).atLocal(1-0.125f, 1, 1).at(xOffset, yOffset).rotateBlock(0, 180, 0).scale(scale).submit(graphics);
     }
 }

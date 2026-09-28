@@ -42,8 +42,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import com.simibubi.create.compat.neoforge263.fluids.capability.IFluidHandler;
+import com.simibubi.create.compat.neoforge263.fluids.capability.IFluidHandlerItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Predicate;
@@ -63,7 +63,7 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
     }
 
     @Override
-    public boolean canConnectRedstone(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
+    public boolean shouldRedstoneWireConnectTo(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
         return true;
     }
     @Override
@@ -126,7 +126,7 @@ public class HugeDieselEngineBlock extends Block implements IBE<HugeDieselEngine
             if(be.upgrade != EngineUpgrades.EMPTY){
                 if(!context.getLevel().isClientSide()) {
                     if (!context.getPlayer().isCreative())
-                        context.getPlayer().getInventory().placeItemBackInInventory(be.upgrade.getItem());
+                        context.getPlayer().getInventory().placeItemBackInInventory(be.upgrade.getItem(), net.minecraft.util.Prediction.PREDICTED);
                     be.upgrade = EngineUpgrades.EMPTY;
                     be.sendData();
                     IWrenchable.playRotateSound(context.getLevel(), context.getClickedPos());

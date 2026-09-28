@@ -54,7 +54,7 @@ public final class ScrollOptionOverlayRenderer {
                 offset.y + normal.y / 32d + normal.y / 512d,
                 offset.z + normal.z / 32d + normal.z / 512d);
         rotateOverlay(ms, state, side);
-        ms.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(180));
+        ms.rotate(com.mojang.math.Axis.ZP.rotationDegrees(180));
         ms.scale(-1, 1, 1);
         collector.submitCustomGeometry(ms, RenderTypes.debugQuads(), ScrollOptionOverlayRenderer::renderFrame);
 
@@ -67,18 +67,18 @@ public final class ScrollOptionOverlayRenderer {
 
     private static void rotateOverlay(PoseStack ms, BlockState state, Direction face) {
         switch (face) {
-            case NORTH -> ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180));
-            case EAST -> ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90));
-            case WEST -> ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270));
-            case UP -> ms.mulPose(com.mojang.math.Axis.XP.rotationDegrees(270));
-            case DOWN -> ms.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90));
+            case NORTH -> ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(180));
+            case EAST -> ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(90));
+            case WEST -> ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(270));
+            case UP -> ms.rotate(com.mojang.math.Axis.XP.rotationDegrees(270));
+            case DOWN -> ms.rotate(com.mojang.math.Axis.XP.rotationDegrees(90));
             case SOUTH -> {}
         }
         if (!face.getAxis().isVertical() || !state.hasProperty(BlockStateProperties.FACING))
             return;
         Direction facing = state.getValue(BlockStateProperties.FACING);
         if (!facing.getAxis().isVertical())
-            ms.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(AngleHelper.horizontalAngle(facing) + 180));
+            ms.rotate(com.mojang.math.Axis.ZP.rotationDegrees(AngleHelper.horizontalAngle(facing) + 180));
     }
 
     private static void renderFrame(Pose pose, VertexConsumer consumer) {

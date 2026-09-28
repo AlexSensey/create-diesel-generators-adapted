@@ -7,8 +7,8 @@ import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringR
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
-import dev.engine_room.flywheel.lib.transform.PoseTransformStack;
-import dev.engine_room.flywheel.lib.transform.TransformStack;
+import dev.engine_room.create_flywheel.lib.transform.PoseTransformStack;
+import dev.engine_room.create_flywheel.lib.transform.TransformStack;
 import net.createmod.catnip.api.math.VecHelper;
 import net.minecraft.client.Minecraft;
 import net.createmod.catnip.impl.client.render.MultiBufferSource;
@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import dev.engine_room.create_flywheel.lib.model.baked.PartialModel;
 
 import java.util.List;
 import java.util.HashMap;

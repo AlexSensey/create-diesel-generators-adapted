@@ -104,8 +104,15 @@ public class OilChunksSavedData extends SavedData {
         }
 
         double scale = CDGConfig.OIL_CHUNK_SCALE.get();
-        PerlinNoise noise = PerlinNoise.create(RandomSource.create(seed), List.of(-2, -1, 0, 1));
-        float amount = (float) (noise.getValue(chunk.x() * scale, 0, chunk.z() * scale) + 1) / 1.6f;
+        // Preserve the four original octave seeds, frequencies and weights.
+        var random = RandomSource.create(seed).forkPositional();
+        var builder = net.minecraft.world.level.levelgen.synth.NoiseStack.builder();
+        for (int octave = -2; octave <= 1; octave++) {
+            builder.add(new PerlinNoise(random.fromHashOf("octave_" + octave)),
+                    Math.pow(2, octave), (float) (Math.pow(2, 1 - octave) / 15.0));
+        }
+        var noise = builder.build();
+        float amount = (float) (noise.get(chunk.x() * scale, 0, chunk.z() * scale) + 1) / 1.6f;
 
         boolean isHighInOil = false;
         boolean isDenied = false;

@@ -74,7 +74,7 @@ public class ChemicalSprayerProjectileEntity extends AbstractHurtingProjectile {
             hit.getEntity().hurt(damageSources().source(DamageTypes.IN_FIRE, this, owner), 2);
         } else if(cooling) {
             hit.getEntity().clearFire();
-            if (hit.getEntity().getType() == EntityTypes.ENDERMAN)
+            if (hit.getEntity() instanceof net.minecraft.world.entity.monster.Enderman)
                 hit.getEntity().hurt(damageSources().source(DamageTypes.GENERIC, this, owner), 0.5f);
         }
         else if (stack.getFluid().isSame(AllFluids.POTION.get())) {

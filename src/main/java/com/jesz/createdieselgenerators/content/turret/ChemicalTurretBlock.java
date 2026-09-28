@@ -108,7 +108,7 @@ public class ChemicalTurretBlock extends KineticBlock implements IBE<ChemicalTur
                 if(!context.getLevel().isClientSide())
                     be.notifyUpdate();
                 if(!context.getPlayer().isCreative())
-                    context.getPlayer().getInventory().placeItemBackInInventory(CDGItems.LIGHTER.asStack());
+                    context.getPlayer().getInventory().placeItemBackInInventory(CDGItems.LIGHTER.asStack(), net.minecraft.util.Prediction.PREDICTED);
                 IWrenchable.playRotateSound(context.getLevel(), context.getClickedPos());
                 return InteractionResult.SUCCESS;
             }

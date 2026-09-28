@@ -49,7 +49,7 @@ public class ChemicalSprayerItem extends Item implements CustomArmPoseItem, Fuel
 
     @Override
     public boolean shouldUseCrossbowHold(ItemStack stack, LivingEntity player, InteractionHand hand) {
-        return !player.swinging;
+        return !player.isSwinging();
     }
     @Override
     public int getBarColor(ItemStack stack) {

@@ -20,9 +20,6 @@ public class CanisterRenderer extends SmartBlockEntityRenderer<CanisterBlockEnti
             return;
         CachedBuffers.block(blockEntity.getBlockState())
                 .light(light)
-                .renderInto(ms, buffer.getBuffer(RenderTypes.cutoutMovingBlock()));
-        CachedBuffers.block(blockEntity.getBlockState())
-                .light(light)
-                .renderInto(ms, buffer.getBuffer(RenderTypes.glint()));
+                .renderInto(ms, buffer.getBuffer(RenderTypes.entitySolidGlint(net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS)));
     }
 }

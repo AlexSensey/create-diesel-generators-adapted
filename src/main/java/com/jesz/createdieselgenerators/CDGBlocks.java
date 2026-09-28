@@ -53,7 +53,7 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ConstantValue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -198,10 +198,10 @@ public class CDGBlocks {
                 LootItemCondition.Builder survivesExplosion = ExplosionCondition.survivesExplosion();
                 lt.add(block, builder.withPool(LootPool.lootPool()
                                 .when(survivesExplosion)
-                                .setRolls(ConstantValue.exactly(1))
+                                .setRolls(net.minecraft.core.Holder.direct(new ConstantValue(1)))
                                 .add(LootItem.lootTableItem(CDGItems.DISTILLATION_CONTROLLER)))
                         .withPool(LootPool.lootPool().when(survivesExplosion)
-                                .setRolls(ConstantValue.exactly(1))
+                                .setRolls(net.minecraft.core.Holder.direct(new ConstantValue(1)))
                                 .add(LootItem.lootTableItem(AllBlocks.FLUID_TANK))));
             })
             .onRegister(CreateRegistrate.connectedTextures(com.jesz.createdieselgenerators.content.distillation.DistillationTankCTBehavior::new))
@@ -309,7 +309,7 @@ public class CDGBlocks {
                     .blockstate((c, p) -> {})
                     .loot((p, b) -> p.add(b, p.createSingleItemTable(ANDESITE_GIRDER.get())
                             .withPool(p.applyExplosionCondition(AllBlocks.SHAFT.get(), LootPool.lootPool()
-                                    .setRolls(ConstantValue.exactly(1.0F))
+                                    .setRolls(net.minecraft.core.Holder.direct(new ConstantValue(1)))
                                     .add(LootItem.lootTableItem(AllBlocks.SHAFT.get()))))))
                     .register();
 

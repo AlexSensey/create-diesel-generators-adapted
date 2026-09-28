@@ -6,7 +6,7 @@ import com.jesz.createdieselgenerators.foundation.ScrollOptionOverlayRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.content.kinetics.base.ShaftRenderer;
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import dev.engine_room.create_flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.impl.client.render.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.BlockModelRenderState;
@@ -77,7 +77,7 @@ public class ModularDieselEngineRenderer extends ShaftRenderer<ModularDieselEngi
         Direction facing = be.getBlockState().getValue(FACING);
         ms.pushPose();
         ms.translate(.5, .5, .5);
-        ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(facing.toYRot()));
+        ms.rotate(com.mojang.math.Axis.YP.rotationDegrees(facing.toYRot()));
         ms.translate(-.5, -.5, -.5);
         collector.submitBlockModel(ms, piston ? RenderTypes.solidMovingBlock() : RenderTypes.cutoutMovingBlock(), List.of(part),
                 BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);

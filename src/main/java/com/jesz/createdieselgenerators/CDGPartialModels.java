@@ -1,6 +1,6 @@
 package com.jesz.createdieselgenerators;
 
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import dev.engine_room.create_flywheel.lib.model.baked.PartialModel;
 
 public class CDGPartialModels {
     public static final PartialModel MODULAR_ENGINE_PISTONS_0 = model("block/modular_diesel_engine/pistons/pistons_0");

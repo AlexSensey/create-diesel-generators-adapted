@@ -1,6 +1,6 @@
 package com.jesz.createdieselgenerators.foundation;
 
-import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import dev.engine_room.create_flywheel.lib.model.baked.PartialModel;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -55,17 +55,17 @@ public final class PartialBufferCompatibility {
         public LegacyBuffer translate(double x, double y, double z) { getTransforms().translate((float) x, (float) y, (float) z); return this; }
         public LegacyBuffer scale(float x, float y, float z) { getTransforms().scale(x, y, z); return this; }
         public LegacyBuffer transform(PoseStack stack) { getTransforms().last().pose().mul(stack.last().pose()); return this; }
-        public LegacyBuffer rotateX(float radians) { getTransforms().mulPose(Axis.XP.rotation(radians)); return this; }
-        public LegacyBuffer rotateXDegrees(float degrees) { getTransforms().mulPose(Axis.XP.rotationDegrees(degrees)); return this; }
-        public LegacyBuffer rotateYDegrees(float degrees) { getTransforms().mulPose(Axis.YP.rotationDegrees(degrees)); return this; }
-        public LegacyBuffer rotateZDegrees(float degrees) { getTransforms().mulPose(Axis.ZP.rotationDegrees(degrees)); return this; }
+        public LegacyBuffer rotateX(float radians) { getTransforms().rotate(Axis.XP.rotation(radians)); return this; }
+        public LegacyBuffer rotateXDegrees(float degrees) { getTransforms().rotate(Axis.XP.rotationDegrees(degrees)); return this; }
+        public LegacyBuffer rotateYDegrees(float degrees) { getTransforms().rotate(Axis.YP.rotationDegrees(degrees)); return this; }
+        public LegacyBuffer rotateZDegrees(float degrees) { getTransforms().rotate(Axis.ZP.rotationDegrees(degrees)); return this; }
         public LegacyBuffer rotateCentered(float radians, Direction direction) {
             center();
             float signed = direction.getAxisDirection() == Direction.AxisDirection.POSITIVE ? radians : -radians;
             switch (direction.getAxis()) {
-                case X -> getTransforms().mulPose(Axis.XP.rotation(signed));
-                case Y -> getTransforms().mulPose(Axis.YP.rotation(signed));
-                case Z -> getTransforms().mulPose(Axis.ZP.rotation(signed));
+                case X -> getTransforms().rotate(Axis.XP.rotation(signed));
+                case Y -> getTransforms().rotate(Axis.YP.rotation(signed));
+                case Z -> getTransforms().rotate(Axis.ZP.rotation(signed));
             }
             return uncenter();
         }

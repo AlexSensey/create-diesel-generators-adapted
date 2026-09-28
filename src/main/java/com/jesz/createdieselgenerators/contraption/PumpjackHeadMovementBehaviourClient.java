@@ -46,7 +46,7 @@ public final class PumpjackHeadMovementBehaviourClient {
             float length = (float) Math.sqrt(zDistance * zDistance + yDistance * yDistance);
             float angle = (float) (-entity.getAngle(partialTicks)
                     - Math.toDegrees(Math.atan2(yDistance, zDistance)) + 90);
-            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(angle));
+            poseStack.rotate(com.mojang.math.Axis.XP.rotationDegrees(angle));
             poseStack.scale(1, length, 1);
         } else {
             double xDistance = Mth.lerp(partialTicks, previousPosition.x, context.position.x) - hole.getX() - .5;
@@ -54,7 +54,7 @@ public final class PumpjackHeadMovementBehaviourClient {
             float length = (float) Math.sqrt(xDistance * xDistance + yDistance * yDistance);
             float angle = (float) (-entity.getAngle(partialTicks)
                     + Math.toDegrees(Math.atan2(yDistance, xDistance)) - 90);
-            poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(angle));
+            poseStack.rotate(com.mojang.math.Axis.ZP.rotationDegrees(angle));
             poseStack.scale(1, length, 1);
         }
         collector.submitBlockModel(poseStack, RenderTypes.cutoutMovingBlock(), List.of(rope),

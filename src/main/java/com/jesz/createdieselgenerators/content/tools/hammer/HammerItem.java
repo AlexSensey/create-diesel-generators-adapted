@@ -91,11 +91,11 @@ public class HammerItem extends Item {
             stack.remove(CDGDataComponents.PROCESSING_ITEM);
 
             if (recipe.isEmpty()) {
-                player.getInventory().placeItemBackInInventory(processingItem);
+                player.getInventory().placeItemBackInInventory(processingItem, net.minecraft.util.Prediction.PREDICTED);
                 return stack;
             }
             recipe.get().value().rollResults(level.getRandom());
-            player.getInventory().placeItemBackInInventory(recipe.get().value().assemble(hammerInv).copy());
+            player.getInventory().placeItemBackInInventory(recipe.get().value().assemble(hammerInv).copy(), net.minecraft.util.Prediction.PREDICTED);
             if (level instanceof ServerLevel sl)
                 stack.hurtAndBreak(1, sl, player, i -> {});
             return stack;
@@ -134,7 +134,7 @@ public class HammerItem extends Item {
                 return false;
 
             ItemStack processingItem = stack.get(CDGDataComponents.PROCESSING_ITEM).item();
-            player.getInventory().placeItemBackInInventory(processingItem);
+            player.getInventory().placeItemBackInInventory(processingItem, net.minecraft.util.Prediction.PREDICTED);
             stack.remove(CDGDataComponents.PROCESSING_ITEM);
             return true;
         }
