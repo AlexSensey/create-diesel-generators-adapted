@@ -1,3 +1,7 @@
+## 26.2-1.3.15-adapted-0.605
+
+Metadata-only compatibility release for Create: Adapted 1.x. Adds the [1.0,2.0) version range while retaining [6.0.11-adapted-0.987,). Runtime classes and assets are unchanged from 26.2-1.3.15-adapted-0.604. Startup/gameplay validation is still required.
+
 # Create Diesel Generators: Adapted changelog
 
 ## 26.2-1.3.15-adapted-0.6
